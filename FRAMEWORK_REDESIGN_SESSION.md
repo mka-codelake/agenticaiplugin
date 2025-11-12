@@ -2038,18 +2038,18 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
 
 ---
 
-### Iterationsplan - Zusammenfassung (NEU)
+### Iterationsplan - Zusammenfassung (AKTUELL)
 
 | Iteration | Umfang | Test-Projekt | Dauer | Status |
 |-----------|--------|--------------|-------|--------|
-| 1 | agile-workflow (Komplett: Epic+Story+Sprint) | **kafkareader** | 20-30 min | ⏸️ Ausstehend |
-| 2 | testing-philosophy | **kafkareader** | 15-20 min | ⏸️ Ausstehend |
-| 3 | java-best-practices | **kafkareader** | 15-20 min | ⏸️ Ausstehend |
+| 1 | agile-workflow (Komplett: Epic+Story+Sprint) | **kafkareader** | 20-30 min | ✅ Abgeschlossen |
+| 2 | testing-philosophy | **kafkareader** | 15-20 min | ✅ Abgeschlossen |
+| 3 | java-best-practices + development-principles | **kafkareader** | 15-20 min | ✅ Abgeschlossen |
 | 4 | dependency-analysis (optional) | **kafkareader** | 15-20 min | ⏸️ Ausstehend |
 | 5 | architecture-decisions | **kafkareader** | 10-15 min | ⏸️ Ausstehend |
 | 6 | Integration E2E (Alle Skills) | **kafkareader** | 30-45 min | ⏸️ Ausstehend |
 
-**Gesamtdauer (geschätzt):** 2-3 Stunden über mehrere Sessions
+**Fortschritt:** 3 von 6 Iterationen abgeschlossen (50%)
 
 **Änderungen gegenüber ursprünglichem Plan:**
 - ❌ CLAUDE.md + agentic.md entfernt (funktionieren nicht in Plugins)
@@ -2057,6 +2057,7 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
 - ✅ agile-workflow komplett in Iteration 1 (statt 3 separate Iterationen)
 - ✅ Von 10 auf 6 Iterationen reduziert
 - ✅ Alle Iterationen nutzen kafkareader für Tests (realistischer)
+- ✅ Iteration 3 erweitert: development-principles als zusätzlicher universal Skill extrahiert
 
 ---
 
@@ -2080,24 +2081,226 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
 
 ---
 
-## Session-Ende
+## Aktueller Stand (Session 2025-11-12)
+
+### Abgeschlossene Iterationen
+
+**✅ Iteration 1: agile-workflow Skill** (committed: 744851d, ccdb09e)
+- SKILL.md: Ordnerstruktur (claudedocs/), File Naming, Templates
+- Templates: epic.md.j2, story.md.j2, sprint.md.j2
+- reference.md: INVEST Criteria, Workflow, Best Practices
+- **Test-Status:** Skill aktiviert sich in kafkareader ✅
+- **Learnings:**
+  - Plugin-Struktur: `skills/` auf Root-Ebene, NICHT `.claude/skills/`
+  - `.claude-plugin/plugin.json` erforderlich
+  - Skills werden via `/plugin marketplace update` ins Projekt installiert
+
+**✅ Iteration 2: testing-philosophy Skill** (committed: 64971ee)
+- SKILL.md: "Test YOUR Code, Not THE Code", Code Classification
+- reference.md: Test Necessity Matrix, Integration vs Unit Tests, Test Pyramid
+- **Wichtige Änderungen:**
+  - FR-XXX Requirements → Stories/Acceptance Criteria
+  - Coverage als Diagnostic Tool (NICHT als Ziel)
+  - Integration Tests: Few (1-3 pro Feature), technisch + Happy Path
+  - Unit Tests: Many (100s), Edge Cases + Detail-Logik
+  - Keine >80% Coverage-Vorgaben mehr
+- **Test-Status:** Noch nicht getestet (nur Skill-Aktivierung validiert)
+
+**✅ Iteration 3: java-best-practices + development-principles** (committed: e138598, 9f4d6b9)
+- **development-principles Skill (NEU):**
+  - Universal/sprachunabhängig: YAGNI, KISS, SRP
+  - Code Size, Story Traceability, Security, Performance, Logging, Comments
+  - Funktioniert für Java, Python, JavaScript, Go, etc.
+  - SKILL.md (4.6 KB) + reference.md (16 KB)
+
+- **java-best-practices Skill (refactored):**
+  - Nur noch Java-spezifisch: Modern Syntax, Spring Boot, Maven
+  - Java Features Java 17-25 mit Version-Tags
+  - Virtual Threads (Java 21+), Pattern Matching, Records, Sealed Classes
+  - Auto-Suggest Strategy für moderne Features
+  - Version Detection aus pom.xml/build.gradle
+  - SKILL.md (3.8 KB) + reference.md (29 KB)
+
+- **Learnings:**
+  - Multi-Skill Activation funktioniert: development-principles + java-best-practices + testing-philosophy gleichzeitig aktiv
+  - Universal Skills ermöglichen später python-best-practices, typescript-best-practices, etc.
+  - Java Features bis Java 25 (Latest LTS) dokumentiert
+
+### Erstellte Skills (Aktueller Stand)
+
+```
+skills/
+├── agile-workflow/           # Epic/Story/Sprint Management
+│   ├── SKILL.md (8.5 KB)
+│   ├── templates/
+│   │   ├── epic.md.j2
+│   │   ├── story.md.j2
+│   │   └── sprint.md.j2
+│   └── reference.md (10.2 KB)
+│
+├── testing-philosophy/       # "Test YOUR Code, Not THE Code"
+│   ├── SKILL.md (9.5 KB)
+│   └── reference.md (30 KB)
+│
+├── development-principles/   # Universal (YAGNI, KISS, SRP)
+│   ├── SKILL.md (4.6 KB)
+│   └── reference.md (16 KB)
+│
+├── java-best-practices/      # Java 17-25, Spring Boot, Maven
+│   ├── SKILL.md (3.8 KB)
+│   └── reference.md (29 KB)
+│
+└── git-smart-commit/         # Bereits vorhanden
+    └── SKILL.md
+```
+
+**Total:** 5 Skills, ~111 KB Content
+
+### Multi-Skill Activation (Bestätigt)
+
+**Java-Projekt:**
+- `development-principles` (universal) ✅
+- `java-best-practices` (Java-spezifisch) ✅
+- `testing-philosophy` (universal) ✅
+- `agile-workflow` (bei Epic/Story/Sprint) ✅
+
+**Alle aktivieren sich gleichzeitig** basierend auf Kontext (Progressive Disclosure).
+
+### Plugin-Installation & Updates
+
+**In kafkareader (Test-Projekt):**
+```bash
+# Plugin installiert via:
+/plugin marketplace add /mnt/d/ki/marketplace
+/plugin install agenticaiplugin@local-dev-marketplace
+
+# Plugin updaten nach Änderungen:
+/plugin marketplace update local-dev-marketplace
+
+# Skills landen in: kafkareader/.claude/skills/
+```
+
+**Test-Status in kafkareader:**
+- ✅ agile-workflow Skill aktiviert sich
+- ⏸️ Vollständiger Test steht noch aus (Epic → Stories → Sprint → Implementation)
+
+### Git Commits
+
+**Iteration 1:**
+- `744851d` - feat(iteration-1): implement agile-workflow skill
+
+**Iteration 2:**
+- `64971ee` - feat(iteration-2): add testing-philosophy skill with coverage-as-diagnostic approach
+
+**Iteration 3:**
+- `ccdb09e` - feat(iteration-3): add java-best-practices skill
+- `e138598` - refactor(iteration-3): extract development-principles as language-agnostic skill
+- `9f4d6b9` - feat(java-best-practices): add comprehensive Java 17-25 features with version tags
+
+**Total:** 5 Commits, ~5500 Zeilen Code
+
+### Wichtige Erkenntnisse
+
+1. **Plugin vs Projekt Struktur:**
+   - Plugins: `.claude-plugin/plugin.json` + `skills/` auf Root
+   - Projekte: `.claude/` für projekt-spezifische Config
+   - CRITICAL: Nicht verwechseln!
+
+2. **Multi-Skill Activation:**
+   - Mehrere Skills können gleichzeitig aktiv sein
+   - Progressive Disclosure: Level 1 (Metadata), Level 2 (SKILL.md), Level 3 (reference.md)
+   - Skills "stacken" automatisch bei passenden Keywords
+
+3. **Coverage als Diagnostic:**
+   - Keine >80% Vorgaben (führen zu Metric Gaming)
+   - Test Acceptance Criteria + Business Logic
+   - Coverage NACH Tests analysieren: Gaps oder Dead Code?
+
+4. **Stories statt Requirements:**
+   - Keine FR-XXX/BR-XXX mehr
+   - Stories mit Acceptance Criteria
+   - Traceability: STORY-XXX AC in Code-Kommentaren
+
+5. **Universal vs Language-Specific Skills:**
+   - development-principles: Für ALLE Sprachen
+   - java-best-practices: Nur für Java
+   - Ermöglicht später: python-best-practices, typescript-best-practices, etc.
+
+6. **Java Features 17-25:**
+   - Java 21 empfohlen (Virtual Threads, Pattern Matching)
+   - Version Detection aus pom.xml
+   - Auto-Suggest moderne Alternativen
+
+---
+
+## Nächste Schritte (Für nächste Session)
+
+### Sofort fortsetzen mit:
+
+**Option A: Iteration 4 (dependency-analysis) - Optional**
+- ULTRATHINK für Dependency-Analyse
+- Circular Dependency Detection
+- Kann übersprungen werden
+
+**Option B: Iteration 5 (architecture-decisions) - Empfohlen**
+- ADR (Architectural Decision Records) Skill
+- Template für ADRs
+- Wichtiger als dependency-analysis
+
+**Empfehlung:** Iteration 5 (ADRs), dann Iteration 6 (E2E Test)
+
+### Plugin-Update für Tests
+
+```bash
+# In kafkareader:
+/plugin marketplace update local-dev-marketplace
+
+# Dann testen:
+"Erstelle ein Epic für Kafka Dead Letter Queue"
+"Schneide das Epic in Stories"
+"Plan einen Sprint"
+"Implementiere STORY-001"  # Sollte development-principles + java-best-practices + testing-philosophy aktivieren
+```
+
+### Offene Punkte
+
+- [ ] Iteration 4: dependency-analysis (optional, ULTRATHINK)
+- [ ] Iteration 5: architecture-decisions (ADR Template)
+- [ ] Iteration 6: Integration E2E Test (kompletter Workflow)
+- [ ] Plugin im kafkareader vollständig testen
+- [ ] README.md für Plugin vervollständigen
+
+---
+
+## Session-Ende (Update)
 
 **Datum:** 2025-11-12
-**Ergebnis:** Umfassende Analyse und Redesign-Plan für flexibles Agile-Framework mit Skills
-**Nächste Session:** Implementation von Iteration 1 (agile-workflow Skill)
+**Session-Dauer:** ~3 Stunden
+**Ergebnis:** 4 Skills erstellt (agile-workflow, testing-philosophy, development-principles, java-best-practices)
+**Commits:** 5 Commits, ~5500 Zeilen Code
+**Nächste Session:** Iteration 5 (architecture-decisions) oder Iteration 6 (E2E Test)
 
 **Wichtig für Fortsetzung:**
-- Diese Datei lesen
-- Framework unter `/mnt/c/Dev/repos/agenticai/framework` verfügbar (für Content-Übernahme)
-- Alle Entscheidungen dokumentiert
-- **KEINE CLAUDE.md/agentic.md** (funktionieren nicht in Plugins)
-- **Alle Konventionen in Skills** (Ordnerstruktur, File Naming, etc.)
-- Iterationsplan überarbeitet (6 statt 10 Iterationen)
-- Test-Location: `D:\ki\repos\test\kafkareader`
+- ✅ Diese Datei lesen für kompletten Kontext
+- ✅ Framework unter `/mnt/c/Dev/repos/agenticai/framework` verfügbar (für weitere Content-Übernahme)
+- ✅ Plugin-Struktur verstanden: `.claude-plugin/plugin.json` + `skills/` auf Root
+- ✅ **KEINE CLAUDE.md/agentic.md** (funktionieren nicht in Plugins)
+- ✅ **Alle Konventionen in Skills** (Ordnerstruktur, File Naming, etc.)
+- ✅ Multi-Skill Activation funktioniert (mehrere Skills gleichzeitig)
+- ✅ Iterationen 1-3 abgeschlossen (50% Fortschritt)
+- ✅ Test-Location: `D:\ki\repos\test\kafkareader`
+- ✅ Plugin-Update: `/plugin marketplace update local-dev-marketplace`
 
-**Nächste Schritte:**
-1. Iteration 1: agile-workflow Skill erstellen (SKILL.md + Templates + reference.md)
-2. In kafkareader installieren und testen
-3. Bei Erfolg: Iteration 2 (testing-philosophy Skill)
+**Aktuelle Skills (funktionsfähig):**
+1. agile-workflow (Epic/Story/Sprint)
+2. testing-philosophy ("Test YOUR Code, Not THE Code")
+3. development-principles (Universal: YAGNI, KISS, SRP)
+4. java-best-practices (Java 17-25, Spring Boot, Maven)
+5. git-smart-commit (bereits vorhanden)
 
-**Status:** Ready for Iteration 1 - agile-workflow Skill
+**Nächste Iteration:**
+- **Empfohlen:** Iteration 5 (architecture-decisions - ADR Skill)
+- **Optional:** Iteration 4 (dependency-analysis - ULTRATHINK)
+- **Final:** Iteration 6 (Integration E2E Test)
+
+**Status:** Ready for Iteration 5 - architecture-decisions Skill
