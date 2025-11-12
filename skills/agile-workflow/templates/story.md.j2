@@ -1,0 +1,117 @@
+# STORY-{{ id }}: {{ title }}
+
+**Epic:** [EPIC-{{ epic_id }}](../epics/EPIC-{{ epic_id }}-{{ epic_filename }}.md)
+**Story Points:** {{ story_points }}
+**Sprint:** {{ sprint | default("Not planned") }}
+**Status:** {{ status }}
+
+---
+
+## User Story
+
+{{ user_story }}
+
+---
+
+## Description
+
+{{ description }}
+
+---
+
+## Acceptance Criteria
+
+{% for criterion in acceptance_criteria %}
+- [ ] {{ criterion }}
+{% endfor %}
+
+---
+
+## Technical Notes
+
+{{ technical_notes | default("*No technical notes.*") }}
+
+---
+
+## Dependencies
+
+{% if dependencies %}
+{% for dep in dependencies %}
+- [STORY-{{ dep.id }}](STORY-{{ dep.id }}-{{ dep.filename }}.md) - {{ dep.reason }}
+{% endfor %}
+
+**Dependency Graph:**
+```
+{% for dep in dependencies %}
+STORY-{{ dep.id }} → STORY-{{ id }}
+{% endfor %}
+```
+{% else %}
+*No dependencies - this story can be implemented independently.*
+{% endif %}
+
+---
+
+## Implementation Notes
+
+*To be filled during implementation*
+
+### Code References
+- **Files Changed:**
+- **Methods Added:**
+- **Tests Added:**
+
+### Requirement Traceability
+- **FR-XXX:** [Functional Requirement Reference]
+- **BR-XXX:** [Business Requirement Reference]
+
+### Design Decisions
+{% if design_decisions %}
+{% for decision in design_decisions %}
+- {{ decision }}
+{% endfor %}
+{% else %}
+- *Document any important design decisions here*
+- *Link ADRs if architectural decisions were made*
+{% endif %}
+
+### Technical Debt
+{% if technical_debt %}
+{% for debt in technical_debt %}
+- {{ debt }}
+{% endfor %}
+{% else %}
+- *Document any shortcuts or TODOs here*
+{% endif %}
+
+---
+
+## Review Notes
+
+*To be filled during review*
+
+### Code Review
+- **Reviewer:**
+- **Date:**
+- **Findings:**
+
+### Test Coverage
+- **Coverage:** {{ test_coverage | default("TBD") }}%
+- **Business Logic Coverage:** {{ business_coverage | default("TBD") }}%
+
+---
+
+## Definition of Done
+
+- [ ] Code implemented according to acceptance criteria
+- [ ] Tests written for business logic (>80% coverage)
+- [ ] Code reviewed and approved
+- [ ] Documentation updated (if applicable)
+- [ ] No critical security vulnerabilities
+- [ ] Integrated into main branch
+- [ ] Story marked as Done
+
+---
+
+**Created:** {{ created_date }}
+**Last Updated:** {{ last_updated | default(created_date) }}

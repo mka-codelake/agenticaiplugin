@@ -7,10 +7,18 @@ Claude Code Plugin mit AI-gestützten Entwicklungs-Skills und Commands für verb
 ```
 agenticaiplugin/
 ├── .claude-plugin/
-│   └── plugin.json          # Plugin-Metadaten
+│   └── plugin.json            # Plugin-Metadaten
 ├── skills/
-│   └── git-smart-commit/    # Intelligente Git-Commit-Erstellung
+│   ├── agile-workflow/        # Epic/Story/Sprint Management
+│   │   ├── SKILL.md
+│   │   ├── templates/
+│   │   │   ├── epic.md.j2
+│   │   │   ├── story.md.j2
+│   │   │   └── sprint.md.j2
+│   │   └── reference.md
+│   └── git-smart-commit/      # Intelligente Git-Commit-Erstellung
 │       └── SKILL.md
+├── FRAMEWORK_REDESIGN_SESSION.md  # Session-Dokumentation
 └── README.md
 ```
 
@@ -40,6 +48,32 @@ Oder unter WSL/Linux:
 ```
 
 ## Enthaltene Skills
+
+### agile-workflow
+
+Vollständiges Agile Workflow Management mit Epic/Story/Sprint Funktionalität.
+
+**Verwendung:**
+- "Erstelle ein Epic für [Feature]" - Erstellt strukturiertes Epic in `claudedocs/epics/`
+- "Schneide das Epic in Stories" - Erstellt User Stories mit Acceptance Criteria
+- "Plan einen Sprint" - Plant Sprint mit Capacity und Dependencies
+
+**Features:**
+- Epic-Erstellung mit Goal, Scope, Out-of-Scope
+- Story-Slicing mit INVEST Criteria
+- Acceptance Criteria Templates
+- Story Points (Fibonacci: 1, 2, 3, 5, 8, 13)
+- Sprint Planning mit Capacity Management
+- Dependency Tracking
+- Jinja2 Templates für Konsistenz
+- Ordnerstruktur: `claudedocs/epics/`, `stories/`, `sprints/`
+- File Naming: `EPIC-001-description.md` (lowercase-with-dashes)
+
+**Workflow:**
+1. High-Level Beschreibung → Epic
+2. Epic → Stories (mit Acceptance Criteria)
+3. Stories → Sprint (mit Capacity)
+4. Iterative Entwicklung, flexibel neue Stories hinzufügen
 
 ### git-smart-commit
 

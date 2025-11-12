@@ -1,0 +1,128 @@
+# SPRINT-{{ sprint_number }}: {{ sprint_goal }}
+
+**Duration:** {{ start_date }} - {{ end_date }}
+**Capacity:** {{ capacity }} Story Points
+**Status:** {{ status }}
+
+---
+
+## Sprint Goal
+
+{{ sprint_goal }}
+
+---
+
+## Stories
+
+{% for story in stories %}
+### {{ loop.index }}. [STORY-{{ story.id }}](../stories/STORY-{{ story.id }}-{{ story.filename }}.md) - {{ story.title }}
+
+**Story Points:** {{ story.story_points }}
+**Status:** {{ story.status }}
+**Dependencies:** {% if story.dependencies %}{{ story.dependencies | join(", ") }}{% else %}None{% endif %}
+
+{% if story.acceptance_criteria %}
+**Key Acceptance Criteria:**
+{% for criterion in story.acceptance_criteria[:2] %}
+- {{ criterion }}
+{% endfor %}
+{% if story.acceptance_criteria | length > 2 %}
+- *({{ story.acceptance_criteria | length - 2 }} more criteria in story)*
+{% endif %}
+{% endif %}
+
+---
+
+{% endfor %}
+
+## Capacity Summary
+
+- **Total Story Points:** {{ total_story_points }}
+- **Capacity:** {{ capacity }}
+- **Utilization:** {{ utilization }}%
+{% if total_story_points > capacity %}
+- ⚠️ **Warning:** Sprint is over capacity by {{ total_story_points - capacity }} points
+{% elif total_story_points < capacity * 0.7 %}
+- ℹ️ **Info:** Sprint has capacity for {{ capacity - total_story_points }} more points
+{% else %}
+- ✅ **Good:** Sprint is well balanced
+{% endif %}
+
+---
+
+## Dependency Check
+
+{% if dependency_warnings %}
+⚠️ **Dependency Warnings:**
+{% for warning in dependency_warnings %}
+- {{ warning }}
+{% endfor %}
+{% else %}
+✅ All dependencies are satisfied (prerequisite stories are either done or in earlier sprints)
+{% endif %}
+
+---
+
+## Daily Progress
+
+### Day 1 - {{ start_date }}
+- Sprint Planning completed
+- Team committed to {{ total_story_points }} points
+
+{% for day in daily_notes %}
+### Day {{ day.number }} - {{ day.date }}
+{{ day.notes }}
+{% endfor %}
+
+---
+
+## Sprint Review
+
+*To be filled at sprint end*
+
+### Completed Stories
+{% if completed_stories %}
+{% for story in completed_stories %}
+- [STORY-{{ story.id }}](../stories/STORY-{{ story.id }}-{{ story.filename }}.md) - {{ story.title }} ({{ story.story_points }} SP)
+{% endfor %}
+
+**Completed Points:** {{ completed_points }}
+{% else %}
+- *No completed stories yet*
+{% endif %}
+
+### Incomplete Stories
+{% if incomplete_stories %}
+{% for story in incomplete_stories %}
+- [STORY-{{ story.id }}](../stories/STORY-{{ story.id }}-{{ story.filename }}.md) - {{ story.title }} ({{ story.story_points }} SP) - {{ story.reason }}
+{% endfor %}
+
+**Carryover Points:** {{ carryover_points }}
+{% else %}
+- *All stories completed*
+{% endif %}
+
+### Metrics
+- **Velocity:** {{ velocity | default("TBD") }} (story points completed)
+- **Completion Rate:** {{ completion_rate | default("TBD") }}%
+
+---
+
+## Sprint Retrospective
+
+*To be filled at sprint end*
+
+### What Went Well
+{{ what_went_well | default("- TBD") }}
+
+### What Could Be Improved
+{{ what_could_improve | default("- TBD") }}
+
+### Action Items
+{{ action_items | default("- TBD") }}
+
+---
+
+**Created:** {{ created_date }}
+**Started:** {{ actual_start_date | default("TBD") }}
+**Completed:** {{ actual_end_date | default("TBD") }}

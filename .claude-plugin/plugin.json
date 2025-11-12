@@ -1,18 +1,8 @@
 {
   "name": "agenticaiplugin",
+  "description": "Agile workflow plugin with Epic/Story/Sprint management for flexible, iterative development. Includes testing philosophy and Java best practices skills.",
   "version": "0.1.0",
-  "description": "AI-gestützte Entwicklungs-Skills und Commands für verbesserte Workflows",
   "author": {
-    "name": "Your Name",
-    "email": "your.email@example.com"
-  },
-  "homepage": "https://github.com/yourusername/agenticaiplugin",
-  "keywords": [
-    "ai",
-    "development",
-    "git",
-    "automation",
-    "workflow"
-  ],
-  "license": "MIT"
+    "name": "Michael Kagel"
+  }
 }
