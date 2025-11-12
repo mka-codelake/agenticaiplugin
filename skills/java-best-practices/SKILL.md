@@ -7,7 +7,7 @@ Use this skill when writing Java code, especially Spring Boot applications with 
 
 **Note:** For language-agnostic principles (YAGNI, KISS, SRP), see the `development-principles` skill which activates alongside this one.
 
-## Java-Specific Guidelines
+## Java Language Guidelines
 
 ### Naming Conventions
 - **Classes:** `PascalCase` (UserService, OrderController)
@@ -15,7 +15,54 @@ Use this skill when writing Java code, especially Spring Boot applications with 
 - **Constants:** `UPPER_SNAKE_CASE` (MAX_RETRY_ATTEMPTS)
 - **Packages:** lowercase (com.example.service)
 
-### Spring Boot Patterns
+### Visibility
+- Default to `private`
+- Use `protected`, `public` only when necessary
+- No public fields (use getters/setters or Lombok)
+
+### Null Safety
+- Use `@NonNull`, `@Nullable` annotations
+- Use `Optional<T>` for return values that may be null (business case, not always)
+- Check for null in public methods
+
+### Immutability
+- Prefer immutable objects (Records, `final` variables)
+- Use Records for DTOs when possible
+- `final` for fields that don't change
+
+### Modern Java Syntax (Version-Aware)
+
+**Detect project Java version from pom.xml or build.gradle first!**
+
+**Java 17+ (Baseline):**
+- Records for DTOs/value objects
+- Pattern Matching for instanceof
+- Sealed Classes for restricted hierarchies
+- Text Blocks for multi-line strings
+- `var` for obvious types
+- `List.of()`, `Set.of()`, `Map.of()`
+
+**Java 21+ (Recommended):**
+- **Virtual Threads** for high-concurrency I/O (🚀 Game changer!)
+- Pattern Matching for switch with guards
+- Record Patterns (deconstruct records)
+- Sequenced Collections (`addFirst()`, `addLast()`, `reversed()`)
+
+**Java 22+:**
+- Unnamed Variables (`_`) for unused parameters
+
+**Java 25+ (Latest LTS):**
+- Scoped Values (instead of ThreadLocal with virtual threads)
+- Flexible Constructor Bodies
+
+**Auto-suggest modern alternatives when user writes old-style code!**
+See reference.md for detailed examples and migration strategies.
+
+---
+
+## Spring Boot Patterns
+
+### Component Stereotypes
 - **Controllers:** `@RestController` + `@RequestMapping`
 - **Services:** `@Service` (business logic)
 - **Repositories:** `@Repository` or extend `JpaRepository`
@@ -33,29 +80,20 @@ Repository (Data Access)
 
 **Rule:** Controllers call Services, Services call Repositories. No skipping layers.
 
----
+### Dependency Injection
+- Use **constructor injection** (preferred)
+- Avoid field injection with `@Autowired`
+- Use `@RequiredArgsConstructor` (Lombok) for constructor injection
 
-## Code Quality Rules
-
-### Visibility
-- Default to `private`
-- Use `protected`, `public` only when necessary
-- No public fields (use getters/setters or Lombok)
-
-### Null Safety
-- Use `@NonNull`, `@Nullable` annotations
-- Use `Optional<T>` for return values that may be null (business case, not always)
-- Check for null in public methods
-
-### Immutability
-- Prefer immutable objects (Records, `final` variables)
-- Use Records for DTOs when possible
-- `final` for fields that don't change
+### Configuration
+- Use `application.yaml` (NOT application.properties)
+- Segregate large configs into `config/` subfolder
+- Use profiles for env-specific config (dev, prod)
 
 ### Error Handling
-- Create custom exceptions for business cases
-- Use `@RestControllerAdvice` for global exception handling
-- Return meaningful error messages
+- Use `@RestControllerAdvice` + extend `ResponseEntityExceptionHandler`
+- Enable ProblemDetails: `spring.mvc.problemdetails.enabled=true`
+- Create custom exceptions extending `ErrorResponseException`
 
 ---
 
@@ -82,25 +120,6 @@ src/
 - Build: `./mvnw clean install`
 - Tests: `./mvnw test`
 - Skip tests: `./mvnw clean install -DskipTests` (only when explicitly needed)
-
----
-
-## Spring Boot Best Practices
-
-### Configuration
-- Use `application.yaml` (NOT application.properties)
-- Segregate large configs into `config/` subfolder
-- Use profiles for env-specific config (dev, prod)
-
-### Error Handling
-- Use `@RestControllerAdvice` + extend `ResponseEntityExceptionHandler`
-- Enable ProblemDetails: `spring.mvc.problemdetails.enabled=true`
-- Create custom exceptions extending `ErrorResponseException`
-
-### Dependency Injection
-- Use constructor injection (preferred)
-- Avoid field injection with `@Autowired`
-- Use `@RequiredArgsConstructor` (Lombok) for constructor injection
 
 ---
 

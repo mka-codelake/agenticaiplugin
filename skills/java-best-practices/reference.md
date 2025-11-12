@@ -8,7 +8,418 @@ This document focuses on Java-specific syntax, Spring Boot patterns, and Maven s
 
 ---
 
-## Modern Java Syntax
+## Modern Java Features by Version (Java 17-25)
+
+**Current LTS Versions:** Java 17 (2021), Java 21 (2023), Java 25 (2025)
+**Recommendation:** Use Java 21+ for new projects, Java 17 minimum for production.
+
+### Java 17 (LTS - September 2021) - Baseline
+
+**Sealed Classes (JEP 409)**
+```java
+// Restrict class hierarchy
+public sealed class Shape permits Circle, Rectangle, Triangle { }
+
+public final class Circle extends Shape { }
+public final class Rectangle extends Shape { }
+public final class Triangle extends Shape { }
+
+// Use in switch (Java 21+)
+String describe(Shape shape) {
+    return switch (shape) {
+        case Circle c -> "Circle with radius " + c.radius();
+        case Rectangle r -> "Rectangle " + r.width() + "x" + r.height();
+        case Triangle t -> "Triangle";
+    };
+}
+```
+**Use when:** Restricting inheritance hierarchy, domain modeling
+
+**Pattern Matching for instanceof (JEP 394)**
+```java
+// ❌ OLD
+if (obj instanceof String) {
+    String s = (String) obj;
+    System.out.println(s.toUpperCase());
+}
+
+// ✅ NEW (Java 17+)
+if (obj instanceof String s) {
+    System.out.println(s.toUpperCase());
+}
+
+// With guards
+if (obj instanceof String s && s.length() > 5) {
+    System.out.println(s);
+}
+```
+**Available:** Java 17+
+
+**Records (JEP 395 - finalized)**
+```java
+// ✅ Immutable data carriers
+public record User(String email, String name) { }
+
+// With custom constructor
+public record ValidationResult(boolean valid, String message) {
+    public ValidationResult {
+        if (message == null) message = "";
+    }
+}
+
+// ❌ NOT for services/business logic
+public record UserService(UserRepository repo) { }  // Wrong!
+```
+**Available:** Java 17+ (preview in 14-15, final in 16)
+**Use for:** DTOs, value objects, immutable data
+
+**Text Blocks (JEP 378 - finalized)**
+```java
+// ✅ Multi-line strings
+String json = """
+    {
+        "name": "John",
+        "email": "john@example.com"
+    }
+    """;
+
+String sql = """
+    SELECT u.id, u.email, u.name
+    FROM users u
+    WHERE u.active = true
+    ORDER BY u.created_at DESC
+    """;
+```
+**Available:** Java 17+ (preview in 13-14, final in 15)
+
+---
+
+### Java 21 (LTS - September 2023) - Recommended
+
+**Virtual Threads (JEP 444 - FINAL) 🚀**
+```java
+// ✅ High-concurrency I/O operations
+try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+    IntStream.range(0, 10_000).forEach(i -> {
+        executor.submit(() -> {
+            // I/O-bound task (HTTP, DB, File)
+            String result = fetchFromApi(i);
+            processResult(result);
+        });
+    });
+} // Auto-shutdown
+
+// ✅ Single virtual thread
+Thread.ofVirtual().start(() -> {
+    // Lightweight thread
+    processMessage();
+});
+
+// ❌ Don't use for CPU-bound tasks
+Thread.ofVirtual().start(() -> {
+    calculatePrimes(1_000_000);  // Use platform threads instead
+});
+```
+**Available:** Java 21+ (preview in 19-20, final in 21)
+**Use when:** High-concurrency I/O (REST APIs, Kafka consumers, DB queries)
+**Don't use for:** CPU-intensive calculations
+**Impact:** Handle 100x more concurrent requests with same hardware
+
+**Pattern Matching for switch (JEP 441 - FINAL)**
+```java
+// ✅ Type patterns
+String describe(Object obj) {
+    return switch (obj) {
+        case Integer i -> "Integer: " + i;
+        case String s -> "String: " + s;
+        case null -> "null value";
+        default -> "Unknown type";
+    };
+}
+
+// ✅ Guarded patterns
+String classify(Object obj) {
+    return switch (obj) {
+        case String s when s.length() > 10 -> "Long string";
+        case String s -> "Short string";
+        case Integer i when i > 0 -> "Positive";
+        case Integer i -> "Non-positive";
+        default -> "Other";
+    };
+}
+
+// ✅ With Records
+record Point(int x, int y) { }
+
+String quadrant(Object obj) {
+    return switch (obj) {
+        case Point(int x, int y) when x > 0 && y > 0 -> "Q1";
+        case Point(int x, int y) when x < 0 && y > 0 -> "Q2";
+        case Point(int x, int y) when x < 0 && y < 0 -> "Q3";
+        case Point(int x, int y) when x > 0 && y < 0 -> "Q4";
+        case Point(0, 0) -> "Origin";
+        default -> "Axis";
+    };
+}
+```
+**Available:** Java 21+ (preview in 17-20, final in 21)
+**Use when:** Type checking, polymorphic operations, complex conditionals
+
+**Record Patterns (JEP 440 - FINAL)**
+```java
+record Point(int x, int y) { }
+
+// ✅ Deconstruct in instanceof
+if (obj instanceof Point(int x, int y)) {
+    System.out.println("X: " + x + ", Y: " + y);
+}
+
+// ✅ Deconstruct in switch
+String describe(Object obj) {
+    return switch (obj) {
+        case Point(int x, int y) -> "Point at " + x + ", " + y;
+        case null -> "null";
+        default -> "Not a point";
+    };
+}
+
+// ✅ Nested patterns
+record Rectangle(Point topLeft, Point bottomRight) { }
+
+int area(Object obj) {
+    return switch (obj) {
+        case Rectangle(Point(int x1, int y1), Point(int x2, int y2)) ->
+            (x2 - x1) * (y2 - y1);
+        default -> 0;
+    };
+}
+```
+**Available:** Java 21+ (preview in 19-20, final in 21)
+**Use when:** Deconstructing records, nested data extraction
+
+**Sequenced Collections (JEP 431)**
+```java
+// ✅ New interfaces with first/last access
+SequencedCollection<String> list = new ArrayList<>();
+list.addFirst("first");
+list.addLast("last");
+String first = list.getFirst();
+String last = list.getLast();
+
+SequencedSet<String> set = new LinkedHashSet<>();
+set.addFirst("a");
+String first = set.getFirst();
+
+SequencedMap<String, Integer> map = new LinkedHashMap<>();
+map.putFirst("key", 1);
+var firstEntry = map.firstEntry();
+
+// Reversed views
+SequencedCollection<String> reversed = list.reversed();
+```
+**Available:** Java 21+
+**Use when:** Need access to first/last elements in order
+
+---
+
+### Java 22-24 (Non-LTS - Intermediate Features)
+
+**Unnamed Variables & Patterns (JEP 456 - Java 22)**
+```java
+// ✅ Unused variables in lambda
+map.forEach((_, value) -> System.out.println(value));  // Key not needed
+
+// ✅ Unused catch parameter
+try {
+    riskyOperation();
+} catch (IOException _) {
+    // Don't need exception object
+    return defaultValue();
+}
+
+// ✅ Unused pattern components
+if (obj instanceof Point(int x, _)) {  // Y not needed
+    System.out.println("X: " + x);
+}
+```
+**Available:** Java 22+ (preview in 21, final in 22)
+**Use when:** Variable/pattern component not needed
+
+**Stream Gatherers (JEP 485 - Java 24)**
+```java
+// ✅ Custom intermediate stream operations
+List<String> result = Stream.of("a", "b", "c", "d")
+    .gather(Gatherers.windowFixed(2))  // Sliding window
+    .map(window -> String.join(",", window))
+    .toList();  // ["a,b", "c,d"]
+
+// Custom gatherer
+Gatherer<String, ?, String> customGatherer = ...;
+stream.gather(customGatherer);
+```
+**Available:** Java 24+ (preview in 23)
+**Use when:** Custom stream operations beyond map/filter/reduce
+
+**Markdown in JavaDoc (JEP 467 - Java 23)**
+```java
+/// This is a **markdown** JavaDoc comment.
+///
+/// - Item 1
+/// - Item 2
+///
+/// ```java
+/// example.code();
+/// ```
+public void method() { }
+```
+**Available:** Java 23+
+**Use when:** Richer JavaDoc documentation
+
+---
+
+### Java 25 (LTS - September 2025) - Latest
+
+**Flexible Constructor Bodies (JEP 492)**
+```java
+// ✅ Code before super() call
+public class User {
+    private final String normalizedEmail;
+
+    public User(String email) {
+        // Can now do work BEFORE super()
+        String temp = email.toLowerCase().trim();
+        super();  // No longer required as first statement
+        this.normalizedEmail = temp;
+    }
+}
+```
+**Available:** Java 25+
+**Use when:** Need to prepare data before calling super()
+
+**Scoped Values (JEP 481 - Incubator in 21, Final in 25+)**
+```java
+// ✅ Modern alternative to ThreadLocal (works with virtual threads)
+private static final ScopedValue<User> CURRENT_USER = ScopedValue.newInstance();
+
+// Set scoped value
+ScopedValue.runWhere(CURRENT_USER, user, () -> {
+    // Value available in this scope and child scopes
+    processRequest();
+});
+
+// Access in child methods
+User currentUser = CURRENT_USER.get();
+```
+**Available:** Java 25+ (incubator in 21-24)
+**Use when:** Thread-local state with virtual threads, request context
+
+**Simplified Main Methods & Compact Source (JEP 477)**
+```java
+// ✅ Simple main (no public static void)
+void main() {
+    println("Hello World");
+}
+
+// Or with args
+void main(String[] args) {
+    println("Args: " + args.length);
+}
+```
+**Available:** Java 25+ (preview in 21-24)
+**Use when:** Simple scripts, learning examples
+
+---
+
+## Modern Java Feature Adoption Strategy
+
+### Detection: Check Project's Java Version
+
+**Option 1: From pom.xml**
+```xml
+<maven.compiler.source>21</maven.compiler.source>
+<maven.compiler.target>21</maven.compiler.target>
+```
+
+**Option 2: From build.gradle**
+```gradle
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+}
+```
+
+**Option 3: Ask user**
+"What Java version is this project using?"
+
+### Recommendation by Version
+
+**Java 17 Projects:**
+- ✅ Use: Records, Sealed Classes, Pattern Matching for instanceof, Text Blocks
+- ❌ Can't use: Virtual Threads, Pattern Matching for switch, Sequenced Collections
+
+**Java 21 Projects (Recommended):**
+- ✅ Use: Everything from Java 17 +
+  - Virtual Threads (for I/O-heavy operations)
+  - Pattern Matching for switch
+  - Record Patterns
+  - Sequenced Collections
+- ❌ Can't use: Unnamed Variables, Stream Gatherers, Flexible Constructors
+
+**Java 25 Projects:**
+- ✅ Use: Everything from Java 21 +
+  - Scoped Values (instead of ThreadLocal)
+  - Flexible Constructor Bodies
+  - Simplified Main Methods
+
+### Auto-Suggest Modern Features
+
+**When writing code, suggest modern alternatives:**
+
+**Example 1: User writes old-style instanceof**
+```java
+// User writes:
+if (obj instanceof String) {
+    String s = (String) obj;
+    ...
+}
+
+// Suggest (Java 17+):
+if (obj instanceof String s) {
+    ...
+}
+```
+
+**Example 2: User writes if-else chains**
+```java
+// User writes:
+if (obj instanceof Integer) {
+    return handleInteger((Integer) obj);
+} else if (obj instanceof String) {
+    return handleString((String) obj);
+} else {
+    return handleOther(obj);
+}
+
+// Suggest (Java 21+):
+return switch (obj) {
+    case Integer i -> handleInteger(i);
+    case String s -> handleString(s);
+    default -> handleOther(obj);
+};
+```
+
+**Example 3: User creates thread pool**
+```java
+// User writes:
+ExecutorService executor = Executors.newFixedThreadPool(100);
+
+// Suggest (Java 21+ for I/O):
+ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+// Note: 100x more concurrent tasks possible with virtual threads
+```
+
+---
+
+## Modern Java Syntax (Detailed Examples)
 
 #### var (Local Variables)
 ```java
@@ -740,12 +1151,33 @@ counter++;
 
 ## Version Compatibility
 
-| Spring Boot | Java | Maven Compiler |
-|---|---|---|
-| 3.4.x | 17+ | 3.13.0+ |
-| 3.3.x | 17+ | 3.13.0+ |
-| 3.2.x | 17+ | 3.11.0+ |
-| 3.1.x | 17+ | 3.11.0+ |
+### Spring Boot & Java Compatibility
+
+| Spring Boot | Java | Maven Compiler | Notes |
+|-------------|------|----------------|-------|
+| 3.4.x | 17+ (21+ recommended) | 3.13.0+ | Java 21: Virtual Threads support |
+| 3.3.x | 17+ (21+ recommended) | 3.13.0+ | Java 21: Virtual Threads support |
+| 3.2.x | 17+ | 3.11.0+ | First with Java 21 support |
+| 3.1.x | 17+ | 3.11.0+ | Java 17 baseline |
+
+### Java Version Support Timeline
+
+| Java Version | Release | LTS | Support Until | Key Features |
+|--------------|---------|-----|---------------|--------------|
+| **Java 25** | Sep 2025 | ✅ LTS | Sep 2033 | Scoped Values, Flexible Constructors |
+| Java 24 | Mar 2025 | ❌ | Sep 2025 | Stream Gatherers |
+| Java 23 | Sep 2024 | ❌ | Mar 2025 | Markdown JavaDoc, ZGC Generational |
+| Java 22 | Mar 2024 | ❌ | Sep 2024 | Unnamed Variables (final) |
+| **Java 21** | Sep 2023 | ✅ LTS | Sep 2031 | **Virtual Threads**, Pattern Matching, Sequenced Collections |
+| Java 20 | Mar 2023 | ❌ | Sep 2023 | - |
+| Java 19 | Sep 2022 | ❌ | Mar 2023 | Virtual Threads (preview) |
+| Java 18 | Mar 2022 | ❌ | Sep 2022 | UTF-8 default |
+| **Java 17** | Sep 2021 | ✅ LTS | Sep 2029 | Sealed Classes, Pattern Matching, Records, Text Blocks |
+
+**Recommendation for 2025:**
+- **New projects:** Java 21 or Java 25
+- **Existing projects:** Migrate to Java 21 minimum
+- **Baseline:** Java 17 (absolute minimum for production)
 
 ---
 
@@ -755,3 +1187,5 @@ counter++;
 - **Spring Boot Docs**: https://spring.io/projects/spring-boot
 - **Maven Guide**: https://maven.apache.org/guides/
 - **RFC 9457 ProblemDetails**: https://www.rfc-editor.org/rfc/rfc9457
+- **Java Feature Timeline**: https://www.marcobehler.com/guides/a-guide-to-java-versions-and-features
+- **Virtual Threads Guide**: https://www.infoq.com/articles/java-virtual-threads/
