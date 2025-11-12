@@ -1,12 +1,14 @@
 # Java, Spring Boot & Maven Best Practices Reference
 
-**Token-optimized quick reference for code quality, patterns, and standards.**
+**Java-specific guidelines for Spring Boot and Maven projects.**
+
+**Note:** For language-agnostic principles (YAGNI, KISS, SRP, code size, story traceability, security, performance), see the `development-principles` skill.
+
+This document focuses on Java-specific syntax, Spring Boot patterns, and Maven standards.
 
 ---
 
-## Java Best Practices
-
-### Modern Java Syntax
+## Modern Java Syntax
 
 #### var (Local Variables)
 ```java
@@ -712,8 +714,7 @@ counter++;
 ```
 
 ---
-
-## Quick Checklist
+## Quick Guidelines
 
 ### Before Committing Code
 - [ ] No unused imports or variables

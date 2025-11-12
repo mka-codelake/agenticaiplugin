@@ -1,30 +1,13 @@
 ---
 name: java-best-practices
-description: Spring Boot, Maven, and Java coding guidelines including YAGNI, KISS, Single Responsibility principles. Auto-activates when writing Java code or working with Spring Boot projects.
+description: Java-specific coding guidelines for Spring Boot and Maven projects. Modern Java syntax, Spring patterns, Maven standards, null safety. Auto-activates when writing Java code.
 ---
 
 Use this skill when writing Java code, especially Spring Boot applications with Maven.
 
-## Core Principles
+**Note:** For language-agnostic principles (YAGNI, KISS, SRP), see the `development-principles` skill which activates alongside this one.
 
-### YAGNI (You Aren't Gonna Need It)
-- Only implement what's needed NOW (story acceptance criteria)
-- No speculative features "we might need later"
-- No "nice-to-have" additions beyond requirements
-
-### KISS (Keep It Simple, Stupid)
-- Simplest solution that meets acceptance criteria
-- Avoid over-engineering
-- Complexity only when justified by requirements
-
-### Single Responsibility
-- One class, one responsibility
-- One method, one thing
-- Clear, focused components
-
----
-
-## Quick Guidelines
+## Java-Specific Guidelines
 
 ### Naming Conventions
 - **Classes:** `PascalCase` (UserService, OrderController)
