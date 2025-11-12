@@ -391,7 +391,7 @@ Include all aspects (backend, frontend, tests, docs) in one story when feasible.
 
 Establish clear DoD for stories:
 - Code implemented
-- Tests written (>80% business logic coverage)
+- Tests written for all acceptance criteria and business logic
 - Code reviewed
 - Docs updated
 - Integrated to main branch

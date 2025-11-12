@@ -61,9 +61,10 @@ STORY-{{ dep.id }} → STORY-{{ id }}
 - **Methods Added:**
 - **Tests Added:**
 
-### Requirement Traceability
-- **FR-XXX:** [Functional Requirement Reference]
-- **BR-XXX:** [Business Requirement Reference]
+### Acceptance Criteria Traceability
+- Reference acceptance criteria (above) in code comments
+- Each test should map to specific acceptance criterion
+- Example: `// Tests AC: User receives confirmation email within 60 seconds`
 
 ### Design Decisions
 {% if design_decisions %}
@@ -96,15 +97,18 @@ STORY-{{ dep.id }} → STORY-{{ id }}
 - **Findings:**
 
 ### Test Coverage
-- **Coverage:** {{ test_coverage | default("TBD") }}%
+- **All Acceptance Criteria Tested:** {{ all_criteria_tested | default("TBD") }}
 - **Business Logic Coverage:** {{ business_coverage | default("TBD") }}%
+- **Untested Paths Analyzed:** {{ untested_paths_analyzed | default("TBD") }}
 
 ---
 
 ## Definition of Done
 
 - [ ] Code implemented according to acceptance criteria
-- [ ] Tests written for business logic (>80% coverage)
+- [ ] Tests written for all acceptance criteria
+- [ ] Tests written for business logic (edge cases, validations)
+- [ ] Coverage analyzed: untested paths reviewed (missing test or dead code?)
 - [ ] Code reviewed and approved
 - [ ] Documentation updated (if applicable)
 - [ ] No critical security vulnerabilities

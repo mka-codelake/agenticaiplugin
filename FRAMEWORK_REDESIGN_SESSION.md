@@ -1667,7 +1667,7 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
 **Ziel:** Vollständigen agile-workflow Skill erstellen mit Epic/Story/Sprint Funktionalität
 
 **Umfang:**
-- `.claude/skills/agile-workflow/` Ordner erstellen
+- `skills/agile-workflow/` Ordner erstellen (auf Plugin Root-Ebene!)
 - **SKILL.md** (YAML frontmatter + Instructions):
   - Skill-Beschreibung für Auto-Activation
   - **Ordnerstruktur-Konventionen** (`claudedocs/epics/`, `stories/`, `sprints/`, `tasks/`, `adrs/`)
@@ -1692,8 +1692,11 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
 - Validiert Auto-Activation, Templates, Progressive Disclosure
 
 **Test (MIT kafkareader-Projekt):**
-1. **Plugin installieren:**
-   - Kopiere `.claude/skills/agile-workflow/` nach `D:\ki\repos\test\kafkareader\.claude\skills\`
+1. **Plugin installieren/aktualisieren:**
+   ```bash
+   /plugin marketplace update local-dev-marketplace
+   # Plugin wird ins Projekt kopiert nach .claude/skills/agile-workflow/
+   ```
 
 2. **Neue Claude Code Session in kafkareader starten**
 
@@ -1758,7 +1761,7 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
 **Ziel:** "Test YOUR Code, Not THE Code" Skill erstellen
 
 **Umfang:**
-- `.claude/skills/testing-philosophy/` Ordner
+- `skills/testing-philosophy/` Ordner (auf Plugin Root-Ebene!)
 - **SKILL.md**:
   - Skill-Beschreibung für Auto-Activation (bei Test-Schreiben)
   - Code Classification (Business/Framework/Generated/Infrastructure)
@@ -1804,7 +1807,7 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
 **Ziel:** Spring Boot, Maven, Coding Guidelines Skill erstellen
 
 **Umfang:**
-- `.claude/skills/java-best-practices/` Ordner
+- `skills/java-best-practices/` Ordner (auf Plugin Root-Ebene!)
 - **SKILL.md**:
   - Skill-Beschreibung für Auto-Activation (bei Java-Code schreiben)
   - Spring Boot Patterns (Controller, Service, Repository)
@@ -1850,7 +1853,7 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
 **Ziel:** ULTRATHINK für Dependency-Analyse erstellen (optional Integration in agile-workflow)
 
 **Umfang:**
-- `.claude/skills/dependency-analysis/` Ordner ODER
+- `skills/dependency-analysis/` Ordner (auf Plugin Root-Ebene!) ODER
 - Integration in `agile-workflow` Skill
 - **SKILL.md**:
   - Skill-Beschreibung für Auto-Activation (bei "Analysiere Dependencies", Sprint-Planung)
@@ -1894,7 +1897,7 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
 **Ziel:** ADR (Architectural Decision Records) Skill erstellen
 
 **Umfang:**
-- `.claude/skills/architecture-decisions/` Ordner
+- `skills/architecture-decisions/` Ordner (auf Plugin Root-Ebene!)
 - **SKILL.md**:
   - Skill-Beschreibung für Auto-Activation (bei "ADR erstellen", "Architektur-Entscheidung")
   - ADR Numbering Logic (ADR-001, ADR-002, ...)
