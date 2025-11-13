@@ -119,7 +119,7 @@ Located in `templates/` directory:
 - In `Dependencies` section
 - Format: `[STORY-XXX](../stories/STORY-XXX-description.md) - [reason]`
 
-**For complex dependencies:** Consider using the `dependency-analysis` skill (if available) for ULTRATHINK-based analysis.
+**For complex dependencies:** Use the `dependency-analysis` skill for ULTRATHINK-based analysis.
 
 ## Workflow: High-Level → Epic → Stories → Sprint
 

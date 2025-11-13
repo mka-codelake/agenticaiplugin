@@ -323,7 +323,7 @@ STORY-004 (Business Logic)
 - Sprint 2: STORY-003, STORY-004 (12 points)
 ```
 
-**For complex dependency analysis, use the `dependency-analysis` skill (if available).**
+**For complex dependency analysis, use the `dependency-analysis` skill for ULTRATHINK-based analysis, circular dependency detection, and sprint readiness validation.**
 
 ---
 
