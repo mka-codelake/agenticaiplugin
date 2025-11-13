@@ -2045,11 +2045,11 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
 | 1 | agile-workflow (Komplett: Epic+Story+Sprint) | **kafkareader** | 20-30 min | ✅ Abgeschlossen |
 | 2 | testing-philosophy | **kafkareader** | 15-20 min | ✅ Abgeschlossen |
 | 3 | java-best-practices + development-principles | **kafkareader** | 15-20 min | ✅ Abgeschlossen |
-| 4 | dependency-analysis (optional) | **kafkareader** | 15-20 min | ⏸️ Ausstehend |
+| 4 | dependency-analysis (optional) | **kafkareader** | 15-20 min | ✅ Abgeschlossen |
 | 5 | architecture-decisions | **kafkareader** | 10-15 min | ⏸️ Ausstehend |
 | 6 | Integration E2E (Alle Skills) | **kafkareader** | 30-45 min | ⏸️ Ausstehend |
 
-**Fortschritt:** 3 von 6 Iterationen abgeschlossen (50%)
+**Fortschritt:** 4 von 6 Iterationen abgeschlossen (67%)
 
 **Änderungen gegenüber ursprünglichem Plan:**
 - ❌ CLAUDE.md + agentic.md entfernt (funktionieren nicht in Plugins)
@@ -2126,6 +2126,40 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
   - Universal Skills ermöglichen später python-best-practices, typescript-best-practices, etc.
   - Java Features bis Java 25 (Latest LTS) dokumentiert
 
+**✅ Iteration 4: dependency-analysis Skill** (committed: 96f6f23)
+- **dependency-analysis Skill (NEU):**
+  - Vollautomatische Dependency-Analyse mit ULTRATHINK-Integration
+  - **Vier Core Features (alle implementiert):**
+    1. Circular Dependency Detection (DFS-basierte Zyklus-Erkennung)
+    2. Sprint Readiness Check (validiert Dependencies vor Sprint-Start)
+    3. Dependency Graph Visualization (ASCII-Graphen für Stories/Epics/Sprints)
+    4. Dependency Classification (Technical/Business/Data Dependencies)
+  - **ULTRATHINK Integration:**
+    - Kombinierter Ansatz: Vordefinierte Prompts + Custom Guidance
+    - 4 vordefinierte ULTRATHINK-Prompts für Standard-Szenarien:
+      - Complex Interdependency Analysis (>5 stories, >8 edges)
+      - Circular Dependency Resolution (Zyklen auflösen)
+      - Sprint Feasibility Analysis (Capacity + Dependencies)
+      - Multi-Sprint Optimization (Story-Verteilung über mehrere Sprints)
+    - Guidance für custom ULTRATHINK bei speziellen Szenarien
+  - **Graph Algorithms:**
+    - Topological Sort (Kahn's Algorithm)
+    - Cycle Detection (DFS mit Farben)
+    - Critical Path Calculation (Dynamic Programming)
+    - Dependency Depth Analysis (für Sprint-Planung)
+  - SKILL.md (235 Zeilen) + reference.md (680 Zeilen)
+
+- **Integration mit agile-workflow:**
+  - Entfernt: "if available" Referenzen
+  - Hinzugefügt: Cross-References zu dependency-analysis
+  - Automatische Aktivierung bei Sprint-Planung
+
+- **Learnings:**
+  - Vollautomatische Skills (keine Benutzer-Nachfragen) sind möglich
+  - ULTRATHINK kann sowohl vordefiniert (Prompts in reference.md) als auch ad-hoc (Guidance) sein
+  - Graph-Algorithmen in Markdown dokumentierbar (Python-Pseudocode)
+  - Dependency-Analyse kritisch für Story-Reihenfolge und Sprint-Planung
+
 ### Erstellte Skills (Aktueller Stand)
 
 ```
@@ -2150,11 +2184,15 @@ skills/
 │   ├── SKILL.md (3.8 KB)
 │   └── reference.md (29 KB)
 │
+├── dependency-analysis/      # ULTRATHINK-based Dependency Analysis
+│   ├── SKILL.md (235 lines)
+│   └── reference.md (680 lines)
+│
 └── git-smart-commit/         # Bereits vorhanden
     └── SKILL.md
 ```
 
-**Total:** 5 Skills, ~111 KB Content
+**Total:** 6 Skills, ~140 KB Content (inkl. dependency-analysis)
 
 ### Multi-Skill Activation (Bestätigt)
 
@@ -2163,6 +2201,7 @@ skills/
 - `java-best-practices` (Java-spezifisch) ✅
 - `testing-philosophy` (universal) ✅
 - `agile-workflow` (bei Epic/Story/Sprint) ✅
+- `dependency-analysis` (bei Dependency-Erwähnung, Sprint-Planung) ✅
 
 **Alle aktivieren sich gleichzeitig** basierend auf Kontext (Progressive Disclosure).
 
@@ -2197,7 +2236,10 @@ skills/
 - `e138598` - refactor(iteration-3): extract development-principles as language-agnostic skill
 - `9f4d6b9` - feat(java-best-practices): add comprehensive Java 17-25 features with version tags
 
-**Total:** 5 Commits, ~5500 Zeilen Code
+**Iteration 4:**
+- `96f6f23` - feat(iteration-4): add dependency-analysis skill with ULTRATHINK integration
+
+**Total:** 6 Commits, ~6885 Zeilen Code (1385 neue Zeilen in Iteration 4)
 
 ### Wichtige Erkenntnisse
 
@@ -2287,7 +2329,7 @@ skills/
 - ✅ **KEINE CLAUDE.md/agentic.md** (funktionieren nicht in Plugins)
 - ✅ **Alle Konventionen in Skills** (Ordnerstruktur, File Naming, etc.)
 - ✅ Multi-Skill Activation funktioniert (mehrere Skills gleichzeitig)
-- ✅ Iterationen 1-3 abgeschlossen (50% Fortschritt)
+- ✅ Iterationen 1-4 abgeschlossen (67% Fortschritt)
 - ✅ Test-Location: `D:\ki\repos\test\kafkareader`
 - ✅ Plugin-Update: `/plugin marketplace update local-dev-marketplace`
 
@@ -2296,11 +2338,11 @@ skills/
 2. testing-philosophy ("Test YOUR Code, Not THE Code")
 3. development-principles (Universal: YAGNI, KISS, SRP)
 4. java-best-practices (Java 17-25, Spring Boot, Maven)
-5. git-smart-commit (bereits vorhanden)
+5. dependency-analysis (ULTRATHINK-based, Circular Detection, Sprint Readiness)
+6. git-smart-commit (bereits vorhanden)
 
 **Nächste Iteration:**
-- **Empfohlen:** Iteration 5 (architecture-decisions - ADR Skill)
-- **Optional:** Iteration 4 (dependency-analysis - ULTRATHINK)
-- **Final:** Iteration 6 (Integration E2E Test)
+- **Iteration 5:** architecture-decisions - ADR Skill (EMPFOHLEN)
+- **Iteration 6:** Integration E2E Test (Alle Skills validieren)
 
 **Status:** Ready for Iteration 5 - architecture-decisions Skill
