@@ -111,10 +111,21 @@ src/
 ```
 
 ### Dependencies
+
+**IMPORTANT: Always use `technology-advisor-java` skill for dependency decisions!**
+
+When adding dependencies, choosing libraries, or updating versions:
+1. The `technology-advisor-java` skill will automatically activate
+2. It researches current best practices and latest stable versions
+3. It checks Maven Central for latest versions (not outdated training data)
+4. It verifies Spring Boot managed dependencies
+5. It can use Context7 for deep library comparisons (if needed)
+
+**General principles:**
 - Use Spring Boot Starter Parent for version management
 - Don't override plugin versions (parent manages them)
-- Document dependency choices
 - Prefer Spring Boot starters over individual dependencies
+- Omit `<version>` for Spring Boot managed dependencies
 
 ### Build Commands
 - Build: `./mvnw clean install`
