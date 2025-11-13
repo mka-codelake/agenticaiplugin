@@ -2046,10 +2046,10 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
 | 2 | testing-philosophy | **kafkareader** | 15-20 min | ✅ Abgeschlossen |
 | 3 | java-best-practices + development-principles | **kafkareader** | 15-20 min | ✅ Abgeschlossen |
 | 4 | dependency-analysis (optional) | **kafkareader** | 15-20 min | ✅ Abgeschlossen |
-| 5 | architecture-decisions | **kafkareader** | 10-15 min | ⏸️ Ausstehend |
+| 5 | architecture-decisions | **kafkareader** | 10-15 min | ✅ Abgeschlossen |
 | 6 | Integration E2E (Alle Skills) | **kafkareader** | 30-45 min | ⏸️ Ausstehend |
 
-**Fortschritt:** 4 von 6 Iterationen abgeschlossen (67%)
+**Fortschritt:** 5 von 6 Iterationen abgeschlossen (83%)
 
 **Änderungen gegenüber ursprünglichem Plan:**
 - ❌ CLAUDE.md + agentic.md entfernt (funktionieren nicht in Plugins)
@@ -2160,6 +2160,42 @@ Jeder Aspekt wird einzeln umgesetzt, getestet und validiert, bevor zum nächsten
   - Graph-Algorithmen in Markdown dokumentierbar (Python-Pseudocode)
   - Dependency-Analyse kritisch für Story-Reihenfolge und Sprint-Planung
 
+**✅ Iteration 5: architecture-decisions Skill** (committed: fc96c2a)
+- **architecture-decisions Skill (NEU):**
+  - Template-basiertes ADR (Architectural Decision Record) Management
+  - **Core Features:**
+    - ADR Numbering Logic (auto-increment: ADR-001, ADR-002, ...)
+    - Status Lifecycle Management (Proposed, Accepted, Deprecated, Superseded)
+    - Jinja2 Template für konsistente ADR-Struktur
+    - Auto-create `claudedocs/adrs/` folder
+  - **ADR Template (adr.md.j2):**
+    - Title, Status, Date, Context, Decision
+    - Consequences (Positive, Negative, Neutral)
+    - Alternatives Considered (mit Pros/Cons)
+    - Related Stories/Epics/Decisions (Integration mit agile-workflow)
+    - Optional: Implementation Notes, Review Date
+  - SKILL.md (210 Zeilen) + templates/adr.md.j2 (80 Zeilen) + reference.md (600 Zeilen)
+
+- **Integration mit agile-workflow:**
+  - ADRs in `claudedocs/adrs/` (bereits in agile-workflow vorbereitet)
+  - Stories können ADRs im "Design Decisions" Abschnitt referenzieren
+  - ADRs können Stories/Epics referenzieren (Bidirektionale Links)
+
+- **Best Practices (Michael Nygard Framework):**
+  - Focus on "Why" not "What"
+  - Document alternatives honestly
+  - Be honest about negative consequences
+  - Keep lightweight but complete (200-500 Zeilen)
+  - One decision per ADR
+  - Review ADRs after implementation (1-3 Monate)
+  - Link related ADRs
+
+- **Learnings:**
+  - Template-basierte Skills (Jinja2) für konsistente Artefakte
+  - Progressive Disclosure: SKILL.md (wann ADRs erstellen) + reference.md (wie gute ADRs schreiben)
+  - ADRs kritisch für Dokumentation von Architektur-Rationale
+  - Good/Bad Examples in reference.md sehr hilfreich für Verständnis
+
 ### Erstellte Skills (Aktueller Stand)
 
 ```
@@ -2188,11 +2224,17 @@ skills/
 │   ├── SKILL.md (235 lines)
 │   └── reference.md (680 lines)
 │
+├── architecture-decisions/   # ADR Management (Michael Nygard Framework)
+│   ├── SKILL.md (210 lines)
+│   ├── templates/
+│   │   └── adr.md.j2 (80 lines)
+│   └── reference.md (600 lines)
+│
 └── git-smart-commit/         # Bereits vorhanden
     └── SKILL.md
 ```
 
-**Total:** 6 Skills, ~140 KB Content (inkl. dependency-analysis)
+**Total:** 7 Skills, ~170 KB Content (inkl. architecture-decisions)
 
 ### Multi-Skill Activation (Bestätigt)
 
@@ -2202,6 +2244,7 @@ skills/
 - `testing-philosophy` (universal) ✅
 - `agile-workflow` (bei Epic/Story/Sprint) ✅
 - `dependency-analysis` (bei Dependency-Erwähnung, Sprint-Planung) ✅
+- `architecture-decisions` (bei ADR-Erwähnung, Design Decisions) ✅
 
 **Alle aktivieren sich gleichzeitig** basierend auf Kontext (Progressive Disclosure).
 
@@ -2239,7 +2282,10 @@ skills/
 **Iteration 4:**
 - `96f6f23` - feat(iteration-4): add dependency-analysis skill with ULTRATHINK integration
 
-**Total:** 6 Commits, ~6885 Zeilen Code (1385 neue Zeilen in Iteration 4)
+**Iteration 5:**
+- `fc96c2a` - feat(iteration-5): add architecture-decisions skill with ADR templates
+
+**Total:** 7 Commits, ~8174 Zeilen Code (1289 neue Zeilen in Iteration 5)
 
 ### Wichtige Erkenntnisse
 
@@ -2329,7 +2375,7 @@ skills/
 - ✅ **KEINE CLAUDE.md/agentic.md** (funktionieren nicht in Plugins)
 - ✅ **Alle Konventionen in Skills** (Ordnerstruktur, File Naming, etc.)
 - ✅ Multi-Skill Activation funktioniert (mehrere Skills gleichzeitig)
-- ✅ Iterationen 1-4 abgeschlossen (67% Fortschritt)
+- ✅ Iterationen 1-5 abgeschlossen (83% Fortschritt)
 - ✅ Test-Location: `D:\ki\repos\test\kafkareader`
 - ✅ Plugin-Update: `/plugin marketplace update local-dev-marketplace`
 
@@ -2339,10 +2385,10 @@ skills/
 3. development-principles (Universal: YAGNI, KISS, SRP)
 4. java-best-practices (Java 17-25, Spring Boot, Maven)
 5. dependency-analysis (ULTRATHINK-based, Circular Detection, Sprint Readiness)
-6. git-smart-commit (bereits vorhanden)
+6. architecture-decisions (ADR Management, Michael Nygard Framework)
+7. git-smart-commit (bereits vorhanden)
 
 **Nächste Iteration:**
-- **Iteration 5:** architecture-decisions - ADR Skill (EMPFOHLEN)
-- **Iteration 6:** Integration E2E Test (Alle Skills validieren)
+- **Iteration 6:** Integration E2E Test (Alle Skills validieren) - FINAL
 
-**Status:** Ready for Iteration 5 - architecture-decisions Skill
+**Status:** Ready for Iteration 6 - Final Integration E2E Test
