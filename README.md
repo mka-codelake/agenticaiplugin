@@ -228,6 +228,297 @@ throw new UserNotFoundException("User not found");
 
 Der code-reviewer Agent liest diese Datei automatisch und prüft Code dagegen.
 
+---
+
+## Test-Engineer Agent
+
+Automatischer Test-Engineer Sub-Agent für Integration-, System- und E2E-Tests mit **separatem Kontextfenster** vom Developer-Agent.
+
+### Konzept: Separate Kontexte für Tests und Implementation
+
+**Problem:** Wenn derselbe Agent Tests UND Implementation schreibt, fließt das Implementation-Verständnis in die Tests ein.
+
+**Lösung:** Der test-engineer Agent hat einen **separaten Kontext** und schreibt Tests basierend auf **User-Requirements**, nicht auf Implementation-Details.
+
+```
+┌─────────────────────┐
+│  User Requirements  │
+│  (Story, AC, Specs) │
+└──────────┬──────────┘
+           │
+           ├──────────────────────┐
+           ▼                      ▼
+   ┌───────────────┐      ┌────────────────┐
+   │ test-engineer │      │ developer-agent│
+   │ (Context A)   │      │ (Context B)    │
+   └───────┬───────┘      └────────┬───────┘
+           │                       │
+           ▼                       ▼
+   Integration Tests        Implementation
+   (User's View)           (Developer's View)
+```
+
+**Vorteil:** Tests validieren Requirements unabhängig von Implementation-Details.
+
+---
+
+### Setup
+
+**1. CLAUDE.md Template kopieren (falls nicht bereits geschehen)**
+
+```bash
+cp CLAUDE.template.md /dein-projekt/CLAUDE.md
+```
+
+Diese Datei enthält CRITICAL Rules:
+- Developer-Agent darf Integration/System/E2E-Tests **NICHT** ändern
+- Nur test-engineer Agent darf diese Tests schreiben/modifizieren
+
+**2. Test-Spezifikationen anlegen (optional)**
+
+Erstelle User-Test-Spezifikationen:
+
+```bash
+mkdir -p /dein-projekt/claudedocs/testspecs
+```
+
+Lege beliebige `.md` Dateien mit Test-Szenarien an (freies Namensschema):
+- `kafka-message-scenarios.md` - Kafka Message Tests
+- `api-test-cases.md` - REST API Testfälle
+- `user-registration-flows.md` - User Journey Tests
+- Weitere nach Bedarf
+
+**Beispiel Test-Spezifikation (`claudedocs/testspecs/kafka-scenarios.md`):**
+
+```markdown
+# Kafka Message Processing Test Scenarios
+
+## Scenario 1: CREATE Message
+
+**Input:**
+- Topic: user-events
+- Message: {"userId": 123, "action": "CREATE", "username": "john"}
+
+**Expected:**
+- User with ID 123 exists in database
+- User status is ACTIVE
+- User username is "john"
+
+## Scenario 2: UPDATE Message
+
+**Input:**
+- Topic: user-events
+- Message: {"userId": 123, "action": "UPDATE", "username": "john_updated"}
+
+**Expected:**
+- User with ID 123 updated in database
+- User username is "john_updated"
+```
+
+---
+
+### Verwendung
+
+#### Automatisch (Empfohlen)
+
+Claude erkennt automatisch, wenn du Integration-/System-/E2E-Tests möchtest:
+
+```
+User: "Schreib Systemtest für STORY-042"
+User: "Erstelle Integrationstest für die Kafka-Verarbeitung"
+User: "Wir brauchen einen E2E-Test für User Registration"
+
+→ Main-Agent erkennt Test-Anfrage
+→ Ruft test-engineer Agent auf (separater Kontext)
+→ Test-Engineer liest Requirements und schreibt Tests
+→ Tests landen in src/test/java/integration/
+```
+
+#### Manuell
+
+Für gezielte Test-Erstellung:
+
+```bash
+/cc-test STORY-042
+/cc-test EPIC-005
+/cc-test kafka
+```
+
+---
+
+### Workflow: Test-First Development (TDD)
+
+**Empfohlener Ablauf:**
+
+1. **User + Test-Engineer:** Integration-Tests definieren
+   ```
+   User: "Schreib Systemtest für STORY-042: User Registration"
+   → test-engineer schreibt Tests in integration/
+   → Tests schlagen fehl (RED)
+   ```
+
+2. **Developer-Agent:** Implementation
+   ```
+   User: "Implementiere STORY-042"
+   → developer-agent liest Integration-Tests
+   → implementiert Features
+   → Tests werden grün (GREEN)
+   ```
+
+3. **Developer-Agent:** Unit-Tests & Refactoring
+   ```
+   → developer-agent schreibt Unit-Tests
+   → refactored Code
+   → Integration-Tests bleiben grün
+   ```
+
+**CRITICAL:** Developer-Agent darf Integration-Tests NICHT ändern!
+
+---
+
+### Test-Verantwortlichkeiten
+
+| Test-Typ | Location | Agent | Beschreibung |
+|----------|----------|-------|--------------|
+| **Integration Tests** | `src/test/java/integration/` | test-engineer | Mehrere Komponenten zusammen (Epic-Level) |
+| **System Tests** | `src/test/java/integration/system/` | test-engineer | Gesamter Application Flow (Story-Level) |
+| **E2E Tests** | `src/test/java/integration/e2e/` | test-engineer | Komplette User Journey |
+| **Unit Tests** | `src/test/java/unit/` | developer-agent | Einzelne Klassen/Methoden |
+
+**Schutz-Mechanismus:**
+
+In `CLAUDE.md` ist festgelegt:
+```
+⛔ Developer-Agent darf NICHT:
+- Integration/System/E2E-Tests modifizieren
+- Integration/System/E2E-Tests löschen
+- Failing Tests durch Änderung der Tests "fixen"
+
+✅ Developer-Agent darf:
+- Integration-Tests LESEN (um Requirements zu verstehen)
+- Integration-Tests AUSFÜHREN (um Implementation zu validieren)
+- Implementation anpassen bis Tests grün sind
+```
+
+---
+
+### Funktionsweise
+
+Der test-engineer Agent kombiniert mehrere Quellen:
+
+1. **Test-Spezifikationen** (`claudedocs/testspecs/*.md`)
+   - User-definierte Test-Szenarien
+   - **Höchste Priorität**
+
+2. **Story/Epic Acceptance Criteria** (`claudedocs/stories/`, `epics/`)
+   - Acceptance Criteria aus Stories
+   - User Story Statements
+
+3. **Projekt-Guidelines** (`claudedocs/guidelines/*.md`)
+   - Test-spezifische Guidelines
+   - z.B. `testing-standards.md`, `kafka-testing.md`
+
+4. **Testing Skills**
+   - `integration-testing` - TestContainers, @SpringBootTest, Awaitility
+   - `testing-philosophy` - Allgemeine Test-Prinzipien
+   - `spring-boot-best-practices` - Spring Boot Patterns (Unit Testing Section)
+   - `java-best-practices` - Java Syntax
+
+---
+
+### Technologie-Stack
+
+**Integration-Tests verwenden:**
+- **TestContainers** - Reale Infrastruktur (Kafka, PostgreSQL, Redis)
+- **@SpringBootTest** - Full Application Context
+- **Awaitility** - Async Testing (statt Thread.sleep)
+- **AssertJ** - Fluent Assertions (KEIN JUnit assertEquals!)
+
+**Beispiel:**
+
+```java
+@SpringBootTest
+@Testcontainers
+class KafkaIntegrationTest {
+
+    @Container
+    static KafkaContainer kafka = new KafkaContainer(/*...*/);
+
+    @Test
+    void shouldCreateUserWhenReceivingKafkaCreateMessage() {
+        // EPIC-005: Kafka Message Processing
+        // AC-1: CREATE message creates user with ACTIVE status
+        // TestSpec: claudedocs/testspecs/kafka-scenarios.md
+
+        // Given
+        UserEvent event = new UserEvent(123L, "CREATE", "john");
+
+        // When
+        kafkaTemplate.send("user-events", event);
+
+        // Then
+        await().atMost(5, SECONDS).untilAsserted(() -> {
+            Optional<User> user = userRepository.findById(123L);
+            assertThat(user).isPresent();
+            assertThat(user.get().getStatus()).isEqualTo(UserStatus.ACTIVE);
+        });
+        // AC-1 ✓
+    }
+}
+```
+
+**Wichtige Elemente:**
+1. Traceability: `// EPIC-XXX`, `// AC-N`, `// TestSpec:`
+2. Given-When-Then Struktur
+3. AssertJ Assertions
+4. AC Verification Marker: `// AC-N ✓`
+
+---
+
+### Test-Report Format
+
+Nach Test-Erstellung liefert der test-engineer Agent:
+
+```markdown
+## Integration Tests Created
+
+**Story:** STORY-042: User Registration
+**Test Spec:** claudedocs/testspecs/user-registration-tests.md
+
+### Tests Written
+
+1. **UserRegistrationSystemTest.java** (src/test/java/integration/api/)
+   - shouldRegisterUserWithActiveStatus() → AC-1 ✓
+   - shouldSendWelcomeEmailOnRegistration() → AC-2 ✓
+   - shouldReturn400WhenEmailInvalid() → AC-3 ✓
+
+2. **UserKafkaIntegrationTest.java** (src/test/java/integration/messaging/)
+   - shouldPublishUserCreatedEvent() → AC-4 ✓
+
+### Test Coverage
+- Acceptance Criteria: 4/4 covered ✓
+- Test Specifications: All scenarios implemented ✓
+- TestContainers: PostgreSQL, Kafka
+- Async Testing: Awaitility for Kafka assertions
+
+### Next Steps
+Run tests: `./mvnw test -Dtest=UserRegistrationSystemTest`
+Developer agent can now implement features to make tests pass (TDD).
+```
+
+---
+
+### Wichtige Hinweise
+
+- **Separate Kontexte:** test-engineer und developer-agent haben getrennte Kontexte
+- **User-Requirements:** Tests basieren auf User-Verständnis, nicht auf Implementation
+- **Immutable Tests:** Tests sind Requirements - Developer darf sie nicht ändern!
+- **Test-First:** Tests werden VOR Implementation geschrieben (TDD)
+- **TestContainers:** Echte Infrastruktur, keine Mocks
+- **Projekt-Spezifikationen:** `claudedocs/testspecs/` hat höchste Priorität
+
+---
+
 ## Entwicklung
 
 ### Plugin-Updates testen
