@@ -1140,8 +1140,8 @@ counter++;
 - [ ] Follows Maven directory layout
 
 ### Before Merging PR
-- [ ] All tests pass (`mvnw test`)
-- [ ] Integration tests pass (`mvnw verify`)
+- [ ] All tests pass (`mvnw -q test`)
+- [ ] Integration tests pass (`mvnw -q verify`)
 - [ ] No hardcoded values
 - [ ] Configuration in application.yaml
 - [ ] Global error handling via @RestControllerAdvice

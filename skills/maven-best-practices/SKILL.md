@@ -253,25 +253,25 @@ src/test/resources/
 
 ```bash
 # Build project (compile + test + package)
-./mvnw clean install
+./mvnw -q clean install
 
 # Run tests only
-./mvnw test
+./mvnw -q test
 
 # Package without running tests (use sparingly!)
-./mvnw clean package -DskipTests
+./mvnw -q clean package -DskipTests
 
 # Compile only (no tests, no package)
-./mvnw clean compile
+./mvnw -q clean compile
 
 # Verify (run integration tests)
-./mvnw verify
+./mvnw -q verify
 
 # Clean build artifacts
-./mvnw clean
+./mvnw -q clean
 
 # Install to local Maven repository
-./mvnw install
+./mvnw -q install
 ```
 
 **Why Maven Wrapper (`mvnw`):**
@@ -279,6 +279,35 @@ src/test/resources/
 - No need to install Maven globally
 - Consistent builds across environments
 - Distributed with project (mvnw, mvnw.cmd, .mvn/)
+
+**Important: Use `-q` (quiet) Flag**
+
+**Always use `-q` (quiet mode) for Maven commands** to minimize output noise and reduce token usage:
+
+```bash
+# GOOD: Quiet mode - only errors and warnings are shown
+./mvnw -q test
+
+# BAD: Verbose output - generates unnecessary logs
+./mvnw test
+```
+
+**Why `-q` is important:**
+- **Reduces token consumption** - Less Maven logging in context
+- **Errors are still displayed** - Maven prints errors and warnings even in quiet mode
+- **Cleaner output** - Focus on what matters (test results, errors)
+- **Faster processing** - Less text to parse and analyze
+
+**Exception:** Do NOT use `-q` when you need to see the full output:
+```bash
+# Application output needs to be visible
+./mvnw spring-boot:run
+
+# Debugging build issues (verbose output helpful)
+./mvnw -X test  # -X = debug mode
+```
+
+**Default rule:** If you're running a build/test/verify command, use `-q` unless you have a specific reason to see verbose output.
 
 ---
 
@@ -301,7 +330,7 @@ src/test/resources/
 
 Example:
 ```bash
-./mvnw package
+./mvnw -q package
 # Automatically runs: validate → compile → test → package
 ```
 
@@ -373,7 +402,7 @@ parent-project/
 
 **Build all modules:**
 ```bash
-./mvnw clean install
+./mvnw -q clean install
 # Builds parent + all modules in order
 ```
 
@@ -385,7 +414,7 @@ parent-project/
 
 ```bash
 # BAD: Assumes user has Maven installed
-mvn clean install
+mvn -q clean install
 ```
 
 **Why bad:**
@@ -395,7 +424,7 @@ mvn clean install
 
 **Fix:** Always use Maven Wrapper:
 ```bash
-./mvnw clean install
+./mvnw -q clean install
 ```
 
 ---
@@ -466,7 +495,7 @@ mvn clean install
 
 ```bash
 # BAD: Skipping tests in CI/CD pipeline
-./mvnw clean install -DskipTests
+./mvnw -q clean install -DskipTests
 ```
 
 **Why bad:** Tests are safety net - skipping defeats the purpose of CI/CD.

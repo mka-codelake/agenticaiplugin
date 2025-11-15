@@ -502,7 +502,7 @@ Nach Test-Erstellung liefert der test-engineer Agent:
 - Async Testing: Awaitility for Kafka assertions
 
 ### Next Steps
-Run tests: `./mvnw test -Dtest=UserRegistrationSystemTest`
+Run tests: `./mvnw -q test -Dtest=UserRegistrationSystemTest`
 Developer agent can now implement features to make tests pass (TDD).
 ```
 

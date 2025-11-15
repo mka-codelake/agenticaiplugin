@@ -406,7 +406,7 @@ After writing tests, report to user:
 
 Run tests:
 ``bash
-./mvnw test -Dtest=UserRegistrationSystemTest
+./mvnw -q test -Dtest=UserRegistrationSystemTest
 ``
 
 Developer agent can now implement features to make these tests pass (TDD).
