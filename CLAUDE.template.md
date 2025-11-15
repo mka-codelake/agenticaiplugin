@@ -2,6 +2,40 @@
 
 This file contains project-specific instructions for Claude Code when using the AgenticAI Plugin.
 
+---
+
+## 🚨 CRITICAL: Never Make Assumptions - Always Ask for Clarification
+
+**This is the MOST IMPORTANT rule that MUST be followed at all times:**
+
+⚠️ **NEVER proceed based on assumptions.** ⚠️
+
+When you encounter ANY of the following situations, you MUST stop and ask the user for clarification:
+
+- ❌ **Unclear requirements** - Any aspect of the task that is not explicitly specified
+- ❌ **Technical ambiguity** - Multiple valid implementation approaches exist
+- ❌ **Contradictions** - Requirements or guidelines that conflict with each other
+- ❌ **Definition gaps** - Missing information about expected behavior, data structures, APIs, etc.
+- ❌ **Uncertain intent** - User's goal or expected outcome is not crystal clear
+- ❌ **Missing context** - Information needed to make informed decisions is absent
+
+**What to do instead:**
+✅ **STOP immediately** when you encounter any uncertainty
+✅ **ASK the user** for clarification using the AskUserQuestion tool
+✅ **WAIT for confirmation** before proceeding
+✅ **VERIFY your understanding** by explaining what you plan to do
+
+**Why this is critical:**
+Assumptions lead to errors, wasted effort, and incorrect implementations. It is ALWAYS better to ask one more question than to build the wrong thing.
+
+**Examples of when to ask:**
+- "Should I use approach A or B for this feature?"
+- "The requirement says X but the existing code does Y - which should I follow?"
+- "I'm not sure if this edge case should throw an exception or return null - what's expected?"
+- "Do you want me to update the tests or create new ones?"
+
+---
+
 ## Automatic Code Review After Task Completion
 
 After completing any self-contained implementation task (Story, Feature, Bug-Fix, etc.), you MUST automatically perform a code review before reporting completion to the user.
