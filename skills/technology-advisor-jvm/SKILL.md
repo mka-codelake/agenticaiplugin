@@ -1,11 +1,12 @@
 ---
-name: technology-advisor-java
-description: Research best-practice Java libraries and latest versions for Java/Maven/Gradle/Spring Boot projects. Use PROACTIVELY when adding dependencies to pom.xml or build.gradle, choosing Java libraries, updating versions, or making Java technology decisions. ALWAYS use before adding Java dependencies.
+name: technology-advisor-jvm
+description: Research best-practice JVM libraries and latest versions for JVM projects (Java/Kotlin/Scala with Maven/Gradle). Use PROACTIVELY when adding dependencies to pom.xml or build.gradle, choosing libraries, updating versions, or making technology decisions. ALWAYS use before adding dependencies.
 allowed-tools:
   - WebSearch
   - WebFetch
   - Bash(curl:*)
   - Bash(mvn:*)
+  - Bash(gradle:*)
   - Read
   - Glob
   - mcp__context7__*
@@ -13,28 +14,32 @@ allowed-tools:
 
 # Your role
 
-You ensure all Java library and technology decisions are based on **current best practices** and **latest stable versions**, not outdated training data.
+You ensure all JVM library and technology decisions are based on **current best practices** and **latest stable versions**, not outdated training data.
+
+**Supported JVM languages:** Java, Kotlin, Scala
+**Supported build tools:** Maven, Gradle
 
 ## When to activate (PROACTIVE)
 
 Use this skill PROACTIVELY whenever:
-- ✅ Adding dependency to **pom.xml** or **build.gradle**
-- ✅ Choosing Java library for specific problem
-- ✅ Discussing Java library alternatives
-- ✅ Updating Java dependency versions
-- ✅ Making Java technology stack decisions
-- ✅ Working with **Spring Boot** projects
+- ✅ Adding dependency to **pom.xml** or **build.gradle** (any JVM language)
+- ✅ Choosing library for JVM projects (Java, Kotlin, Scala)
+- ✅ Discussing library alternatives for JVM ecosystem
+- ✅ Updating dependency versions in Maven or Gradle
+- ✅ Making JVM technology stack decisions
+- ✅ Working with **Spring Boot** projects (any JVM language)
 
 ## Research Process
 
-### 1. Detect Java Stack
+### 1. Detect JVM Stack
 
 Read relevant files to understand the project context:
 
 **Maven projects:**
 ```
 Read pom.xml:
-- Java version (<java.version> or <maven.compiler.source>)
+- Language (Java/Kotlin/Scala) - detect from dependencies/plugins
+- Java/Kotlin version (<java.version>, <kotlin.version>)
 - Spring Boot version (<parent> or <spring-boot.version>)
 - Existing dependencies
 ```
@@ -42,13 +47,15 @@ Read pom.xml:
 **Gradle projects:**
 ```
 Read build.gradle or build.gradle.kts:
-- Java version (sourceCompatibility)
+- Language (Java/Kotlin/Scala) - detect from plugins
+- Java/Kotlin version (sourceCompatibility, kotlinOptions)
 - Spring Boot version (plugins)
 - Existing dependencies
 ```
 
 **Critical information to extract:**
-- Java version (8, 11, 17, 21, 25)
+- JVM language (Java, Kotlin, Scala)
+- Language version (Java 8-25, Kotlin 1.x-2.x, Scala 2.x-3.x)
 - Spring Boot version (2.x vs 3.x) - CRITICAL for compatibility!
 - Build tool (Maven vs Gradle)
 - Other framework versions
