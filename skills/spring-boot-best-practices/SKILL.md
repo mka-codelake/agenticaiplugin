@@ -733,6 +733,398 @@ plugins {
 
 ---
 
+## Unit Testing
+
+**Note:** This section covers **Unit Testing** for Spring Boot. For Integration/System/E2E tests, see `integration-testing` skill.
+
+### Spring Boot Test Dependencies
+
+**spring-boot-starter-test includes:**
+- JUnit 5 (Jupiter)
+- Mockito (mocking framework)
+- AssertJ (fluent assertions) ✅ **PREFER THIS!**
+- Hamcrest (matchers)
+- Spring Test & Spring Boot Test
+
+**Maven (managed by Spring Boot):**
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+---
+
+### Assertions: Use AssertJ, NOT JUnit!
+
+**CRITICAL: Always use AssertJ assertions, NEVER JUnit assertions!**
+
+**Good (AssertJ):**
+```java
+import static org.assertj.core.api.Assertions.assertThat;
+
+@Test
+void shouldReturnActiveUser() {
+    User user = userService.getUser(1L);
+
+    assertThat(user).isNotNull();
+    assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+    assertThat(user.getEmail()).isEqualTo("john@example.com");
+}
+```
+
+**Bad (JUnit assertions - DON'T USE!):**
+```java
+import static org.junit.jupiter.api.Assertions.*;
+
+@Test
+void testUser() {
+    User user = userService.getUser(1L);
+
+    assertNotNull(user);  // DON'T USE JUnit assertions!
+    assertEquals(UserStatus.ACTIVE, user.getStatus());  // DON'T USE!
+}
+```
+
+**Why AssertJ is better:**
+- Fluent, readable API (`assertThat(x).isEqualTo(y)` vs `assertEquals(y, x)`)
+- Better error messages (shows actual vs expected clearly)
+- Type-safe (compile-time errors)
+- More powerful (extracting, filtering, chaining)
+
+---
+
+### Unit Test Structure: Arrange-Act-Assert (AAA)
+
+**ALWAYS use AAA pattern (also known as Given-When-Then):**
+
+```java
+@Test
+void shouldActivateInactiveUser() {
+    // Arrange (Given) - Setup test data and mocks
+    User user = new User("john", UserStatus.INACTIVE);
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+    // Act (When) - Execute the method under test
+    userService.activate(1L);
+
+    // Assert (Then) - Verify the outcome
+    assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+    verify(userRepository).save(user);
+}
+```
+
+---
+
+### Spring Boot Test Slices
+
+**Test Slices load only relevant parts of Spring context (faster than @SpringBootTest):**
+
+#### @WebMvcTest (Controller Tests)
+
+**Test REST controllers in isolation:**
+
+```java
+@WebMvcTest(UserController.class)
+class UserControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean  // Spring Boot mock
+    private UserService userService;
+
+    @Test
+    void shouldReturnUserWhenFound() throws Exception {
+        // Arrange
+        User user = new User(1L, "john", "john@example.com");
+        when(userService.getUser(1L)).thenReturn(Optional.of(user));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/users/1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.username").value("john"))
+            .andExpect(jsonPath("$.email").value("john@example.com"));
+    }
+
+    @Test
+    void shouldReturn404WhenUserNotFound() throws Exception {
+        // Arrange
+        when(userService.getUser(99L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        mockMvc.perform(get("/api/users/99"))
+            .andExpect(status().isNotFound());
+    }
+}
+```
+
+**Key Points:**
+- `@WebMvcTest` - Loads only MVC components (controllers, exception handlers)
+- `@MockBean` - Creates mock and adds to Spring context
+- `MockMvc` - Simulates HTTP requests without starting server
+- Fast (no full context, no server)
+
+---
+
+#### @DataJpaTest (Repository Tests)
+
+**Test JPA repositories:**
+
+```java
+@DataJpaTest
+class UserRepositoryTest {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private TestEntityManager entityManager;
+
+    @Test
+    void shouldFindUserByEmail() {
+        // Arrange
+        User user = new User("john", "john@example.com");
+        entityManager.persist(user);
+        entityManager.flush();
+
+        // Act
+        Optional<User> found = userRepository.findByEmail("john@example.com");
+
+        // Assert
+        assertThat(found).isPresent();
+        assertThat(found.get().getUsername()).isEqualTo("john");
+    }
+}
+```
+
+**Key Points:**
+- `@DataJpaTest` - Loads only JPA components
+- In-memory H2 database by default
+- `TestEntityManager` - Helper for test data setup
+- Transactional (auto-rollback after each test)
+
+---
+
+#### @JsonTest (JSON Serialization Tests)
+
+**Test JSON serialization/deserialization:**
+
+```java
+@JsonTest
+class UserJsonTest {
+
+    @Autowired
+    private JacksonTester<User> json;
+
+    @Test
+    void shouldSerializeUser() throws Exception {
+        // Arrange
+        User user = new User(1L, "john", "john@example.com");
+
+        // Act & Assert
+        assertThat(json.write(user))
+            .hasJsonPathStringValue("@.username", "john")
+            .hasJsonPathStringValue("@.email", "john@example.com");
+    }
+
+    @Test
+    void shouldDeserializeUser() throws Exception {
+        // Arrange
+        String content = "{\"username\":\"john\",\"email\":\"john@example.com\"}";
+
+        // Act
+        User user = json.parse(content).getObject();
+
+        // Assert
+        assertThat(user.getUsername()).isEqualTo("john");
+        assertThat(user.getEmail()).isEqualTo("john@example.com");
+    }
+}
+```
+
+---
+
+### Mocking: @MockBean vs @Mock
+
+**@MockBean (Spring Boot Test):**
+- Creates mock AND adds to Spring context
+- Use in `@WebMvcTest`, `@DataJpaTest`, `@SpringBootTest`
+- Replaces real bean in application context
+
+**@Mock (Mockito):**
+- Creates mock but NOT in Spring context
+- Use in plain unit tests (no Spring)
+- Faster (no Spring overhead)
+
+**Example - Plain Unit Test (No Spring):**
+```java
+@ExtendWith(MockitoExtension.class)
+class UserServiceTest {
+
+    @Mock  // Mockito mock (no Spring)
+    private UserRepository userRepository;
+
+    @InjectMocks  // Injects mocks into UserService
+    private UserService userService;
+
+    @Test
+    void shouldReturnUserWhenFound() {
+        // Arrange
+        User user = new User(1L, "john");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        // Act
+        Optional<User> result = userService.getUser(1L);
+
+        // Assert
+        assertThat(result).isPresent();
+        assertThat(result.get().getUsername()).isEqualTo("john");
+    }
+}
+```
+
+**Example - Spring Test:**
+```java
+@WebMvcTest(UserController.class)
+class UserControllerTest {
+
+    @MockBean  // Spring Boot mock (in context)
+    private UserService userService;
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    void test() {
+        // userService mock is in Spring context
+    }
+}
+```
+
+**When to use which:**
+- **@Mock + @InjectMocks:** Plain unit tests (Service, Component, Utility classes)
+- **@MockBean:** Spring tests (@WebMvcTest, @DataJpaTest, @SpringBootTest)
+
+---
+
+### Mockito Basics
+
+**Common Mockito operations:**
+
+**Stubbing (when...thenReturn):**
+```java
+when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+when(userRepository.save(any(User.class))).thenReturn(user);
+when(userService.getUser(anyLong())).thenThrow(new UserNotFoundException());
+```
+
+**Verification (verify):**
+```java
+verify(userRepository).save(user);
+verify(userRepository, times(2)).findById(1L);
+verify(userRepository, never()).delete(any());
+```
+
+**Argument Captors:**
+```java
+ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+verify(userRepository).save(captor.capture());
+
+User savedUser = captor.getValue();
+assertThat(savedUser.getStatus()).isEqualTo(UserStatus.ACTIVE);
+```
+
+---
+
+### Service Layer Unit Tests
+
+**Example: Test Service with mocked Repository:**
+
+```java
+@ExtendWith(MockitoExtension.class)
+class UserServiceTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private EmailService emailService;
+
+    @InjectMocks
+    private UserService userService;
+
+    @Test
+    void shouldCreateUserWithActiveStatus() {
+        // Arrange
+        String username = "john";
+        User user = new User(username, UserStatus.ACTIVE);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        // Act
+        User created = userService.createUser(username);
+
+        // Assert
+        assertThat(created.getStatus()).isEqualTo(UserStatus.ACTIVE);
+        verify(userRepository).save(any(User.class));
+        verify(emailService).sendWelcomeEmail(user);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserNotFound() {
+        // Arrange
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() -> userService.getUser(99L))
+            .isInstanceOf(UserNotFoundException.class)
+            .hasMessage("User with ID 99 not found");
+    }
+}
+```
+
+---
+
+### Test Naming Convention
+
+**Use descriptive names: `should[ExpectedBehavior]When[Condition]`**
+
+**Good:**
+```java
+@Test
+void shouldReturnUserWhenUserExists() { }
+
+@Test
+void shouldThrowExceptionWhenUserNotFound() { }
+
+@Test
+void shouldActivateUserWhenStatusIsInactive() { }
+```
+
+**Bad:**
+```java
+@Test
+void testGetUser() { }
+
+@Test
+void test1() { }
+```
+
+---
+
+### Test Coverage
+
+**Coverage is a tool, NOT a goal!**
+
+See `testing-philosophy` skill for detailed guidance on:
+- What to test (YOUR code, not THE code)
+- What NOT to test (frameworks, libraries, generated code)
+- Test pyramid (many unit tests, few integration tests)
+
+---
+
 ## Progressive Disclosure
 
 For detailed guidelines on:
@@ -740,7 +1132,7 @@ For detailed guidelines on:
 - Spring Security integration
 - Spring Data JPA best practices
 - Transaction management
-- Testing Spring Boot applications
+- Advanced testing patterns
 
 See `reference.md` (load only when user explicitly needs details).
 
@@ -748,4 +1140,4 @@ See `reference.md` (load only when user explicitly needs details).
 
 **This skill activates automatically when user mentions: spring boot, @SpringBootApplication, @RestController, @Service, @Repository, spring-boot-starter-*.**
 
-**Note:** This skill covers **Spring Boot framework only**. For Java language, use `java-best-practices`. For Maven build tool, use `maven-best-practices`.
+**Note:** This skill covers **Spring Boot framework only**. For Java language, use `java-best-practices`. For Maven build tool, use `maven-best-practices`. For Integration/E2E tests, use `integration-testing` skill.
