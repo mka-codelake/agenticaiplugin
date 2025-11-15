@@ -186,6 +186,144 @@ The code-reviewer agent automatically discovers and applies all guidelines in th
 
 ---
 
+## CRITICAL: Protected Test Directories
+
+⛔ **NEVER modify tests in these directories unless you are the test-engineer agent:**
+
+```
+src/test/java/integration/**
+src/test/java/system/**
+src/test/java/e2e/**
+```
+
+Or equivalent paths for other languages:
+```
+src/test/python/integration/**
+src/test/python/system/**
+src/test/python/e2e/**
+```
+
+### Rules for Developer Agent
+
+If you are implementing features (not the test-engineer agent):
+
+**❌ FORBIDDEN:**
+- Modify any file in `integration/`, `system/`, or `e2e/` directories
+- Delete integration/system/E2E test files
+- "Fix" failing integration tests by changing test code
+- Refactor integration test structure
+- Change assertions in integration tests
+
+**✅ ALLOWED:**
+- READ integration tests to understand requirements
+- RUN integration tests to verify implementation
+- Fix implementation code to make tests pass
+- Write unit tests in `src/test/java/unit/` directory
+
+### Why This Rule Exists
+
+Integration/System/E2E tests represent **user requirements** and are written by the test-engineer agent with a **separate context** from your implementation. These tests must remain immutable to ensure:
+
+1. **Requirements Integrity:** Tests define what "done" means
+2. **Context Separation:** Test-engineer reflects user understanding, not implementation details
+3. **TDD Workflow:** Tests written first (Red) → Implementation makes them pass (Green)
+
+### If Integration Tests Fail
+
+**Correct Response:**
+```
+Integration tests are failing. I need to fix the IMPLEMENTATION, not the tests.
+
+Analysis:
+- Test: shouldCreateUserWithActiveStatus() expects status=ACTIVE
+- Issue: My implementation sets status=PENDING
+- Fix: Change UserService.createUser() to set ACTIVE status
+```
+
+**Incorrect Response (DO NOT DO THIS):**
+```
+Integration test expects ACTIVE but I implemented PENDING.
+Let me change the test to expect PENDING instead...  ❌ WRONG!
+```
+
+### Test Responsibilities
+
+| Test Type | Location | Owner | You Can Modify? |
+|-----------|----------|-------|----------------|
+| **Integration Tests** | `integration/` | test-engineer | ❌ NO |
+| **System Tests** | `system/` | test-engineer | ❌ NO |
+| **E2E Tests** | `e2e/` | test-engineer | ❌ NO |
+| **Unit Tests** | `unit/` | developer-agent | ✅ YES |
+
+---
+
+## CRITICAL: Protected User Configuration
+
+⛔ **NEVER modify files in these directories:**
+
+```
+claudedocs/testspecs/**
+claudedocs/guidelines/**
+```
+
+### Rules for ALL Agents
+
+**❌ FORBIDDEN:**
+- Modify any file in `claudedocs/testspecs/`
+- Modify any file in `claudedocs/guidelines/`
+- Delete files from these directories
+- Rename or move files in these directories
+- Add files to these directories (user does this manually)
+
+**✅ ALLOWED:**
+- READ files from these directories
+- Apply rules from these files
+- Reference these files in code comments
+
+### Why This Rule Exists
+
+These directories contain **user-provided** configuration and requirements:
+
+1. **claudedocs/testspecs/**
+   - User-defined test scenarios
+   - Expected inputs/outputs
+   - Explicit test specifications
+   - **Test-engineer reads these to write tests**
+
+2. **claudedocs/guidelines/**
+   - Project-specific coding rules
+   - Custom exception patterns
+   - Logging standards
+   - Architecture decisions
+   - **Code-reviewer reads these to validate code**
+
+**These are user requirements, not code. Agents execute them, never modify them.**
+
+### If Guidelines Conflict with Your Knowledge
+
+**Correct Response:**
+```
+Project guideline (exception-handling.md) requires ErrorCode as first parameter.
+My default pattern uses ErrorCode as second parameter.
+
+Decision: Project guidelines override my defaults. Following project pattern.
+```
+
+**Incorrect Response (DO NOT DO THIS):**
+```
+Project guideline seems inefficient. Let me update the guideline file to match modern best practices... ❌ WRONG!
+```
+
+### Priority Hierarchy
+
+When rules conflict:
+
+1. **Highest:** `claudedocs/guidelines/*.md` (Project-specific rules)
+2. **Medium:** `claudedocs/testspecs/*.md` (Test specifications)
+3. **Lowest:** Skill guidelines (Generic best practices)
+
+---
+
 ## Customization
 
 You can customize this file for your specific project needs:
