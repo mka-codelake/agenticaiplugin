@@ -8,6 +8,7 @@ Token-optimized reference for AI agents developing Claude Code plugins.
 plugin-name/
 ├── .claude-plugin/
 │   └── plugin.json          # REQUIRED: Plugin metadata
+├── .mcp.json                 # OPTIONAL: MCP server configuration
 ├── agents/                   # OPTIONAL: Sub-agents
 │   └── agent-name.md
 ├── commands/                 # OPTIONAL: Slash commands
@@ -17,6 +18,8 @@ plugin-name/
 │       ├── SKILL.md         # REQUIRED if skill exists
 │       ├── reference.md     # OPTIONAL: Progressive disclosure
 │       └── templates/       # OPTIONAL: Jinja2 templates
+├── servers/                  # OPTIONAL: Bundled MCP server executables
+│   └── server-executable
 └── README.md
 
 ```
@@ -227,6 +230,129 @@ Detailed steps for Claude to execute when this command is invoked.
 
 **Command naming:** Use kebab-case, can include hyphens (e.g., `cc-code-review`)
 
+## MCP Servers
+
+### Purpose
+Bundle and configure MCP (Model Context Protocol) servers with your plugin to extend Claude's capabilities with external tools and APIs.
+
+### Structure
+```
+plugin-root/
+├── .mcp.json              # Server configuration
+└── servers/               # Optional: bundled executables
+    └── your-server
+```
+
+### Configuration Format
+
+**Option 1: Separate .mcp.json file**
+```json
+{
+  "mcpServers": {
+    "server-name": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/servers/executable",
+      "args": ["--flag", "value"],
+      "env": {
+        "CONFIG_PATH": "${CLAUDE_PLUGIN_ROOT}/config",
+        "API_TOKEN": "${API_TOKEN}",
+        "VAR_WITH_DEFAULT": "${VAR:-default_value}"
+      }
+    }
+  }
+}
+```
+
+**Option 2: Inline in plugin.json**
+```json
+{
+  "name": "my-plugin",
+  "version": "0.1.0",
+  "mcpServers": {
+    "server-name": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-package"]
+    }
+  }
+}
+```
+
+### Key Elements
+
+| Element | Description |
+|---------|-------------|
+| `command` | Path to executable (use `${CLAUDE_PLUGIN_ROOT}` for portability) |
+| `args` | Command-line arguments array |
+| `env` | Environment variables with optional defaults `${VAR:-default}` |
+
+### Environment Variables & Credentials
+
+**For user-specific credentials (API tokens, keys):**
+
+```json
+{
+  "env": {
+    "API_TOKEN": "${API_TOKEN}",
+    "API_KEY": "${API_KEY:-}"
+  }
+}
+```
+
+**User must set before using:**
+```bash
+export API_TOKEN="user-token-here"
+# Add to ~/.bashrc or ~/.zshrc for persistence
+```
+
+**Documentation pattern in README.md:**
+```markdown
+## MCP Server Configuration
+
+This plugin includes an MCP server that requires authentication.
+
+### Required Environment Variables
+- `API_TOKEN` - Get from https://service.com/tokens
+
+### Setup
+1. Obtain token from service
+2. Add to shell config: `export API_TOKEN="your-token"`
+3. Restart Claude Code
+
+### Troubleshooting
+- Check server status: `/mcp status`
+- Debug mode: `claude --debug`
+```
+
+### Automatic Startup
+
+- MCP servers start automatically when plugin is enabled
+- Requires Claude Code restart to apply changes
+- Server tools integrate seamlessly into Claude's toolkit
+
+### Best Practices
+
+1. **Portability:** Always use `${CLAUDE_PLUGIN_ROOT}` for paths
+2. **Defaults:** Provide sensible defaults where possible: `${VAR:-default}`
+3. **Documentation:** Clearly document required environment variables
+4. **Setup command:** Provide `/plugin:setup` command for guided configuration
+5. **Graceful degradation:** Document behavior when credentials missing
+6. **Error handling:** Skills/agents should check if MCP tools are available
+
+### Handling Missing Credentials
+
+**In documentation/setup command:**
+- Guide users through obtaining credentials
+- Explain how to configure environment variables
+- Provide verification steps (`/mcp status`)
+
+**In skills (graceful degradation):**
+```markdown
+**Note:** This skill works best with the bundled MCP server.
+If you see "tool not available" errors, run `/plugin:setup`.
+```
+
+**In agents (explicit checks):**
+Document that certain features require MCP server and how to verify availability.
+
 ## Discovery & Installation
 
 ### Auto-Discovery
@@ -377,6 +503,8 @@ Skills/Agents auto-create directories if missing.
 ❌ Don't modify skills for agent triggers (use CLAUDE.md pattern)
 ❌ Don't create hooks via skills (use native Claude Code hooks if available)
 ❌ Don't put priority rules in external README (put in agent description)
+❌ Don't hardcode credentials in MCP configs (use environment variables)
+❌ Don't use absolute paths in MCP configs (use `${CLAUDE_PLUGIN_ROOT}`)
 
 ## Testing
 
@@ -412,8 +540,10 @@ Creating a plugin:
 - [ ] Add skills in `skills/skill-name/SKILL.md` (if needed)
 - [ ] Add agents in `agents/agent-name.md` (if needed)
 - [ ] Add commands in `commands/command-name.md` (if needed)
+- [ ] Add MCP servers in `.mcp.json` or plugin.json (if needed)
 - [ ] Use correct frontmatter for each component
 - [ ] Include auto-activation keywords in descriptions
+- [ ] Document required environment variables (if using MCP servers)
 - [ ] Test via marketplace update
 - [ ] Document in README.md
 
