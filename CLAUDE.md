@@ -247,4 +247,19 @@ This file can be extended with:
 
 ---
 
+## Reference: Legacy Framework
+
+**Location:** `C:\Dev\repos\agenticai`
+
+This directory contains the previous version of this framework. When the user mentions "old framework", "legacy framework", "previous version", or similar terms, they are referring to this location.
+
+**Usage:**
+- Reference for understanding evolution of concepts
+- Migration source for proven patterns
+- Historical context when needed
+
+**Note:** This information is for reference only and should not be loaded automatically at session start. Only consult when explicitly relevant to the current task.
+
+---
+
 **Remember:** Always check `docs/plugin-howto.md` first for plugin development questions!
