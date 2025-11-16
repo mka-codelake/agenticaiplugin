@@ -30,6 +30,69 @@ The `docs/plugin-howto.md` file contains curated, plugin-specific knowledge that
 
 ---
 
+## 🚨 CRITICAL: No Absolute Paths in Plugin Files
+
+**The plugin must be portable across all user environments.**
+
+### Rules
+
+❌ **NEVER use:**
+- Absolute paths to plugin development directory (`/mnt/d/ki/repos/agenticaiplugin`)
+- Absolute paths to user projects (`/dein-projekt/`, `/your-project/`)
+- Developer-specific paths (Windows drives `D:\`, WSL mounts `/mnt/d/`, home directories `~/`)
+- Hardcoded paths that won't work when plugin is installed elsewhere
+
+✅ **ALWAYS use:**
+- Generic placeholders: `/path/to/your/marketplace`, `<your-project-root>`
+- Relative paths within user's project: `claudedocs/guidelines/`
+- Clear instructions: "From your project root:"
+- Examples for multiple platforms (Windows, WSL, Linux, macOS)
+
+### Examples
+
+**BAD:**
+```bash
+cp CLAUDE.template.md /dein-projekt/CLAUDE.md
+/plugin marketplace add D:\ki\marketplace
+mkdir -p /mnt/d/ki/repos/agenticaiplugin/test
+```
+
+**GOOD:**
+```bash
+# From your project root:
+mkdir -p claudedocs/guidelines
+
+# Add marketplace (use your actual path):
+/plugin marketplace add /path/to/your/marketplace
+
+# Examples for different platforms:
+# Windows: /plugin marketplace add C:\dev\marketplace
+# WSL:     /plugin marketplace add /mnt/c/dev/marketplace
+# Linux:   /plugin marketplace add ~/dev/marketplace
+```
+
+### Why This Matters
+
+Users install this plugin in diverse environments:
+- Different operating systems (Windows, Linux, macOS, WSL)
+- Different directory structures
+- Different user names and home paths
+- Different drive letters and mount points
+
+**The plugin must work everywhere without modification.**
+
+### What Users Get
+
+When users install the plugin:
+- Plugin files are copied to Claude Code's plugin directory
+- Users work in their own project directories
+- Plugin references relative paths in user's projects (`claudedocs/*`)
+- Plugin provides commands/skills/agents that work from user's context
+
+**The plugin cannot and should not reference its own installation path.**
+
+---
+
 ## Plugin Development Guidelines
 
 ### Structure Conventions

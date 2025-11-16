@@ -22,7 +22,7 @@ agenticaiplugin/
 │   │   └── reference.md
 │   └── git-smart-commit/      # Intelligente Git-Commit-Erstellung
 │       └── SKILL.md
-├── CLAUDE.template.md         # Template für Projekt-Konfiguration
+├── CLAUDE.md                  # Plugin-Entwicklungsrichtlinien
 ├── FRAMEWORK_REDESIGN_SESSION.md  # Session-Dokumentation
 └── README.md
 ```
@@ -32,12 +32,13 @@ agenticaiplugin/
 ### 1. Lokalen Marketplace hinzufügen
 
 ```bash
-/plugin marketplace add D:\ki\marketplace
-```
+# Verwende den Pfad, wo du den Marketplace geklont/extrahiert hast
+/plugin marketplace add /path/to/your/marketplace
 
-Oder unter WSL/Linux:
-```bash
-/plugin marketplace add /mnt/d/ki/marketplace
+# Beispiele:
+# Windows: /plugin marketplace add C:\dev\marketplace
+# WSL:     /plugin marketplace add /mnt/c/dev/marketplace
+# Linux:   /plugin marketplace add ~/dev/marketplace
 ```
 
 ### 2. Plugin installieren
@@ -102,22 +103,24 @@ Automatischer Code-Review Sub-Agent, der Code-Qualität nach projektspezifischen
 
 ### Setup
 
-**1. CLAUDE.md Template kopieren**
-
-Kopiere die Projekt-Konfiguration in dein Projekt:
+**Empfohlen: Automatisches Setup mit init-Command**
 
 ```bash
-cp CLAUDE.template.md /dein-projekt/CLAUDE.md
+/agenticaiplugin:init
 ```
 
-Diese Datei enthält die Anweisung für Claude, automatisch Code-Reviews nach Task-Completion durchzuführen.
+Dieser Command:
+- Erstellt automatisch CLAUDE.md in deinem Projekt
+- Legt empfohlene Verzeichnisse an (claudedocs/guidelines, etc.)
+- Führt dich durch den Setup-Prozess
 
-**2. Projekt-Guidelines anlegen (optional)**
+**Alternative: Manuelles Setup**
 
-Erstelle projektspezifische Guidelines:
+**1. Verzeichnisse anlegen**
 
 ```bash
-mkdir -p /dein-projekt/claudedocs/guidelines
+# Von deinem Projekt-Root aus:
+mkdir -p claudedocs/guidelines
 ```
 
 Lege beliebige `.md` Dateien in diesem Ordner an mit deinen projektspezifischen Code-Regeln:
@@ -264,22 +267,26 @@ Automatischer Test-Engineer Sub-Agent für Integration-, System- und E2E-Tests m
 
 ### Setup
 
-**1. CLAUDE.md Template kopieren (falls nicht bereits geschehen)**
+**Empfohlen: Automatisches Setup mit init-Command**
 
 ```bash
-cp CLAUDE.template.md /dein-projekt/CLAUDE.md
+/agenticaiplugin:init
 ```
 
-Diese Datei enthält CRITICAL Rules:
+Dieser Command:
+- Erstellt automatisch CLAUDE.md in deinem Projekt (mit CRITICAL Rules)
+- Legt empfohlene Verzeichnisse an (claudedocs/testspecs, etc.)
+- Führt dich durch den Setup-Prozess
+
+Die CLAUDE.md enthält CRITICAL Rules:
 - Developer-Agent darf Integration/System/E2E-Tests **NICHT** ändern
 - Nur test-engineer Agent darf diese Tests schreiben/modifizieren
 
-**2. Test-Spezifikationen anlegen (optional)**
-
-Erstelle User-Test-Spezifikationen:
+**Alternative: Manuelle Verzeichnisse anlegen**
 
 ```bash
-mkdir -p /dein-projekt/claudedocs/testspecs
+# Von deinem Projekt-Root aus:
+mkdir -p claudedocs/testspecs
 ```
 
 Lege beliebige `.md` Dateien mit Test-Szenarien an (freies Namensschema):

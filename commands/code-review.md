@@ -81,7 +81,7 @@ Once validated, invoke the code-reviewer agent:
 ## Important Notes
 
 - This command is for **manual** code review on a **single file**
-- For automatic review after task completion, see CLAUDE.template.md
+- For automatic review after task completion, set up your project with `/agenticaiplugin:init` (creates CLAUDE.md)
 - The code-reviewer agent will check both project guidelines and skills
 - Project-specific guidelines (claudedocs/guidelines/*.md) take precedence over skill guidelines
 

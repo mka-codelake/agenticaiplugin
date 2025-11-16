@@ -272,7 +272,7 @@ Claude Code automatically discovers:
 
 ### General
 1. **No examples in plugin:** Don't create sample projects/files unless needed
-2. **Template-based setup:** Provide templates for users to copy (e.g., CLAUDE.template.md)
+2. **Command-based setup:** Provide templates via commands that embed content (e.g., init command)
 3. **Mechanism, not content:** Plugin provides tools, users provide content
 4. **Token efficiency:** Keep documentation concise
 
@@ -300,10 +300,11 @@ This rule is internal to this agent.
 ```
 
 ### Project Configuration (CLAUDE.md pattern)
-For project-specific agent triggers, provide template:
-1. Create `CLAUDE.template.md` in plugin root
-2. Document in README: "Copy to your project as CLAUDE.md"
+For project-specific agent triggers, embed template in command:
+1. Embed complete template content in init command (commands/init.md)
+2. Command creates CLAUDE.md in user's project automatically
 3. Template contains instructions for main agent
+4. Benefits: Self-contained, always available, no file dependencies
 
 ### Progressive Loading Pattern
 ```markdown
