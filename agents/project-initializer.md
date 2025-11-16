@@ -80,41 +80,37 @@ Do NOT trigger if:
 
 ### Code Review Process
 
-**1. Identify Changed Files**
+**1. Invoke the code-reviewer Agent**
 
-Track all code files you created or modified during the task:
-- Include: .java, .kt, .scala, .py, .js, .ts, .go, etc.
-- Include: Test files
-- Exclude: Configuration files (unless specifically reviewing config)
+Use the Task tool to launch the code-reviewer agent.
 
-**2. Invoke the code-reviewer Agent**
-
-Use the Task tool to launch the code-reviewer agent:
+The reviewer will automatically:
+- Detect changes via git diff
+- Decide which review types to perform (code/test/architecture)
+- Load only relevant review criteria
+- Apply project guidelines with priority
 
 ```
 Task(
   subagent_type: "code-reviewer",
   description: "Review implementation",
   prompt: "
-    Review the following files for code quality issues:
+    Review changes for [Story Description].
 
-    Files:
-    - {list all modified files}
+    The code-reviewer will auto-detect changes via git diff and decide which review types to perform.
 
-    Instructions:
-    1. Load all project guidelines from claudedocs/guidelines/*.md
-    2. Activate relevant development skills (development-principles, java-best-practices, spring-boot-best-practices, etc.)
-    3. Review each file against all applicable rules
-    4. Remember: Project guidelines override skill guidelines when conflicts occur
-    5. Generate a structured finding report with Critical/Warning/Suggestion categories
-    6. Include specific file:line references and rule sources for each finding
+    Context:
+    - Story: [Brief story description or number]
+    - Changed files (fallback if git unavailable): {list files if known}
 
-    Provide only the finding report, no code fixes.
+    The reviewer will determine appropriate review scope (code/test/architecture) based on changes.
   "
 )
 ```
 
-**3. Process the Finding Report**
+**Note:** You no longer need to manually track which files changed. The code-reviewer agent detects changes automatically using git diff.
+
+**2. Process the Finding Report**
 
 After receiving the report from the code-reviewer agent:
 
@@ -133,14 +129,14 @@ After receiving the report from the code-reviewer agent:
    - Always provide a brief justification if skipping Critical/Warning items
    - Example: "Skipping 'method too long' warning - complex business logic requires this structure for clarity"
 
-**4. Apply Fixes**
+**3. Apply Fixes**
 
 For findings you decide to address:
 - Fix the issues in the code
 - Use Edit tool for modifications
 - Ensure tests still pass after fixes
 
-**5. Complete Review Cycle**
+**4. Complete Review Cycle**
 
 Important: **ONE review round only** (not iterative)
 
@@ -148,7 +144,7 @@ Important: **ONE review round only** (not iterative)
 - Do NOT trigger another review automatically
 - Report to user with summary
 
-**6. Report to User**
+**5. Report to User**
 
 Only after code review is complete, inform the user:
 
