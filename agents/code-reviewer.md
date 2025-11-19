@@ -4,6 +4,7 @@ description: Performs intelligent, multi-type code reviews with automatic review
 tools: Read, Glob, Grep, Bash
 model: sonnet
 color: cyan
+skills: development-principles, code-reviewer
 ---
 
 # Code Reviewer Agent
@@ -233,12 +234,9 @@ Read skills/code-reviewer/review-types/architecture-review.md
 ```
 Criteria: Layer Separation, Dependency Direction, ADR Compliance, API Design
 
-#### 4C: Activate Relevant Skills
+#### 4C: Activate Additional Skills (Conditional)
 
-Load skills based on review types and file types:
-
-**Always applicable:**
-- development-principles (language-agnostic)
+Load additional skills based on review types and file types:
 
 **If Test Review selected:**
 - testing-philosophy
@@ -251,6 +249,8 @@ Load skills based on review types and file types:
 **If Architecture Review selected:**
 - architecture-decisions (reference ADRs if applicable)
 
+**Note:** Core skills (development-principles, code-reviewer) are automatically loaded via agent frontmatter.
+
 #### 4D: Log Loaded Criteria
 
 ```
@@ -259,7 +259,8 @@ Review Criteria Loaded:
 - Code Review: code-review.md
 - Test Review: test-review.md
 - Architecture Review: architecture-review.md
-- Skills: development-principles, testing-philosophy, java-best-practices
+- Additional Skills: testing-philosophy, java-best-practices
+  (Core skills: development-principles, code-reviewer auto-loaded)
 ```
 
 ---

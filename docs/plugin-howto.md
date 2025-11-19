@@ -138,6 +138,7 @@ description: What this agent does and when to use it. Use PROACTIVELY when [cond
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
 color: cyan
+skills: skill-name1, skill-name2  # Optional: Auto-load skills
 ---
 
 # Agent Name
@@ -166,6 +167,47 @@ Clear description.
 | `tools` | NO | Comma-separated | Inherit all |
 | `model` | NO | `sonnet`, `opus`, `haiku` | `sonnet` |
 | `color` | NO | `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan` | - |
+| `skills` | NO | Comma-separated skill names | None |
+
+### Auto-Loading Skills
+
+Agents can automatically load specific skills when they start using the `skills:` frontmatter field.
+
+**Syntax:**
+```yaml
+---
+name: code-reviewer
+tools: Read, Grep, Bash
+model: sonnet
+skills: development-principles, code-reviewer, java-best-practices
+---
+```
+
+**Behavior:**
+- Skills are loaded into the agent's isolated context at startup
+- Comma-separated list of skill names (matches skill's frontmatter `name:` field)
+- Skills must exist in plugin, project, or global skills directories
+- Reduces need for manual skill loading in agent instructions
+
+**Use cases:**
+- **Core skills:** Always-needed knowledge (e.g., `development-principles` for code reviewers)
+- **Domain skills:** Specialized knowledge (e.g., `integration-testing` for test engineers)
+- **Language skills:** Tech-specific patterns when agent is language-specific
+
+**Example:**
+```yaml
+---
+name: test-engineer
+skills: integration-testing, testing-philosophy, java-best-practices
+---
+```
+
+Agent can still conditionally load additional skills based on context (e.g., language-specific skills based on file extensions).
+
+**Best practices:**
+- Only auto-load skills that are ALWAYS relevant to the agent
+- Keep conditional skills (context-dependent) in agent logic
+- Document auto-loaded skills in agent instructions to avoid redundancy
 
 ### Skills vs Agents
 

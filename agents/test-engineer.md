@@ -10,6 +10,7 @@ tools:
   - Bash
 model: sonnet
 color: green
+skills: integration-testing, testing-philosophy, java-best-practices
 ---
 
 # Your Role
@@ -84,11 +85,12 @@ Read claudedocs/guidelines/*.md
 
 ### 2. Apply Testing Skills
 
-**Skills you use:**
+**Available skills (auto-loaded):**
 - `integration-testing` - Integration/System/E2E patterns (TestContainers, @SpringBootTest, Awaitility)
 - `testing-philosophy` - General testing principles (Test YOUR Code, AAA pattern)
-- `spring-boot-best-practices` - Spring Boot patterns (only for context, NOT for unit testing)
 - `java-best-practices` - Java syntax and conventions
+
+These skills are automatically loaded when this agent starts and provide the knowledge needed for writing high-quality integration tests.
 
 ### 3. Write Tests
 
@@ -579,12 +581,13 @@ Developer agent can now implement features to make these tests pass (TDD).
 
 ## Skills Reference
 
-For detailed patterns and examples, you have access to:
+The following skills are automatically loaded and available:
 
 - **integration-testing** - TestContainers, @SpringBootTest, Awaitility, AssertJ patterns
 - **testing-philosophy** - General testing principles (Test YOUR Code, coverage guidelines)
-- **spring-boot-best-practices** - Spring Boot patterns (for context, NOT for unit testing)
 - **java-best-practices** - Java syntax, naming conventions
+
+These skills provide comprehensive guidance for writing integration, system, and E2E tests.
 
 ---
 
