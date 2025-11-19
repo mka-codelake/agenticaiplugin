@@ -242,72 +242,16 @@ The code-reviewer agent automatically discovers and applies all guidelines in th
 
 ## CRITICAL: Protected Test Directories
 
-⛔ **NEVER modify tests in these directories unless you are the test-engineer agent:**
+⛔ **Tests in these directories are immutable requirements (test-first workflow):**
 
-```
-src/test/java/integration/**
-src/test/java/system/**
-src/test/java/e2e/**
-```
+| Test Type | Location | Owner | Modifiable? |
+|-----------|----------|-------|-------------|
+| Integration/System/E2E | `integration/`, `system/`, `e2e/` | test-engineer | ❌ NO |
+| Unit Tests | `unit/` | developer-agent | ✅ YES |
 
-Or equivalent paths for other languages:
-```
-src/test/python/integration/**
-src/test/python/system/**
-src/test/python/e2e/**
-```
+**Developer agent:** If integration tests fail, fix the IMPLEMENTATION, never the tests. Tests represent user requirements written before implementation (TDD Red-Green-Refactor).
 
-### Rules for Developer Agent
-
-If you are implementing features (not the test-engineer agent):
-
-**❌ FORBIDDEN:**
-- Modify any file in `integration/`, `system/`, or `e2e/` directories
-- Delete integration/system/E2E test files
-- "Fix" failing integration tests by changing test code
-- Refactor integration test structure
-- Change assertions in integration tests
-
-**✅ ALLOWED:**
-- READ integration tests to understand requirements
-- RUN integration tests to verify implementation
-- Fix implementation code to make tests pass
-- Write unit tests in `src/test/java/unit/` directory
-
-### Why This Rule Exists
-
-Integration/System/E2E tests represent **user requirements** and are written by the test-engineer agent with a **separate context** from your implementation. These tests must remain immutable to ensure:
-
-1. **Requirements Integrity:** Tests define what "done" means
-2. **Context Separation:** Test-engineer reflects user understanding, not implementation details
-3. **TDD Workflow:** Tests written first (Red) → Implementation makes them pass (Green)
-
-### If Integration Tests Fail
-
-**Correct Response:**
-```
-Integration tests are failing. I need to fix the IMPLEMENTATION, not the tests.
-
-Analysis:
-- Test: shouldCreateUserWithActiveStatus() expects status=ACTIVE
-- Issue: My implementation sets status=PENDING
-- Fix: Change UserService.createUser() to set ACTIVE status
-```
-
-**Incorrect Response (DO NOT DO THIS):**
-```
-Integration test expects ACTIVE but I implemented PENDING.
-Let me change the test to expect PENDING instead...  ❌ WRONG!
-```
-
-### Test Responsibilities
-
-| Test Type | Location | Owner | You Can Modify? |
-|-----------|----------|-------|----------------|
-| **Integration Tests** | `integration/` | test-engineer | ❌ NO |
-| **System Tests** | `system/` | test-engineer | ❌ NO |
-| **E2E Tests** | `e2e/` | test-engineer | ❌ NO |
-| **Unit Tests** | `unit/` | developer-agent | ✅ YES |
+For detailed test-first workflow and examples, see test-engineer agent documentation.
 
 ---
 
@@ -508,34 +452,17 @@ Perform intelligent merge:
 
 ## Step 5: Create Missing Directories
 
-For each missing directory from the status check, create it:
+For each missing directory from Step 1 status check, create it using:
 
-**Directories to create (if missing):**
-- `claudedocs/guidelines/` (recommended)
-- `claudedocs/testspecs/` (recommended)
-- `claudedocs/epics/` (optional)
-- `claudedocs/stories/` (optional)
-- `claudedocs/sprints/` (optional)
-- `claudedocs/adrs/` (optional)
-
-**Use Bash tool:**
 ```bash
-mkdir -p claudedocs/guidelines
-mkdir -p claudedocs/testspecs
-mkdir -p claudedocs/epics
-mkdir -p claudedocs/stories
-mkdir -p claudedocs/sprints
-mkdir -p claudedocs/adrs
+mkdir -p claudedocs/guidelines claudedocs/testspecs claudedocs/epics claudedocs/stories claudedocs/sprints claudedocs/adrs
 ```
 
-**Report each created directory:**
+Report each created directory:
 ```
 ✓ Created claudedocs/guidelines/
 ✓ Created claudedocs/testspecs/
-✓ Created claudedocs/epics/
-✓ Created claudedocs/stories/
-✓ Created claudedocs/sprints/
-✓ Created claudedocs/adrs/
+...
 ```
 
 Skip directories that already exist (don't report them).
