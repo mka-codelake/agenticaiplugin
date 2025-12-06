@@ -62,11 +62,13 @@ Invoke the context-creator agent:
 Task(
     subagent_type="context-creator",
     description="Create/update agentic.md",
-    prompt="Analyze this project and create or update the agentic.md file. Follow your instructions to detect whether this is a CREATE or UPDATE operation, then perform the appropriate analysis and write the file."
+    prompt="Analyze this project and create or update the agentic.md file. Target: agentic"
 )
 ```
 
 ## Related
 
 - **/load-agentic** - Load agentic.md to understand a project
+- **/create-readme** - Create human-readable README.md
+- **/create-docs** - Create both agentic.md and README.md
 - **CLAUDE.md** - Project-specific instructions (source for critical rules)
