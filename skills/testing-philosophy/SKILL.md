@@ -1,6 +1,6 @@
 ---
 name: testing-philosophy
-description: Guides testing decisions based on code classification - "Test YOUR Code, Not THE Code". Auto-activates when writing tests or discussing test coverage.
+description: Guides testing decisions based on code classification - "Test YOUR Code, Not THE Code". Use PROACTIVELY when writing tests, discussing test coverage, or deciding what to test. Key rule: Test business logic, NOT frameworks.
 ---
 
 Use this skill when writing tests, reviewing test coverage, or making decisions about what to test.

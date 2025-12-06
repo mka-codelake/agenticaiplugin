@@ -1,6 +1,6 @@
 ---
 name: spring-boot-best-practices
-description: Spring Boot framework best practices. Component stereotypes, layered architecture, dependency injection, configuration, error handling. Auto-activates when using Spring Boot.
+description: Spring Boot framework best practices. Use PROACTIVELY when working with Spring Boot projects, @RestController, @Service, @Repository, @Component, or application.properties/yml. Covers layered architecture, DI, configuration, error handling.
 ---
 
 Use this skill when working with Spring Boot applications (framework-specific patterns).

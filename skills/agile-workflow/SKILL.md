@@ -1,6 +1,6 @@
 ---
 name: agile-workflow
-description: Structures and manages Epics, Stories, and Sprints with templates. Auto-activates when creating epics, slicing stories, planning sprints, or managing agile artifacts.
+description: Structures and manages Epics, Stories, and Sprints with templates. Use PROACTIVELY when user mentions "epic", "story", "sprint", "backlog", "planning", "slice", or wants to create agile artifacts. ALWAYS use templates from skills/agile-workflow/templates/.
 ---
 
 Use this skill when creating or managing Epics, Stories, or Sprints in an agile workflow.

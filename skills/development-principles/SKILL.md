@@ -1,6 +1,6 @@
 ---
 name: development-principles
-description: Language-agnostic development principles including YAGNI, KISS, Single Responsibility, code quality standards, and story traceability. Auto-activates when writing code in any language.
+description: Language-agnostic development principles (YAGNI, KISS, SRP, story traceability). Use PROACTIVELY when implementing features, refactoring code, or reviewing code quality. ALWAYS add story references (STORY-XXX) to implementation code.
 ---
 
 Use this skill when writing code in any programming language. These are universal principles that apply regardless of tech stack.
