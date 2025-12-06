@@ -1,226 +1,188 @@
 # AgenticAI Plugin
 
-Claude Code Plugin mit AI-gestützten Entwicklungs-Skills und Commands für verbesserte Workflows.
+A powerful Claude Code plugin that transforms your development workflow with intelligent agents, auto-activated skills, and convenient slash commands. Built for agile teams working across multiple programming languages, with specialized support for Java/Spring Boot development.
 
-## Struktur
+## Overview
 
-```
-agenticaiplugin/
-├── .claude-plugin/
-│   └── plugin.json            # Plugin-Metadaten
-├── agents/
-│   └── code-reviewer.md       # Code-Review Sub-Agent
-├── commands/
-│   └── cc-code-review.md      # Manuelles Code-Review Command
-├── skills/
-│   ├── agile-workflow/        # Epic/Story/Sprint Management
-│   │   ├── SKILL.md
-│   │   ├── templates/
-│   │   │   ├── epic.md.j2
-│   │   │   ├── story.md.j2
-│   │   │   └── sprint.md.j2
-│   │   └── reference.md
-│   └── git-smart-commit/      # Intelligente Git-Commit-Erstellung
-│       └── SKILL.md
-├── CLAUDE.md                  # Plugin-Entwicklungsrichtlinien
-├── FRAMEWORK_REDESIGN_SESSION.md  # Session-Dokumentation
-└── README.md
-```
+The AgenticAI Plugin brings production-ready development patterns and automation directly into Claude Code. Whether you're managing epics and stories, writing tests, conducting code reviews, or generating documentation, this plugin provides the tools and knowledge to work faster and smarter.
+
+**What makes it different?**
+
+This plugin doesn't just provide commands - it enhances Claude's capabilities with specialized knowledge that activates automatically when you need it. Writing Java code? Best practices are immediately available. Creating tests? Testing philosophy kicks in. Planning a sprint? Agile workflow tools appear. Everything works together seamlessly.
+
+The plugin architecture separates concerns intelligently: test engineers write integration tests without seeing implementation details (true TDD), code reviewers combine project-specific guidelines with universal best practices, and documentation generators create both AI-optimized and human-readable formats.
+
+**Who is it for?**
+
+- Development teams practicing agile methodologies
+- Java/Spring Boot developers who want intelligent code assistance
+- Projects requiring strict separation between test specifications and implementation
+- Teams establishing or enforcing coding standards
+- Anyone wanting smarter Git commits, automated code reviews, and context-aware documentation
+
+## Features
+
+- **Intelligent Agile Workflow:** Epic/Story/Sprint management with templates, acceptance criteria generation, and story point estimation
+- **Smart Code Reviews:** Multi-type reviews (code, tests, architecture) combining project guidelines with best-practice skills
+- **Test-First Development:** Separate test-engineer agent writes integration tests from user requirements, not implementation
+- **AI Session Context Management:** Auto-generates token-optimized project documentation for instant AI productivity
+- **Technology Advisors:** Language-specific recommendations for JVM, JavaScript, and Python ecosystems
+- **Git Intelligence:** Analyzes changes and creates meaningful atomic commits following project conventions
+- **Architecture Decision Records:** ADR creation and management with standard templates
+- **Progressive Disclosure:** Skills load essential information by default, detailed references on demand
 
 ## Installation
 
-### 1. Lokalen Marketplace hinzufügen
+### Prerequisites
+
+- Claude Code installed and configured
+- Access to a local marketplace directory
+
+### Steps
+
+1. **Clone or download this plugin** to a local directory:
+   ```bash
+   git clone <repository-url> /path/to/agenticaiplugin
+   ```
+
+2. **Add your marketplace** (if not already added):
+   ```bash
+   # Use the path where your marketplace is located
+   /plugin marketplace add /path/to/your/marketplace
+
+   # Examples for different platforms:
+   # Windows: /plugin marketplace add C:\dev\marketplace
+   # WSL:     /plugin marketplace add /mnt/c/dev/marketplace
+   # Linux:   /plugin marketplace add ~/dev/marketplace
+   # macOS:   /plugin marketplace add ~/dev/marketplace
+   ```
+
+3. **Install the plugin:**
+   ```bash
+   /plugin install agenticaiplugin@local-dev-marketplace
+   ```
+
+4. **After making changes** (for plugin developers):
+   ```bash
+   /plugin marketplace update local-dev-marketplace
+   ```
+
+## Usage
+
+### Quick Start
+
+Initialize a new project with recommended directory structure:
 
 ```bash
-# Verwende den Pfad, wo du den Marketplace geklont/extrahiert hast
-/plugin marketplace add /path/to/your/marketplace
-
-# Beispiele:
-# Windows: /plugin marketplace add C:\dev\marketplace
-# WSL:     /plugin marketplace add /mnt/c/dev/marketplace
-# Linux:   /plugin marketplace add ~/dev/marketplace
+/init
 ```
 
-### 2. Plugin installieren
+This command creates:
+- `CLAUDE.md` with project-specific instructions
+- `claudedocs/guidelines/` for code review rules
+- `claudedocs/testspecs/` for test scenarios
+- `claudedocs/epics/`, `stories/`, `sprints/` for agile workflow
+
+### Common Workflows
+
+#### Agile Development
+
+```
+User: "Create an epic for user authentication"
+Claude: Creates structured epic with goal, scope, and out-of-scope
+
+User: "Slice this epic into stories"
+Claude: Generates user stories with acceptance criteria and story points
+
+User: "Plan a sprint with these stories"
+Claude: Creates sprint plan with capacity tracking and dependencies
+```
+
+Files are created in `claudedocs/epics/`, `stories/`, and `sprints/` following naming conventions.
+
+#### Test-First Development
+
+```
+User: "Write integration tests for STORY-042"
+Claude: test-engineer agent creates tests based on story's acceptance criteria
+
+User: "Implement STORY-042"
+Claude: Developer implements features until integration tests pass
+
+User: "Review my implementation"
+Claude: code-reviewer agent checks against project guidelines
+```
+
+The test-engineer works in isolated context - it sees user requirements but not implementation details, ensuring true black-box testing.
+
+#### Smart Git Commits
+
+```
+User: "Create commits for my changes"
+
+Claude:
+  - Analyzes git status and diff
+  - Reviews recent commit history for patterns
+  - Groups related changes logically
+  - Creates atomic commits with meaningful messages
+  - Follows project conventions (Conventional Commits, etc.)
+```
+
+#### Context Management
 
 ```bash
-/plugin install agenticaiplugin@local-dev-marketplace
+# Create/update AI-optimized context file
+/create-agentic
+
+# Create/update both agentic.md and README.md
+/create-docs
+
+# Create/update human-readable README
+/create-readme
+
+# Load existing context into current session
+/load-agentic
 ```
 
-### 3. Marketplace aktualisieren (nach Plugin-Änderungen)
+The context creator analyzes your project structure, key files, recent commits, and patterns to generate documentation that helps AI agents (agentic.md) or human developers (README.md) get productive immediately.
+
+### Manual Commands
+
+While most features activate automatically, you can also invoke them manually:
 
 ```bash
-/plugin marketplace update local-dev-marketplace
+# Manual code review of specific file
+/cc-code-review src/main/java/UserService.java
+
+# Create tests for a specific story or epic
+/cc-test STORY-042
+/cc-test EPIC-005
+
+# Smart Git commits
+/gitme
 ```
 
-## Enthaltene Skills
+## Configuration
 
-### agile-workflow
+### Project Guidelines
 
-Vollständiges Agile Workflow Management mit Epic/Story/Sprint Funktionalität.
+Create `.md` files in `claudedocs/guidelines/` to define project-specific rules:
 
-**Verwendung:**
-- "Erstelle ein Epic für [Feature]" - Erstellt strukturiertes Epic in `claudedocs/epics/`
-- "Schneide das Epic in Stories" - Erstellt User Stories mit Acceptance Criteria
-- "Plan einen Sprint" - Plant Sprint mit Capacity und Dependencies
+- `exception-handling.md` - Custom exception handling rules
+- `logging-standards.md` - Project logging requirements
+- `code-style.md` - Code style beyond language standards
+- `architecture-patterns.md` - Architecture rules and patterns
 
-**Features:**
-- Epic-Erstellung mit Goal, Scope, Out-of-Scope
-- Story-Slicing mit INVEST Criteria
-- Acceptance Criteria Templates
-- Story Points (Fibonacci: 1, 2, 3, 5, 8, 13)
-- Sprint Planning mit Capacity Management
-- Dependency Tracking
-- Jinja2 Templates für Konsistenz
-- Ordnerstruktur: `claudedocs/epics/`, `stories/`, `sprints/`
-- File Naming: `EPIC-001-description.md` (lowercase-with-dashes)
+**Important:** Project guidelines ALWAYS override plugin skill guidelines when conflicts occur.
 
-**Workflow:**
-1. High-Level Beschreibung → Epic
-2. Epic → Stories (mit Acceptance Criteria)
-3. Stories → Sprint (mit Capacity)
-4. Iterative Entwicklung, flexibel neue Stories hinzufügen
-
-### git-smart-commit
-
-Analysiert automatisch alle uncommitted Änderungen, gruppiert sie logisch und erstellt aussagekräftige Commit-Messages nach Projekt-Konventionen.
-
-**Verwendung:**
-- Claude erkennt automatisch, wenn du Änderungen committen möchtest
-- Sag einfach "Erstelle Commits für meine Änderungen" oder ähnlich
-- Das Skill analysiert die Git-Historie und passt sich an deine Konventionen an
-
-**Features:**
-- Erkennt Projekt-spezifische Commit-Konventionen
-- Gruppiert Änderungen logisch
-- Erstellt atomic commits
-- Unterstützt Conventional Commits (feat, fix, docs, etc.)
-- Adaptiert sich an bestehende Commit-Message-Patterns
-
-## Code-Review Agent
-
-Automatischer Code-Review Sub-Agent, der Code-Qualität nach projektspezifischen Guidelines und Best-Practice-Skills überprüft.
-
-### Setup
-
-**Empfohlen: Automatisches Setup mit init-Command**
-
-```bash
-/agenticaiplugin:init
-```
-
-Dieser Command:
-- Erstellt automatisch CLAUDE.md in deinem Projekt
-- Legt empfohlene Verzeichnisse an (claudedocs/guidelines, etc.)
-- Führt dich durch den Setup-Prozess
-
-**Alternative: Manuelles Setup**
-
-**1. Verzeichnisse anlegen**
-
-```bash
-# Von deinem Projekt-Root aus:
-mkdir -p claudedocs/guidelines
-```
-
-Lege beliebige `.md` Dateien in diesem Ordner an mit deinen projektspezifischen Code-Regeln:
-- `exception-handling.md` - Eigene Exception-Handling-Regeln
-- `logging-standards.md` - Projekt-Logging-Vorgaben
-- `code-style.md` - Code-Style über Sprach-Standards hinaus
-- `architecture-patterns.md` - Architektur-Regeln und Patterns
-- Weitere nach Bedarf
-
-### Verwendung
-
-**Automatisch (empfohlen):**
-
-Wenn `CLAUDE.md` korrekt konfiguriert ist, führt Claude nach jeder vollständigen Task-Implementierung automatisch einen Code-Review durch:
-
-```
-User: "Implementiere Story-42: User Authentication"
-→ Claude implementiert Code
-→ Tests laufen grün
-→ Claude triggert automatisch code-reviewer Agent
-→ Findings werden analysiert und kritische Issues gefixt
-→ Claude meldet: "Task fertig, Code-Review abgeschlossen"
-```
-
-**Manuell:**
-
-Für gezieltes Review einzelner Dateien:
-
-```bash
-cc-code-review src/main/java/UserService.java
-```
-
-Der `cc-code-review` Command erwartet **genau einen Datei-Parameter**. Ohne Parameter wird eine Usage-Meldung angezeigt.
-
-### Funktionsweise
-
-Der code-reviewer Agent kombiniert mehrere Regel-Quellen:
-
-1. **Projekt-Guidelines** (`claudedocs/guidelines/*.md`)
-   - Projektspezifische Regeln
-   - **Höchste Priorität** bei Konflikten
-
-2. **Development Skills**
-   - `development-principles` - Sprach-agnostische Prinzipien
-   - `java-best-practices` - Java-spezifische Best Practices
-   - `spring-boot-best-practices` - Spring Boot Patterns
-   - `testing-philosophy` - Test-Richtlinien
-   - Weitere relevante Skills
-
-3. **Prioritätsregel**
-   - Bei Konflikten: **Projekt-Guidelines überschreiben IMMER Skill-Guidelines**
-   - Beispiel: Skill sagt "max 20 Zeilen", Projekt sagt "max 30 für Controller" → 30 gilt
-
-### Review-Report Format
-
-Der Agent liefert strukturierte Findings:
-
-```markdown
-## Code Review Report
-
-**Files Reviewed:** 3
-**Guidelines Applied:** 2 project + 4 skills
-
-### Critical Issues
-- [UserService.java:42] Missing ErrorCode in exception
-  **Rule:** exception-handling.md:15
-  **Fix:** Add ErrorCode as first parameter
-
-### Warnings
-- [UserController.java:23] Log level should be DEBUG
-  **Rule:** logging-standards.md:8
-
-### Suggestions
-- [UserService.java:12] Consider using Optional
-  **Reference:** java-best-practices
-
-### Summary
-- Critical: 1 (must fix)
-- Warnings: 1 (should address)
-- Suggestions: 1 (optional)
-```
-
-### Wichtige Hinweise
-
-- **Nur Mechanismus:** Dieses Plugin liefert den Code-Review-Mechanismus, nicht die Inhalte
-- **Projekt-Verantwortung:** Jedes Projekt definiert eigene Guidelines in `claudedocs/guidelines/`
-- **Format frei:** Guidelines sind normale Markdown-Dateien, Format nach Bedarf
-- **Skill-Integration:** Der Agent nutzt automatisch alle relevanten Development-Skills
-- **Main Agent entscheidet:** Claude hat finale Entscheidungshoheit über Findings
-
-### Beispiel: Projekt-Guideline
-
-Beispiel für `claudedocs/guidelines/exception-handling.md` in deinem Projekt:
+**Example guideline** (`claudedocs/guidelines/exception-handling.md`):
 
 ```markdown
 # Exception Handling Guidelines
 
-## Rule: ErrorCode erforderlich
+## Rule: ErrorCode Required
 
-Alle Custom Exceptions MÜSSEN einen ErrorCode als ersten Parameter haben.
+All custom exceptions MUST have an ErrorCode as first parameter.
 
 ✅ Correct:
 throw new UserNotFoundException(ErrorCode.USER_404, userId);
@@ -229,73 +191,11 @@ throw new UserNotFoundException(ErrorCode.USER_404, userId);
 throw new UserNotFoundException("User not found");
 ```
 
-Der code-reviewer Agent liest diese Datei automatisch und prüft Code dagegen.
+### Test Specifications
 
----
+Create `.md` files in `claudedocs/testspecs/` for integration test scenarios:
 
-## Test-Engineer Agent
-
-Automatischer Test-Engineer Sub-Agent für Integration-, System- und E2E-Tests mit **separatem Kontextfenster** vom Developer-Agent.
-
-### Konzept: Separate Kontexte für Tests und Implementation
-
-**Problem:** Wenn derselbe Agent Tests UND Implementation schreibt, fließt das Implementation-Verständnis in die Tests ein.
-
-**Lösung:** Der test-engineer Agent hat einen **separaten Kontext** und schreibt Tests basierend auf **User-Requirements**, nicht auf Implementation-Details.
-
-```
-┌─────────────────────┐
-│  User Requirements  │
-│  (Story, AC, Specs) │
-└──────────┬──────────┘
-           │
-           ├──────────────────────┐
-           ▼                      ▼
-   ┌───────────────┐      ┌────────────────┐
-   │ test-engineer │      │ developer-agent│
-   │ (Context A)   │      │ (Context B)    │
-   └───────┬───────┘      └────────┬───────┘
-           │                       │
-           ▼                       ▼
-   Integration Tests        Implementation
-   (User's View)           (Developer's View)
-```
-
-**Vorteil:** Tests validieren Requirements unabhängig von Implementation-Details.
-
----
-
-### Setup
-
-**Empfohlen: Automatisches Setup mit init-Command**
-
-```bash
-/agenticaiplugin:init
-```
-
-Dieser Command:
-- Erstellt automatisch CLAUDE.md in deinem Projekt (mit CRITICAL Rules)
-- Legt empfohlene Verzeichnisse an (claudedocs/testspecs, etc.)
-- Führt dich durch den Setup-Prozess
-
-Die CLAUDE.md enthält CRITICAL Rules:
-- Developer-Agent darf Integration/System/E2E-Tests **NICHT** ändern
-- Nur test-engineer Agent darf diese Tests schreiben/modifizieren
-
-**Alternative: Manuelle Verzeichnisse anlegen**
-
-```bash
-# Von deinem Projekt-Root aus:
-mkdir -p claudedocs/testspecs
-```
-
-Lege beliebige `.md` Dateien mit Test-Szenarien an (freies Namensschema):
-- `kafka-message-scenarios.md` - Kafka Message Tests
-- `api-test-cases.md` - REST API Testfälle
-- `user-registration-flows.md` - User Journey Tests
-- Weitere nach Bedarf
-
-**Beispiel Test-Spezifikation (`claudedocs/testspecs/kafka-scenarios.md`):**
+**Example** (`claudedocs/testspecs/kafka-scenarios.md`):
 
 ```markdown
 # Kafka Message Processing Test Scenarios
@@ -309,249 +209,258 @@ Lege beliebige `.md` Dateien mit Test-Szenarien an (freies Namensschema):
 **Expected:**
 - User with ID 123 exists in database
 - User status is ACTIVE
-- User username is "john"
-
-## Scenario 2: UPDATE Message
-
-**Input:**
-- Topic: user-events
-- Message: {"userId": 123, "action": "UPDATE", "username": "john_updated"}
-
-**Expected:**
-- User with ID 123 updated in database
-- User username is "john_updated"
+- Username is "john"
 ```
 
----
+The test-engineer agent reads these specifications and creates TestContainer-based integration tests.
 
-### Verwendung
-
-#### Automatisch (Empfohlen)
-
-Claude erkennt automatisch, wenn du Integration-/System-/E2E-Tests möchtest:
+## Project Structure
 
 ```
-User: "Schreib Systemtest für STORY-042"
-User: "Erstelle Integrationstest für die Kafka-Verarbeitung"
-User: "Wir brauchen einen E2E-Test für User Registration"
-
-→ Main-Agent erkennt Test-Anfrage
-→ Ruft test-engineer Agent auf (separater Kontext)
-→ Test-Engineer liest Requirements und schreibt Tests
-→ Tests landen in src/test/java/integration/
+agenticaiplugin/
+├── .claude-plugin/
+│   └── plugin.json           # Plugin metadata
+├── agents/                   # Specialized sub-agents
+│   ├── code-reviewer.md      # Code quality analysis
+│   ├── test-engineer.md      # Integration test creation
+│   ├── project-initializer.md # Project setup
+│   └── context-creator.md    # Documentation generation
+├── commands/                 # Slash commands
+│   ├── init.md               # Project initialization
+│   ├── gitme.md              # Smart Git commits
+│   ├── code-review.md        # Manual code review
+│   ├── test.md               # Test creation
+│   ├── create-agentic.md     # Context creation
+│   ├── create-docs.md        # Full documentation generation
+│   ├── create-readme.md      # README generation
+│   └── load-agentic.md       # Context loading
+├── skills/                   # Auto-activated knowledge
+│   ├── agile-workflow/       # Epic/Story/Sprint management
+│   ├── git-smart-commit/     # Intelligent commits
+│   ├── code-reviewer/        # Review criteria
+│   ├── development-principles/ # YAGNI, KISS, traceability
+│   ├── testing-philosophy/   # Testing approach
+│   ├── java-best-practices/  # Java patterns
+│   ├── spring-boot-best-practices/
+│   ├── integration-testing/  # TestContainers, Awaitility
+│   ├── maven-best-practices/
+│   ├── dependency-analysis/  # Story dependencies
+│   ├── architecture-decisions/ # ADR management
+│   ├── technology-advisor-jvm/
+│   ├── technology-advisor-javascript/
+│   └── technology-advisor-python/
+├── docs/
+│   └── plugin-howto.md       # Plugin development reference
+├── CLAUDE.md                 # Development instructions
+└── README.md                 # This file
 ```
 
-#### Manuell
+## Advanced Features
 
-Für gezielte Test-Erstellung:
+### Code Review Agent
 
-```bash
-/cc-test STORY-042
-/cc-test EPIC-005
-/cc-test kafka
+The code-reviewer agent performs comprehensive analysis combining multiple knowledge sources:
+
+1. **Project Guidelines** (`claudedocs/guidelines/*.md`) - Highest priority
+2. **Development Skills** - Language-specific best practices
+3. **Testing Philosophy** - Test quality standards
+4. **Architecture Patterns** - Structural guidelines
+
+**Review types:**
+- Code reviews (implementation quality)
+- Test reviews (test quality and coverage)
+- Architecture reviews (structural decisions)
+
+Reviews produce structured reports with critical issues, warnings, and suggestions, each linked back to specific rules.
+
+### Test Engineer Agent
+
+Works in **isolated context** - deliberately doesn't see implementation details. This ensures integration tests validate user requirements, not implementation choices.
+
+**Workflow:**
+1. Test-engineer reads story acceptance criteria and test specifications
+2. Creates integration tests using TestContainers (real infrastructure)
+3. Developer implements features to make tests pass
+4. Tests remain immutable - implementation must adapt to pass them
+
+**Technology stack:**
+- TestContainers (Kafka, PostgreSQL, Redis, etc.)
+- @SpringBootTest (full application context)
+- Awaitility (async testing without Thread.sleep)
+- AssertJ (fluent assertions)
+
+### Agile Workflow Skill
+
+Complete epic/story/sprint management with:
+
+- **Epic Creation:** Goal, scope, out-of-scope definitions
+- **Story Slicing:** INVEST criteria validation
+- **Acceptance Criteria:** Template-based generation
+- **Story Points:** Fibonacci sequence (1, 2, 3, 5, 8, 13)
+- **Sprint Planning:** Capacity management and dependency tracking
+- **Jinja2 Templates:** Consistent document generation
+
+**File naming convention:**
+- `EPIC-001-user-authentication.md`
+- `STORY-042-login-validation.md`
+- `SPRINT-01.md`
+
+### Technology Advisors
+
+Language-specific library and framework recommendations:
+
+- **JVM:** Spring ecosystem, testing tools, utilities
+- **JavaScript:** React/Vue/Node.js ecosystems
+- **Python:** Django/Flask, data science, testing
+
+Advisors consider project context, existing dependencies, and best practices when suggesting technologies.
+
+### Architecture Decision Records
+
+Create and manage ADRs with standard templates:
+
+- Context and problem statement
+- Decision drivers
+- Options considered
+- Decision outcome
+- Consequences (positive and negative)
+
+ADRs stored in `claudedocs/architecture/` following naming convention `ADR-001-description.md`.
+
+## Best Practices
+
+### File Organization
+
+```
+your-project/
+├── claudedocs/
+│   ├── guidelines/           # Code review rules
+│   ├── testspecs/           # Test scenarios
+│   ├── epics/               # Epic documents
+│   ├── stories/             # User stories
+│   ├── sprints/             # Sprint plans
+│   └── architecture/        # ADRs
+├── src/
+│   ├── main/java/
+│   └── test/java/
+│       ├── unit/            # Developer-owned
+│       └── integration/     # Test-engineer-owned
+└── CLAUDE.md                # Project instructions
 ```
 
----
+### Story Traceability
 
-### Workflow: Test-First Development (TDD)
-
-**Empfohlener Ablauf:**
-
-1. **User + Test-Engineer:** Integration-Tests definieren
-   ```
-   User: "Schreib Systemtest für STORY-042: User Registration"
-   → test-engineer schreibt Tests in integration/
-   → Tests schlagen fehl (RED)
-   ```
-
-2. **Developer-Agent:** Implementation
-   ```
-   User: "Implementiere STORY-042"
-   → developer-agent liest Integration-Tests
-   → implementiert Features
-   → Tests werden grün (GREEN)
-   ```
-
-3. **Developer-Agent:** Unit-Tests & Refactoring
-   ```
-   → developer-agent schreibt Unit-Tests
-   → refactored Code
-   → Integration-Tests bleiben grün
-   ```
-
-**CRITICAL:** Developer-Agent darf Integration-Tests NICHT ändern!
-
----
-
-### Test-Verantwortlichkeiten
-
-| Test-Typ | Location | Agent | Beschreibung |
-|----------|----------|-------|--------------|
-| **Integration Tests** | `src/test/java/integration/` | test-engineer | Mehrere Komponenten zusammen (Epic-Level) |
-| **System Tests** | `src/test/java/integration/system/` | test-engineer | Gesamter Application Flow (Story-Level) |
-| **E2E Tests** | `src/test/java/integration/e2e/` | test-engineer | Komplette User Journey |
-| **Unit Tests** | `src/test/java/unit/` | developer-agent | Einzelne Klassen/Methoden |
-
-**Schutz-Mechanismus:**
-
-In `CLAUDE.md` ist festgelegt:
-```
-⛔ Developer-Agent darf NICHT:
-- Integration/System/E2E-Tests modifizieren
-- Integration/System/E2E-Tests löschen
-- Failing Tests durch Änderung der Tests "fixen"
-
-✅ Developer-Agent darf:
-- Integration-Tests LESEN (um Requirements zu verstehen)
-- Integration-Tests AUSFÜHREN (um Implementation zu validieren)
-- Implementation anpassen bis Tests grün sind
-```
-
----
-
-### Funktionsweise
-
-Der test-engineer Agent kombiniert mehrere Quellen:
-
-1. **Test-Spezifikationen** (`claudedocs/testspecs/*.md`)
-   - User-definierte Test-Szenarien
-   - **Höchste Priorität**
-
-2. **Story/Epic Acceptance Criteria** (`claudedocs/stories/`, `epics/`)
-   - Acceptance Criteria aus Stories
-   - User Story Statements
-
-3. **Projekt-Guidelines** (`claudedocs/guidelines/*.md`)
-   - Test-spezifische Guidelines
-   - z.B. `testing-standards.md`, `kafka-testing.md`
-
-4. **Testing Skills**
-   - `integration-testing` - TestContainers, @SpringBootTest, Awaitility
-   - `testing-philosophy` - Allgemeine Test-Prinzipien
-   - `spring-boot-best-practices` - Spring Boot Patterns (Unit Testing Section)
-   - `java-best-practices` - Java Syntax
-
----
-
-### Technologie-Stack
-
-**Integration-Tests verwenden:**
-- **TestContainers** - Reale Infrastruktur (Kafka, PostgreSQL, Redis)
-- **@SpringBootTest** - Full Application Context
-- **Awaitility** - Async Testing (statt Thread.sleep)
-- **AssertJ** - Fluent Assertions (KEIN JUnit assertEquals!)
-
-**Beispiel:**
+Always reference stories in code:
 
 ```java
-@SpringBootTest
-@Testcontainers
-class KafkaIntegrationTest {
-
-    @Container
-    static KafkaContainer kafka = new KafkaContainer(/*...*/);
-
-    @Test
-    void shouldCreateUserWhenReceivingKafkaCreateMessage() {
-        // EPIC-005: Kafka Message Processing
-        // AC-1: CREATE message creates user with ACTIVE status
-        // TestSpec: claudedocs/testspecs/kafka-scenarios.md
-
-        // Given
-        UserEvent event = new UserEvent(123L, "CREATE", "john");
-
-        // When
-        kafkaTemplate.send("user-events", event);
-
-        // Then
-        await().atMost(5, SECONDS).untilAsserted(() -> {
-            Optional<User> user = userRepository.findById(123L);
-            assertThat(user).isPresent();
-            assertThat(user.get().getStatus()).isEqualTo(UserStatus.ACTIVE);
-        });
-        // AC-1 ✓
-    }
+// STORY-012 AC-1: Email validation per RFC 5322
+if (!validateEmail(email)) {
+    throw new InvalidEmailException(ErrorCode.INVALID_EMAIL, email);
 }
+
+// STORY-012 AC-2: Duplicate email check
+if (userRepository.existsByEmail(email)) {
+    throw new DuplicateEmailException(ErrorCode.EMAIL_EXISTS, email);
+}
+// AC-2 ✓
 ```
 
-**Wichtige Elemente:**
-1. Traceability: `// EPIC-XXX`, `// AC-N`, `// TestSpec:`
-2. Given-When-Then Struktur
-3. AssertJ Assertions
-4. AC Verification Marker: `// AC-N ✓`
+### Test Separation
 
----
+**Integration tests (immutable):**
+- Written by test-engineer agent
+- Based on user requirements
+- Never modified by developer
+- Located in `src/test/java/integration/`
 
-### Test-Report Format
+**Unit tests (mutable):**
+- Written by developer
+- Implementation-specific
+- Can be refactored freely
+- Located in `src/test/java/unit/`
 
-Nach Test-Erstellung liefert der test-engineer Agent:
+### Testing Philosophy
 
-```markdown
-## Integration Tests Created
+```
+Test YOUR Code, Not THE Code
 
-**Story:** STORY-042: User Registration
-**Test Spec:** claudedocs/testspecs/user-registration-tests.md
+✅ Test business logic you wrote
+✅ Test calculations and validations
+✅ Test complex algorithms
+✅ Test custom validators
 
-### Tests Written
-
-1. **UserRegistrationSystemTest.java** (src/test/java/integration/api/)
-   - shouldRegisterUserWithActiveStatus() → AC-1 ✓
-   - shouldSendWelcomeEmailOnRegistration() → AC-2 ✓
-   - shouldReturn400WhenEmailInvalid() → AC-3 ✓
-
-2. **UserKafkaIntegrationTest.java** (src/test/java/integration/messaging/)
-   - shouldPublishUserCreatedEvent() → AC-4 ✓
-
-### Test Coverage
-- Acceptance Criteria: 4/4 covered ✓
-- Test Specifications: All scenarios implemented ✓
-- TestContainers: PostgreSQL, Kafka
-- Async Testing: Awaitility for Kafka assertions
-
-### Next Steps
-Run tests: `./mvnw -q test -Dtest=UserRegistrationSystemTest`
-Developer agent can now implement features to make tests pass (TDD).
+❌ Don't test Spring annotations
+❌ Don't test JPA mappings
+❌ Don't test Lombok-generated code
+❌ Don't test framework behavior
 ```
 
----
+## Development
 
-### Wichtige Hinweise
+### Plugin Development
 
-- **Separate Kontexte:** test-engineer und developer-agent haben getrennte Kontexte
-- **User-Requirements:** Tests basieren auf User-Verständnis, nicht auf Implementation
-- **Immutable Tests:** Tests sind Requirements - Developer darf sie nicht ändern!
-- **Test-First:** Tests werden VOR Implementation geschrieben (TDD)
-- **TestContainers:** Echte Infrastruktur, keine Mocks
-- **Projekt-Spezifikationen:** `claudedocs/testspecs/` hat höchste Priorität
+For developers working on the plugin itself:
 
----
+1. **Check internal documentation first:** `docs/plugin-howto.md`
+2. **Follow CLAUDE.md instructions**
+3. **Use portable paths** - no absolute paths in plugin files
+4. **Test changes** by updating marketplace
 
-## Entwicklung
+### Adding New Skills
 
-### Plugin-Updates testen
-
-1. Ändere Dateien in diesem Repo
-2. In deinem Test-Projekt:
-   ```bash
-   /plugin marketplace update local-dev-marketplace
-   ```
-3. Das Plugin verwendet jetzt die aktuellen Änderungen
-
-### Neue Skills hinzufügen
-
-1. Erstelle Verzeichnis: `skills/skill-name/`
-2. Füge `SKILL.md` hinzu mit Frontmatter:
+1. Create directory: `skills/skill-name/`
+2. Add `SKILL.md` with frontmatter:
    ```yaml
    ---
-   name: skill-name
-   description: Was es macht und wann es verwendet wird
+   name: skill-identifier
+   description: What it does and WHEN to auto-activate
    allowed-tools: [Bash, Read, Grep]
    ---
 
-   # Skill-Instruktionen hier
+   # Skill instructions
    ```
-3. Marketplace updaten
+3. Optional: Add `reference.md` for detailed documentation
+4. Update marketplace: `/plugin marketplace update local-dev-marketplace`
+
+### Adding New Agents
+
+1. Create file: `agents/agent-name.md`
+2. Add frontmatter:
+   ```yaml
+   ---
+   name: agent-identifier
+   description: Purpose and proactive activation conditions
+   tools: Read, Write, Edit, Bash
+   model: sonnet
+   color: cyan
+   ---
+
+   # Agent instructions
+   ```
+3. Update marketplace
+
+### Adding New Commands
+
+1. Create file: `commands/command-name.md`
+2. Write command implementation (no frontmatter needed)
+3. Update marketplace
+4. Use: `/agenticaiplugin:command-name`
+
+## Contributing
+
+Contributions welcome! When contributing:
+
+1. Follow existing file naming conventions
+2. Use portable paths (never absolute paths specific to your environment)
+3. Check `docs/plugin-howto.md` for plugin development patterns
+4. Test in multiple projects before submitting
+5. Update documentation for new features
+6. Add examples to skill reference.md files where appropriate
 
 ## License
 
 MIT
+
+---
+
+**Note:** This plugin provides mechanisms and patterns - individual projects customize it with their own guidelines, test specifications, and workflows in the `claudedocs/` directory.

@@ -1,214 +1,241 @@
-# AgenticAI Plugin - Kontext für neue AI-Sessions
+# AgenticAI Plugin - Context for AI Sessions
 
-> **Zweck dieser Datei:** Lies nur diese Datei, um sofort produktiv mit dem Projekt arbeiten zu können.
+> **Purpose:** Read only this file to immediately work productively with this project.
 
-## Was ist dieses Projekt?
+## What is this project?
 
-Ein **Claude Code Plugin** das Entwickler-Workflows durch Agents, Skills und Commands verbessert. Fokus auf Java/Spring Boot, aber sprachunabhängig anwendbar.
+A **Claude Code Plugin** that enhances development workflows through agents, skills, and commands. Provides intelligent automation for agile workflows, code reviews, testing, and documentation generation across multiple languages with focus on Java/Spring Boot.
 
-**Version:** 0.1.0 | **Autor:** Michael Kagel
+**Version:** 0.1.0 | **Tech Stack:** Claude Code Plugin System, Jinja2 Templates, Markdown
 
 ---
 
-## Projektstruktur
+## Project Structure
 
 ```
 agenticaiplugin/
-├── .claude-plugin/plugin.json    # Plugin-Metadaten
-├── agents/                       # 4 Sub-Agents (isolierter Kontext)
-│   ├── code-reviewer.md          # Automatische Code-Reviews
-│   ├── test-engineer.md          # Integration/E2E-Tests schreiben
-│   ├── project-initializer.md    # Projekt-Setup
-│   └── context-creator.md        # agentic.md Erstellung/Update
-├── commands/                     # 6 Slash-Commands
-│   ├── init.md                   # /init - Projekt initialisieren
-│   ├── gitme.md                  # /gitme - Smart Git Commits
-│   ├── code-review.md            # /cc-code-review - Manuelles Review
-│   ├── test.md                   # /cc-test - Tests erstellen
-│   ├── create-agentic.md         # /create-agentic - Kontext erstellen
-│   └── load-agentic.md           # /load-agentic - Kontext laden
-├── skills/                       # 14 Auto-aktivierte Wissensbasen
-│   ├── agile-workflow/           # Epic/Story/Sprint-Management
-│   ├── git-smart-commit/         # Intelligente Commits
-│   ├── code-reviewer/            # Review-Kriterien
-│   ├── development-principles/   # YAGNI, KISS, Story-Traceability
+├── .claude-plugin/plugin.json    # Plugin metadata
+├── agents/                       # 4 Sub-agents (isolated context)
+│   ├── code-reviewer.md          # Automatic code reviews
+│   ├── test-engineer.md          # Integration/E2E test creation
+│   ├── project-initializer.md    # Project setup automation
+│   └── context-creator.md        # AI session context management
+├── commands/                     # 8 Slash commands
+│   ├── init.md                   # /init - Project initialization
+│   ├── gitme.md                  # /gitme - Smart Git commits
+│   ├── code-review.md            # /cc-code-review - Manual review
+│   ├── test.md                   # /cc-test - Test creation
+│   ├── create-agentic.md         # /create-agentic - Context creation
+│   ├── create-docs.md            # /create-docs - Documentation generation
+│   ├── create-readme.md          # /create-readme - README generation
+│   └── load-agentic.md           # /load-agentic - Context loading
+├── skills/                       # 14 Auto-activated knowledge bases
+│   ├── agile-workflow/           # Epic/Story/Sprint management
+│   ├── git-smart-commit/         # Intelligent commits
+│   ├── code-reviewer/            # Review criteria
+│   ├── development-principles/   # YAGNI, KISS, Story-traceability
 │   ├── testing-philosophy/       # "Test YOUR Code, Not THE Code"
 │   ├── java-best-practices/      # Java 17+/21+/25+
 │   ├── spring-boot-best-practices/
 │   ├── integration-testing/      # TestContainers, Awaitility
 │   ├── maven-best-practices/
-│   ├── dependency-analysis/      # Story-Dependencies mit ULTRATHINK
-│   ├── architecture-decisions/   # ADR-Management
-│   ├── technology-advisor-jvm/   # Bibliotheksempfehlungen JVM
+│   ├── dependency-analysis/      # Story-dependencies with ULTRATHINK
+│   ├── architecture-decisions/   # ADR management
+│   ├── technology-advisor-jvm/   # Library recommendations JVM
 │   ├── technology-advisor-javascript/
 │   └── technology-advisor-python/
-├── docs/plugin-howto.md          # WICHTIG: Interne Entwickler-Referenz
-├── CLAUDE.md                     # Plugin-Entwicklungsanweisungen
-└── README.md                     # Installations- und Feature-Guide
+├── docs/plugin-howto.md          # PRIMARY DEV REFERENCE
+├── CLAUDE.md                     # Plugin development instructions
+└── README.md                     # Installation and feature guide
 ```
 
 ---
 
-## Kernkonzepte
+## Technology Stack
 
-### Auto-Discovery
-Claude Code findet automatisch:
-- `agents/*.md` → Agents
-- `skills/*/SKILL.md` → Skills
-- `commands/*.md` → Commands
-
-**Keine manuelle Registrierung in plugin.json nötig.**
-
-### Progressive Disclosure
-- **SKILL.md**: Kompakt, nur essenzielle Regeln
-- **reference.md**: Details, Beispiele, Edge Cases (bei Bedarf geladen)
-
-### Projektrichtlinien haben Vorrang
-`claudedocs/guidelines/*.md` im User-Projekt überschreiben IMMER Skill-Guidelines.
+| Category | Technology |
+|----------|------------|
+| Platform | Claude Code Plugin System |
+| Language | Markdown (agents, skills, commands) |
+| Templates | Jinja2 (.j2 files) |
+| Build | N/A (no build process) |
+| Testing | Manual testing in Claude Code |
+| Primary Focus | Java, Spring Boot, Maven |
+| Multi-Language | JavaScript, Python support via technology-advisor skills |
 
 ---
 
-## Agents im Detail
+## Critical Rules
 
-| Agent | Zweck | Tools | Model |
-|-------|-------|-------|-------|
-| **code-reviewer** | Multi-Type Code-Reviews (Code/Test/Architektur) | Read, Glob, Grep, Bash | Sonnet |
-| **test-engineer** | Integration/System/E2E-Tests schreiben | Read, Write, Edit, Glob, Grep, Bash | Sonnet |
-| **project-initializer** | Interaktives Projekt-Setup | Read, Write, Edit, Bash, Glob, AskUserQuestion | Sonnet |
-| **context-creator** | Erstellt/aktualisiert agentic.md Projekt-Kontext | Read, Write, Edit, Glob, Grep, Bash | Sonnet |
+### 1. No Absolute Paths in Plugin Files
 
-### Test-Engineer: Isolierter Kontext
-Der Test-Engineer arbeitet **bewusst ohne Implementierungsdetails** - er testet User-Requirements, nicht die Implementierung.
+**The plugin must be portable across all user environments.**
 
-### Context-Creator: AI Session Management
-Der Context-Creator erstellt/aktualisiert `agentic.md` - eine token-optimierte Projekt-Übersicht, die neuen AI-Sessions ermöglicht, sofort produktiv zu arbeiten. Verwendet Progressive Disclosure und scanbare Formate (Tabellen statt Prosa).
+- NEVER use: `/mnt/d/ki/repos/agenticaiplugin/`, `/dein-projekt/`, developer-specific paths
+- ALWAYS use: Generic placeholders like `/path/to/your/marketplace`, `<your-project-root>`
+- Relative paths within user's project: `claudedocs/guidelines/`
+
+### 2. Documentation Priority
+
+**ALWAYS check `docs/plugin-howto.md` FIRST** before using external sources for plugin development questions.
+
+### 3. Auto-Discovery Pattern
+
+Claude Code automatically discovers:
+- All `.md` files in `agents/` as Agents
+- All `SKILL.md` files in `skills/*/` as Skills
+- All `.md` files in `commands/` as Commands
+
+**No registration needed in plugin.json.**
+
+### 4. Progressive Disclosure
+
+- **SKILL.md**: Concise, essential rules only
+- **reference.md**: Details, examples, edge cases (loaded on demand)
+- Saves tokens by keeping auto-loaded context minimal
+
+### 5. Testing Philosophy
+
+```
+Test YOUR Code, Not THE Code
+
+✅ Business logic (calculations, validations)
+❌ Framework code (Spring annotations, JPA mappings)
+❌ Generated code (Lombok, MapStruct)
+```
+
+### 6. Project Guidelines Override Skills
+
+User's `claudedocs/guidelines/*.md` files ALWAYS override plugin skill guidelines.
 
 ---
 
-## Skills - Wann werden sie aktiviert?
+## Key Files Reference
 
-| Skill | Auto-Aktivierung bei Keywords |
-|-------|-------------------------------|
+| Topic | File |
+|-------|------|
+| Plugin development reference | docs/plugin-howto.md |
+| Development instructions | CLAUDE.md |
+| Installation guide | README.md |
+| Agile workflow templates | skills/agile-workflow/templates/ |
+| Code review criteria | skills/code-reviewer/SKILL.md |
+| Spring Boot patterns | skills/spring-boot-best-practices/SKILL.md |
+| Java patterns | skills/java-best-practices/SKILL.md |
+| Integration testing | skills/integration-testing/SKILL.md |
+| Context management | agents/context-creator.md |
+
+---
+
+## Agents Overview
+
+| Agent | Purpose | Model | Key Tools |
+|-------|---------|-------|-----------|
+| **code-reviewer** | Multi-type code reviews (code/test/architecture) | Sonnet | Read, Glob, Grep, Bash |
+| **test-engineer** | Integration/System/E2E test creation (isolated context) | Sonnet | Read, Write, Edit, Grep, Bash |
+| **project-initializer** | Interactive project setup with claudedocs/ | Sonnet | Read, Write, Edit, Bash, AskUserQuestion |
+| **context-creator** | Creates/updates agentic.md and README.md | Sonnet | Read, Write, Edit, Glob, Grep, Bash |
+
+**Test-Engineer Isolation:** Deliberately works without implementation details - tests user requirements, not implementation.
+
+**Context-Creator Modes:** Supports creating/updating both agentic.md (AI-optimized) and README.md (human-readable).
+
+---
+
+## Skills Auto-Activation Triggers
+
+| Skill | Activation Keywords |
+|-------|---------------------|
 | agile-workflow | epic, story, sprint, backlog, planning |
 | git-smart-commit | commit, git commit, stage and commit |
-| development-principles | Code schreiben (alle Sprachen) |
-| testing-philosophy | Tests, Testabdeckung |
-| java-best-practices | Java-Code |
+| development-principles | Code writing (all languages) |
+| testing-philosophy | tests, test coverage |
+| java-best-practices | Java code |
 | spring-boot-best-practices | Spring Boot, @RestController, @Service |
 | integration-testing | TestContainers, @SpringBootTest |
-| technology-advisor-* | Dependencies hinzufügen |
+| technology-advisor-* | Adding dependencies |
+| maven-best-practices | Maven, pom.xml |
+| architecture-decisions | ADR, architecture decision |
 
 ---
 
-## Wichtige Konventionen
+## Commands Quick Reference
 
-### Dateinamen
+```bash
+/init                      # Initialize project with claudedocs/
+/gitme                     # Create smart Git commits
+/cc-code-review <file>     # Manual code review of specific file
+/cc-test STORY-042         # Create tests for story
+/create-agentic            # Create/update agentic.md
+/create-docs               # Create/update both agentic.md and README.md
+/create-readme             # Create/update README.md
+/load-agentic              # Load agentic.md into context
 ```
-EPIC-001-description.md     # Epics
+
+---
+
+## File Naming Conventions
+
+```
+EPIC-001-description.md     # Epics (lowercase-with-dashes)
 STORY-001-description.md    # Stories
 SPRINT-01.md                # Sprints
 ADR-001-description.md      # Architecture Decision Records
 ```
 
-### Story-Traceability in Code
+**Story Traceability in Code:**
 ```java
-// STORY-012 AC: Email-Validierung nach RFC 5322
+// STORY-012 AC: Email validation per RFC 5322
 if (!validateEmail(email)) {
     throw new InvalidEmailException();
 }
 ```
 
-### Test-Struktur (Integration Tests)
+---
+
+## Test Structure Convention
+
 ```
 src/test/java/
-├── unit/              # Developer-owned
-└── integration/       # Test-Engineer-owned
+├── unit/              # Developer-owned (mutable)
+└── integration/       # Test-Engineer-owned (immutable)
     ├── api/
     ├── messaging/
     ├── system/
     └── e2e/
 ```
 
----
-
-## KRITISCHE REGELN
-
-### 1. Keine absoluten Pfade in Plugin-Dateien
-```
-❌ /mnt/d/ki/repos/agenticaiplugin/
-✅ /path/to/your/marketplace (generisch)
-✅ claudedocs/guidelines/ (relativ im User-Projekt)
-```
-
-### 2. Dokumentation-Priorität
-**IMMER ZUERST:** `docs/plugin-howto.md` konsultieren, bevor externe Quellen.
-
-### 3. Testing-Philosophie
-```
-Test YOUR Code, Not THE Code
-
-✅ Business-Logik testen (Berechnungen, Validierungen)
-❌ Framework-Code testen (Spring-Annotationen, JPA-Mappings)
-❌ Generierten Code testen (Lombok, MapStruct)
-```
+**Critical:** Developer-agent NEVER modifies integration/system/e2e tests - only test-engineer can change them.
 
 ---
 
-## Entwicklungs-Workflow
+## Development Workflow
 
-1. **Dateien bearbeiten** im Plugin-Verzeichnis
-2. **Marketplace updaten:**
+1. **Edit files** in plugin directory
+2. **Update marketplace:**
    ```bash
    /plugin marketplace update local-dev-marketplace
    ```
-3. **Testen** in einem Projekt, das das Plugin nutzt
+3. **Test** in a project using the plugin
+
+Changes available immediately after marketplace update.
 
 ---
 
-## Schnellreferenz: Commands
+## Current Development
 
-```bash
-/init                      # Projekt mit claudedocs/ initialisieren
-/gitme                     # Smart Git Commit erstellen
-/cc-code-review <file>     # Manuelles Code-Review
-/cc-test STORY-042         # Tests für Story schreiben
-/create-agentic            # Projekt-Kontext erstellen/updaten
-/load-agentic              # Projekt-Kontext laden
-```
-
----
-
-## Wo finde ich was?
-
-| Thema | Datei |
-|-------|-------|
-| Plugin-Entwicklung allgemein | `docs/plugin-howto.md` |
-| Frontmatter-Syntax | `docs/plugin-howto.md` |
-| Skill-Templates (Jinja2) | `skills/agile-workflow/templates/` |
-| Review-Kriterien | `skills/code-reviewer/` |
-| Spring Boot Patterns | `skills/spring-boot-best-practices/SKILL.md` |
-| Java Patterns | `skills/java-best-practices/SKILL.md` |
-| Testing Patterns | `skills/integration-testing/SKILL.md` |
-| Context-Management | `agents/context-creator.md` |
-
----
-
-## Legacy-Framework Referenz
-
-**Pfad:** `C:\Dev\repos\agenticai`
-
-Vorherige Version des Frameworks - nur bei Bedarf konsultieren (Migration, historischer Kontext).
-
----
-
-## Aktuelle Entwicklung (letzte Commits)
-
+**Recent commits:**
+- `6797af8` feat(docs): extend context-creator to support README.md generation
+- `76bdadf` refactor(skills): improve trigger descriptions for reliable activation
+- `a76259a` docs(context): update agentic.md with context-creator details
+- `98a5e4e` refactor(skills): improve maven-best-practices trigger for proactive activation
 - `6072bf5` feat(context): add AI session context management
-- `dc8bcb8` refactor(agents): optimize token usage with progressive disclosure
-- `33a25d1` feat(agents): add skills frontmatter field support
-- `e2326d6` docs(project): add legacy framework reference
-- `ef87125` refactor(template): update CLAUDE.md for intelligent code review
+
+**Current focus:** Documentation generation capabilities, README.md support in context-creator agent
 
 ---
 
-**Nächster Schritt:** Lies `docs/plugin-howto.md` für detaillierte Plugin-Entwicklungsfragen.
+## Legacy Framework Reference
+
+**Location:** `C:\Dev\repos\agenticai`
+
+Previous version of this framework. Consult only when explicitly relevant for migration or historical context.
