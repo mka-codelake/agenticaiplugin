@@ -1,11 +1,28 @@
 ---
 name: git-smart-commit
-description: Analyzes uncommitted changes, intelligently groups them into logical commits, and creates meaningful commit messages following project conventions. Use PROACTIVELY when user says 'commit', 'commit changes', 'make commit', 'git commit', 'create commit', 'stage and commit', or mentions committing changes. ALWAYS use when the user wants to create git commits.
+description: |
+  🚫 MANDATORY for ALL git commits. NEVER run 'git commit' directly - ALWAYS invoke this skill first.
+  Analyzes uncommitted changes, groups them logically, creates meaningful commit messages.
+  TRIGGER WORDS: commit, committe, committen, git commit, push (if uncommitted changes exist), einchecken, stage and commit.
+  This skill REPLACES manual git commit commands.
 allowed-tools:
   - Bash(git:*)
   - Read
   - Glob
   - Grep
+---
+
+# ⚠️ CRITICAL: This skill REPLACES git commit
+
+**DO NOT run `git commit` directly. ALWAYS use this skill instead.**
+
+When user says "commit", "committe", "committen", "einchecken", or wants to commit changes:
+1. STOP - Do not run git commit
+2. INVOKE this skill
+3. Follow the skill's process below
+
+This is NOT optional guidance - it is a MANDATORY workflow replacement.
+
 ---
 
 # Your role
