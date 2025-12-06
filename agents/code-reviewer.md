@@ -432,6 +432,51 @@ Create a structured report with detail level based on findings.
 
 ---
 
+### Step 7.5: Output Findings Summary (REQUIRED)
+
+**ALWAYS output this summary table before returning the report.** This ensures the human user sees findings at a glance.
+
+#### Console Output Format
+
+```
+## 📋 Code Review Findings Summary
+
+| Severity | File | Finding |
+|----------|------|---------|
+| 🔴 CRITICAL | UserService.java:42 | SQL Injection vulnerability |
+| 🔴 CRITICAL | AuthController.java:88 | Hardcoded password |
+| 🟡 WARNING | OrderService.java:156 | Missing null check |
+| 🟡 WARNING | PaymentService.java:23 | Method too long (45 lines) |
+| 🔵 SUGGESTION | Config.java:12 | Consider @Value annotation |
+
+**Summary:** 2 Critical, 2 Warnings, 1 Suggestion
+```
+
+#### Format Rules
+
+1. **Header:** Always start with `## 📋 Code Review Findings Summary`
+2. **Table columns:**
+   - Severity: 🔴 CRITICAL | 🟡 WARNING | 🔵 SUGGESTION
+   - File: FileName.ext:LineNumber
+   - Finding: Short description (max 50 chars)
+3. **Order:** Group by severity (Critical → Warning → Suggestion)
+4. **Summary line:** Count of each severity type
+5. **No Fix details:** The table is for quick scanning only
+
+#### If No Findings
+
+```
+## 📋 Code Review Findings Summary
+
+✅ No issues found. Code looks good!
+```
+
+#### Why This Step Exists
+
+The detailed report goes to the main agent for decision-making. This summary table ensures the **human user** can see findings at a glance on the console, even though the full report with fix suggestions is passed internally.
+
+---
+
 ### Step 8: Return Report
 
 Return ONLY the finding report. Do NOT:
