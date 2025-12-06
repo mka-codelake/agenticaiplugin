@@ -15,15 +15,18 @@ Ein **Claude Code Plugin** das Entwickler-Workflows durch Agents, Skills und Com
 ```
 agenticaiplugin/
 ├── .claude-plugin/plugin.json    # Plugin-Metadaten
-├── agents/                       # 3 Sub-Agents (isolierter Kontext)
+├── agents/                       # 4 Sub-Agents (isolierter Kontext)
 │   ├── code-reviewer.md          # Automatische Code-Reviews
 │   ├── test-engineer.md          # Integration/E2E-Tests schreiben
-│   └── project-initializer.md    # Projekt-Setup
-├── commands/                     # 4 Slash-Commands
+│   ├── project-initializer.md    # Projekt-Setup
+│   └── context-creator.md        # agentic.md Erstellung/Update
+├── commands/                     # 6 Slash-Commands
 │   ├── init.md                   # /init - Projekt initialisieren
 │   ├── gitme.md                  # /gitme - Smart Git Commits
 │   ├── code-review.md            # /cc-code-review - Manuelles Review
-│   └── test.md                   # /cc-test - Tests erstellen
+│   ├── test.md                   # /cc-test - Tests erstellen
+│   ├── create-agentic.md         # /create-agentic - Kontext erstellen
+│   └── load-agentic.md           # /load-agentic - Kontext laden
 ├── skills/                       # 14 Auto-aktivierte Wissensbasen
 │   ├── agile-workflow/           # Epic/Story/Sprint-Management
 │   ├── git-smart-commit/         # Intelligente Commits
@@ -72,9 +75,13 @@ Claude Code findet automatisch:
 | **code-reviewer** | Multi-Type Code-Reviews (Code/Test/Architektur) | Read, Glob, Grep, Bash | Sonnet |
 | **test-engineer** | Integration/System/E2E-Tests schreiben | Read, Write, Edit, Glob, Grep, Bash | Sonnet |
 | **project-initializer** | Interaktives Projekt-Setup | Read, Write, Edit, Bash, Glob, AskUserQuestion | Sonnet |
+| **context-creator** | Erstellt/aktualisiert agentic.md Projekt-Kontext | Read, Write, Edit, Glob, Grep, Bash | Sonnet |
 
 ### Test-Engineer: Isolierter Kontext
 Der Test-Engineer arbeitet **bewusst ohne Implementierungsdetails** - er testet User-Requirements, nicht die Implementierung.
+
+### Context-Creator: AI Session Management
+Der Context-Creator erstellt/aktualisiert `agentic.md` - eine token-optimierte Projekt-Übersicht, die neuen AI-Sessions ermöglicht, sofort produktiv zu arbeiten. Verwendet Progressive Disclosure und scanbare Formate (Tabellen statt Prosa).
 
 ---
 
@@ -165,6 +172,8 @@ Test YOUR Code, Not THE Code
 /gitme                     # Smart Git Commit erstellen
 /cc-code-review <file>     # Manuelles Code-Review
 /cc-test STORY-042         # Tests für Story schreiben
+/create-agentic            # Projekt-Kontext erstellen/updaten
+/load-agentic              # Projekt-Kontext laden
 ```
 
 ---
@@ -180,6 +189,7 @@ Test YOUR Code, Not THE Code
 | Spring Boot Patterns | `skills/spring-boot-best-practices/SKILL.md` |
 | Java Patterns | `skills/java-best-practices/SKILL.md` |
 | Testing Patterns | `skills/integration-testing/SKILL.md` |
+| Context-Management | `agents/context-creator.md` |
 
 ---
 
@@ -193,11 +203,11 @@ Vorherige Version des Frameworks - nur bei Bedarf konsultieren (Migration, histo
 
 ## Aktuelle Entwicklung (letzte Commits)
 
+- `6072bf5` feat(context): add AI session context management
 - `dc8bcb8` refactor(agents): optimize token usage with progressive disclosure
 - `33a25d1` feat(agents): add skills frontmatter field support
 - `e2326d6` docs(project): add legacy framework reference
 - `ef87125` refactor(template): update CLAUDE.md for intelligent code review
-- `a7e2e32` feat(code-review): implement intelligent multi-type review system
 
 ---
 
