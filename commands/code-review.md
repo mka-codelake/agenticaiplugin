@@ -3,7 +3,7 @@ Perform a comprehensive code review on the specified file using the code-reviewe
 ## Usage
 
 ```
-cc-code-review <file>
+/agenticaiplugin:code-review <file>
 ```
 
 **Required Parameter:**
@@ -12,9 +12,9 @@ cc-code-review <file>
 ## Examples
 
 ```bash
-cc-code-review src/main/java/com/example/UserService.java
-cc-code-review UserController.java
-cc-code-review src/test/java/UserServiceTest.java
+/agenticaiplugin:code-review src/main/java/com/example/UserService.java
+/agenticaiplugin:code-review UserController.java
+/agenticaiplugin:code-review src/test/java/UserServiceTest.java
 ```
 
 ## Validation
@@ -23,13 +23,13 @@ cc-code-review src/test/java/UserServiceTest.java
 
 1. If NO parameter provided:
    ```
-   Usage: cc-code-review <file>
+   Usage: /agenticaiplugin:code-review <file>
 
    Performs code review on the specified file.
 
    Examples:
-     cc-code-review src/main/java/UserService.java
-     cc-code-review UserController.java
+     /agenticaiplugin:code-review src/main/java/UserService.java
+     /agenticaiplugin:code-review UserController.java
    ```
    STOP execution, do NOT proceed with review.
 

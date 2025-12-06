@@ -5,7 +5,7 @@ Creates or updates the `README.md` file - a human-readable project overview.
 ## Usage
 
 ```
-/create-readme
+/agenticaiplugin:create-readme
 ```
 
 No parameters required.
@@ -68,6 +68,6 @@ Task(
 
 ## Related
 
-- **/create-agentic** - Create AI-optimized context (agentic.md)
-- **/create-docs** - Create both agentic.md and README.md
+- **/agenticaiplugin:create-agentic** - Create AI-optimized context (agentic.md)
+- **/agenticaiplugin:create-docs** - Create both agentic.md and README.md
 - **CLAUDE.md** - Project-specific instructions

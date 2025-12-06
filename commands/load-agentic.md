@@ -5,7 +5,7 @@ Loads and processes the `agentic.md` file to quickly understand the project cont
 ## Usage
 
 ```
-/load-agentic
+/agenticaiplugin:load-agentic
 ```
 
 No parameters required.
@@ -17,7 +17,7 @@ No parameters required.
 
 2. **If NOT found:**
    - Inform user that no context file exists
-   - Suggest running `/create-agentic` first
+   - Suggest running `/agenticaiplugin:create-agentic` first
 
 3. **If found:**
    - Read the entire `agentic.md` file
@@ -40,7 +40,7 @@ If `agentic.md` does not exist, respond:
 No agentic.md found in this project.
 
 To create one, run:
-  /create-agentic
+  /agenticaiplugin:create-agentic
 
 This will analyze your project and create a context-optimized
 overview for AI sessions.
@@ -78,7 +78,7 @@ Ready to work on this project.
 ## Example
 
 ```
-User: /load-agentic
+User: /agenticaiplugin:load-agentic
 
 AI: Project context loaded: MyWebApp
 
@@ -98,5 +98,5 @@ Ready to work on this project.
 
 ## Related
 
-- **/create-agentic** - Create or update the agentic.md file
+- **/agenticaiplugin:create-agentic** - Create or update the agentic.md file
 - **CLAUDE.md** - Project-specific instructions (loaded separately)

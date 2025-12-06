@@ -284,7 +284,7 @@ You → User:
 
 Users can also trigger reviews manually:
 ```
-cc-code-review <file>
+/agenticaiplugin:code-review <file>
 ```
 
 This is independent of automatic reviews and doesn't require you to do anything special.

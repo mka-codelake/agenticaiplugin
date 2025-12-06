@@ -5,15 +5,15 @@ Invoke the test-engineer agent to write integration, system, or E2E tests based 
 ## Usage
 
 ```
-/cc-test [STORY-ID | EPIC-ID | test-type]
+/agenticaiplugin:test [STORY-ID | EPIC-ID | test-type]
 ```
 
 **Examples:**
 ```
-/cc-test STORY-042
-/cc-test EPIC-005
-/cc-test api
-/cc-test kafka
+/agenticaiplugin:test STORY-042
+/agenticaiplugin:test EPIC-005
+/agenticaiplugin:test api
+/agenticaiplugin:test kafka
 ```
 
 ## What It Does
@@ -48,7 +48,7 @@ The test-engineer agent will:
 ### Write Tests for Specific Story
 
 ```
-User: /cc-test STORY-042
+User: /agenticaiplugin:test STORY-042
 
 Test-Engineer:
 Reading STORY-042: User Registration...
@@ -68,7 +68,7 @@ Tests currently FAIL (Red) - ready for implementation.
 ### Write Tests for Epic
 
 ```
-User: /cc-test EPIC-005
+User: /agenticaiplugin:test EPIC-005
 
 Test-Engineer:
 Reading EPIC-005: Kafka Message Processing...
@@ -87,7 +87,7 @@ Tests written in src/test/java/integration/messaging/
 ### Write Tests for Specific Component
 
 ```
-User: /cc-test api
+User: /agenticaiplugin:test api
 
 Test-Engineer:
 Checking for test specifications in claudedocs/testspecs/...
@@ -144,7 +144,7 @@ The test-engineer agent will read these specs and create corresponding tests.
 
 1. **Define Story/Epic** with Acceptance Criteria
 2. **Create Test Specification** (optional, in `claudedocs/testspecs/`)
-3. **Run `/cc-test STORY-XXX`** → Test-Engineer writes tests (RED)
+3. **Run `/agenticaiplugin:test STORY-XXX`** → Test-Engineer writes tests (RED)
 4. **Implement features** → Developer makes tests GREEN
 5. **Refactor** → Tests still GREEN
 
@@ -158,7 +158,7 @@ The test-engineer agent will read these specs and create corresponding tests.
 
 ## Related
 
-- **/cc-code-review** - Review code quality (auto-runs after implementation)
+- **/agenticaiplugin:code-review** - Review code quality (auto-runs after implementation)
 - **testing-philosophy skill** - General testing principles
 - **integration-testing skill** - Integration test patterns
 - **spring-boot-best-practices skill** - Unit testing section

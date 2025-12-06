@@ -5,7 +5,7 @@ Creates or updates both `agentic.md` and `README.md` in one pass.
 ## Usage
 
 ```
-/create-docs
+/agenticaiplugin:create-docs
 ```
 
 No parameters required.
@@ -62,6 +62,6 @@ Task(
 
 ## Related
 
-- **/create-agentic** - Create only agentic.md (AI-optimized)
-- **/create-readme** - Create only README.md (human-readable)
-- **/load-agentic** - Load agentic.md to understand a project
+- **/agenticaiplugin:create-agentic** - Create only agentic.md (AI-optimized)
+- **/agenticaiplugin:create-readme** - Create only README.md (human-readable)
+- **/agenticaiplugin:load-agentic** - Load agentic.md to understand a project

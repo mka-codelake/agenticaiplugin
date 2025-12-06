@@ -5,7 +5,7 @@ Creates or updates the `agentic.md` file - a context-optimized project overview 
 ## Usage
 
 ```
-/create-agentic
+/agenticaiplugin:create-agentic
 ```
 
 No parameters required.
@@ -68,7 +68,7 @@ Task(
 
 ## Related
 
-- **/load-agentic** - Load agentic.md to understand a project
-- **/create-readme** - Create human-readable README.md
-- **/create-docs** - Create both agentic.md and README.md
+- **/agenticaiplugin:load-agentic** - Load agentic.md to understand a project
+- **/agenticaiplugin:create-readme** - Create human-readable README.md
+- **/agenticaiplugin:create-docs** - Create both agentic.md and README.md
 - **CLAUDE.md** - Project-specific instructions (source for critical rules)
