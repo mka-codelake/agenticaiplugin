@@ -418,10 +418,6 @@ Check the current setup status and display it visually:
 1. `CLAUDE.md` in project root (REQUIRED for agents)
 2. `claudedocs/guidelines/` directory (RECOMMENDED - project-specific coding rules)
 3. `claudedocs/testspecs/` directory (RECOMMENDED - test specifications)
-4. `claudedocs/epics/` directory (OPTIONAL - auto-created by agile-workflow skill)
-5. `claudedocs/stories/` directory (OPTIONAL - auto-created by agile-workflow skill)
-6. `claudedocs/sprints/` directory (OPTIONAL - auto-created by agile-workflow skill)
-7. `claudedocs/adrs/` directory (OPTIONAL - architectural decision records)
 
 **Display format:**
 ```
@@ -431,10 +427,6 @@ Current Status:
 ✅ CLAUDE.md - Already exists
 ❌ claudedocs/guidelines/ - Not found (recommended)
 ✅ claudedocs/testspecs/ - Already exists
-❌ claudedocs/epics/ - Not found (auto-created by skills)
-❌ claudedocs/stories/ - Not found (auto-created by skills)
-❌ claudedocs/sprints/ - Not found (auto-created by skills)
-❌ claudedocs/adrs/ - Not found (optional)
 ```
 
 Use ✅ for existing items, ❌ for missing items.
@@ -528,7 +520,7 @@ Perform intelligent merge:
 For each missing directory from Step 1 status check, create it using:
 
 ```bash
-mkdir -p claudedocs/guidelines claudedocs/testspecs claudedocs/epics claudedocs/stories claudedocs/sprints claudedocs/adrs
+mkdir -p claudedocs/guidelines claudedocs/testspecs
 ```
 
 Report each created directory:
