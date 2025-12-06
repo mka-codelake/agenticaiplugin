@@ -80,15 +80,28 @@ Do NOT trigger if:
 
 ### Code Review Process
 
-**1. Invoke the code-reviewer Agent**
+**1. Check Configuration (optional)**
 
-Use the Task tool to launch the code-reviewer agent.
+Before starting the review, check if `claudedocs/config.yaml` exists:
 
-The reviewer will automatically:
+If file exists:
+- Read `code-review.ensemble-count` setting
+- This determines how many parallel reviewers to run
+
+If file does NOT exist:
+- Use default: ensemble-count = 1 (single reviewer)
+
+**2. Invoke the code-reviewer Agent(s)**
+
+The reviewer(s) will automatically:
 - Detect changes via git diff
 - Decide which review types to perform (code/test/architecture)
 - Load only relevant review criteria
 - Apply project guidelines with priority
+
+**If ensemble-count = 1 (default):**
+
+Use single Task call (standard behavior):
 
 ```
 Task(
@@ -108,9 +121,69 @@ Task(
 )
 ```
 
+**If ensemble-count > 1 (ensemble mode):**
+
+Start N parallel reviewers in ONE message block using run_in_background:
+
+```
+// Start all reviewers in parallel (single message, multiple tool calls)
+Task(
+  subagent_type: "code-reviewer",
+  description: "Review implementation (1/N)",
+  prompt: "[same prompt as above]",
+  run_in_background: true
+)
+Task(
+  subagent_type: "code-reviewer",
+  description: "Review implementation (2/N)",
+  prompt: "[same prompt as above]",
+  run_in_background: true
+)
+// ... repeat for N reviewers
+```
+
+Then wait for all to complete:
+```
+AgentOutputTool(agentId: "agent1", block: true)
+AgentOutputTool(agentId: "agent2", block: true)
+// ... for all N agents
+```
+
+**3. Aggregate Results (ensemble mode only)**
+
+When multiple reviewers were used, aggregate their findings:
+
+**Hybrid Deduplication:**
+
+1. **Exact matches:** Group findings by `File:LineNumber`
+   - Same file + same line = duplicate → keep only one
+   - Note: "Found by N/M reviewers" for confidence
+
+2. **Semantic similarity:** For remaining findings at different locations
+   - Use your judgment to identify findings describing the same issue
+   - Example: "Missing null check" and "Potential NPE" at nearby lines
+   - Group as "potentially related" if uncertain
+
+3. **Unique findings:** Keep all findings that only one reviewer found
+   - These are the value of ensemble mode
+   - Different perspectives catch different issues
+
+**Present consolidated list:**
+```
+## Code Review Findings (Ensemble: 3 reviewers)
+
+### High Confidence (found by 2+ reviewers)
+- [Critical] UserService.java:42 - SQL injection risk (3/3 reviewers)
+- [Warning] OrderController.java:88 - Missing validation (2/3 reviewers)
+
+### Additional Findings (unique perspectives)
+- [Warning] PaymentService.java:156 - Method too long (Reviewer 2)
+- [Suggestion] Config.java:12 - Consider @Value annotation (Reviewer 3)
+```
+
 **Note:** You no longer need to manually track which files changed. The code-reviewer agent detects changes automatically using git diff.
 
-**2. Process the Finding Report**
+**4. Process the Finding Report**
 
 After receiving the report from the code-reviewer agent:
 
@@ -129,14 +202,14 @@ After receiving the report from the code-reviewer agent:
    - Always provide a brief justification if skipping Critical/Warning items
    - Example: "Skipping 'method too long' warning - complex business logic requires this structure for clarity"
 
-**3. Apply Fixes**
+**5. Apply Fixes**
 
 For findings you decide to address:
 - Fix the issues in the code
 - Use Edit tool for modifications
 - Ensure tests still pass after fixes
 
-**4. Complete Review Cycle**
+**6. Complete Review Cycle**
 
 Important: **ONE review round only** (not iterative)
 
@@ -144,7 +217,7 @@ Important: **ONE review round only** (not iterative)
 - Do NOT trigger another review automatically
 - Report to user with summary
 
-**5. Report to User**
+**7. Report to User**
 
 Only after code review is complete, inform the user:
 

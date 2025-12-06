@@ -575,6 +575,53 @@ Choose haiku for straightforward workflows to reduce cost/latency.
 3. **Progressive disclosure:** Use reference.md for details
 4. **Templates:** Externalize repetitive structures
 
+## Hidden Features (Incubator)
+
+Features that are available but not prominently advertised. For power users who know to look for them.
+
+### Ensemble Code-Review
+
+Multiple code-reviewer instances run in parallel, leveraging LLM non-determinism for broader coverage.
+
+**Activation:**
+```bash
+/agenticaiplugin:config
+```
+
+This interactive command allows configuration of plugin settings including ensemble mode.
+
+**Configuration file:** `claudedocs/config.yaml`
+```yaml
+# AgenticAI Plugin Configuration
+code-review:
+  ensemble-count: 3  # Number of parallel reviewers (default: 1)
+```
+
+**How it works:**
+1. Main agent reads config before code review
+2. If ensemble-count > 1: Starts N reviewers in parallel
+3. Waits for all to complete
+4. Aggregates results with hybrid deduplication:
+   - Exact matches (same file:line) → merged, shows confidence (N/M reviewers)
+   - Semantically similar findings → grouped as "potentially related"
+   - Unique findings → kept (the value of ensemble mode)
+
+**Output format (ensemble mode):**
+```
+## Code Review Findings (Ensemble: 3 reviewers)
+
+### High Confidence (found by 2+ reviewers)
+- [Critical] UserService.java:42 - SQL injection risk (3/3 reviewers)
+
+### Additional Findings (unique perspectives)
+- [Warning] PaymentService.java:156 - Method too long (Reviewer 2)
+```
+
+**Trade-offs:**
+- Higher coverage vs. higher token cost
+- Recommended for critical changes or complex implementations
+- Default (1 reviewer) sufficient for most cases
+
 ## Summary Checklist
 
 Creating a plugin:
