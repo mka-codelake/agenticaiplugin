@@ -74,7 +74,7 @@ The plugin architecture separates concerns intelligently: test engineers write i
 Initialize a new project with recommended directory structure:
 
 ```bash
-/init
+/agenticaiplugin:init
 ```
 
 This command creates:
@@ -132,16 +132,22 @@ Claude:
 
 ```bash
 # Create/update AI-optimized context file
-/create-agentic
+/agenticaiplugin:create-agentic
 
 # Create/update both agentic.md and README.md
-/create-docs
+/agenticaiplugin:create-docs
 
 # Create/update human-readable README
-/create-readme
+/agenticaiplugin:create-readme
 
 # Load existing context into current session
-/load-agentic
+/agenticaiplugin:load-agentic
+
+# Transfer context to structured document
+/agenticaiplugin:create-cr
+
+# View/edit plugin configuration
+/agenticaiplugin:config
 ```
 
 The context creator analyzes your project structure, key files, recent commits, and patterns to generate documentation that helps AI agents (agentic.md) or human developers (README.md) get productive immediately.
@@ -152,14 +158,14 @@ While most features activate automatically, you can also invoke them manually:
 
 ```bash
 # Manual code review of specific file
-/cc-code-review src/main/java/UserService.java
+/agenticaiplugin:code-review src/main/java/UserService.java
 
 # Create tests for a specific story or epic
-/cc-test STORY-042
-/cc-test EPIC-005
+/agenticaiplugin:test STORY-042
+/agenticaiplugin:test EPIC-005
 
 # Smart Git commits
-/gitme
+/agenticaiplugin:gitme
 ```
 
 ## Configuration
@@ -233,7 +239,9 @@ agenticaiplugin/
 │   ├── create-agentic.md     # Context creation
 │   ├── create-docs.md        # Full documentation generation
 │   ├── create-readme.md      # README generation
-│   └── load-agentic.md       # Context loading
+│   ├── load-agentic.md       # Context loading
+│   ├── create-cr.md          # Context to document transfer
+│   └── config.md             # Plugin configuration
 ├── skills/                   # Auto-activated knowledge
 │   ├── agile-workflow/       # Epic/Story/Sprint management
 │   ├── git-smart-commit/     # Intelligent commits
@@ -270,6 +278,8 @@ The code-reviewer agent performs comprehensive analysis combining multiple knowl
 - Code reviews (implementation quality)
 - Test reviews (test quality and coverage)
 - Architecture reviews (structural decisions)
+
+**Ensemble reviews:** Multiple reviewer personas (security, performance, maintainability) analyze code in parallel, then synthesize findings into a comprehensive report.
 
 Reviews produce structured reports with critical issues, warnings, and suggestions, each linked back to specific rules.
 

@@ -20,15 +20,17 @@ agenticaiplugin/
 │   ├── test-engineer.md          # Integration/E2E test creation
 │   ├── project-initializer.md    # Project setup automation
 │   └── context-creator.md        # AI session context management
-├── commands/                     # 8 Slash commands
+├── commands/                     # 10 Slash commands
 │   ├── init.md                   # /init - Project initialization
 │   ├── gitme.md                  # /gitme - Smart Git commits
-│   ├── code-review.md            # /cc-code-review - Manual review
-│   ├── test.md                   # /cc-test - Test creation
+│   ├── code-review.md            # /code-review - Manual review
+│   ├── test.md                   # /test - Test creation
 │   ├── create-agentic.md         # /create-agentic - Context creation
 │   ├── create-docs.md            # /create-docs - Documentation generation
 │   ├── create-readme.md          # /create-readme - README generation
-│   └── load-agentic.md           # /load-agentic - Context loading
+│   ├── load-agentic.md           # /load-agentic - Context loading
+│   ├── create-cr.md              # /create-cr - Context to document
+│   └── config.md                 # /config - Plugin configuration
 ├── skills/                       # 14 Auto-activated knowledge bases
 │   ├── agile-workflow/           # Epic/Story/Sprint management
 │   ├── git-smart-commit/         # Intelligent commits
@@ -161,14 +163,16 @@ User's `claudedocs/guidelines/*.md` files ALWAYS override plugin skill guideline
 ## Commands Quick Reference
 
 ```bash
-/init                      # Initialize project with claudedocs/
-/gitme                     # Create smart Git commits
-/cc-code-review <file>     # Manual code review of specific file
-/cc-test STORY-042         # Create tests for story
-/create-agentic            # Create/update agentic.md
-/create-docs               # Create/update both agentic.md and README.md
-/create-readme             # Create/update README.md
-/load-agentic              # Load agentic.md into context
+/agenticaiplugin:init                      # Initialize project with claudedocs/
+/agenticaiplugin:gitme                     # Create smart Git commits
+/agenticaiplugin:code-review <file>        # Manual code review of specific file
+/agenticaiplugin:test STORY-042            # Create tests for story
+/agenticaiplugin:create-agentic            # Create/update agentic.md
+/agenticaiplugin:create-docs               # Create/update both agentic.md and README.md
+/agenticaiplugin:create-readme             # Create/update README.md
+/agenticaiplugin:load-agentic              # Load agentic.md into context
+/agenticaiplugin:create-cr                 # Transfer context to structured document
+/agenticaiplugin:config                    # View/edit plugin configuration
 ```
 
 ---
@@ -224,13 +228,13 @@ Changes available immediately after marketplace update.
 ## Current Development
 
 **Recent commits:**
-- `6797af8` feat(docs): extend context-creator to support README.md generation
-- `76bdadf` refactor(skills): improve trigger descriptions for reliable activation
-- `a76259a` docs(context): update agentic.md with context-creator details
-- `98a5e4e` refactor(skills): improve maven-best-practices trigger for proactive activation
-- `6072bf5` feat(context): add AI session context management
+- `469d729` feat(command): add create-cr for context-to-document transfer
+- `b31411a` fix(skill): strengthen git-smart-commit activation triggers
+- `b60a9e6` fix(docs): update command usage to /agenticaiplugin: prefix
+- `946a953` refactor(init): remove optional folders from project initialization
+- `db81482` feat(review): add ensemble code-review with parallel reviewers
 
-**Current focus:** Documentation generation capabilities, README.md support in context-creator agent
+**Current focus:** Context-to-document transfer, ensemble code reviews, refined command naming conventions
 
 ---
 
