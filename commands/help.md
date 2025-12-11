@@ -44,6 +44,11 @@ Zeige dem Benutzer folgende Übersicht:
 |---------|--------------|
 | **create-cr** `[datei]` | Erstellt ein Change Request Dokument aus dem aktuellen Session-Kontext. Wichtig: Sichert Planungswissen bevor eine neue Session gestartet wird. Mit Dateiname: Aktualisiert existierendes CR |
 
+### Wartung
+| Command | Beschreibung |
+|---------|--------------|
+| **renovate** | Prüft alle Dependencies auf Updates, Deprecations und moderne Alternativen. Gibt einen Report aus (keine automatischen Updates). Optionen: `--stack jvm/js/python`, `--quick`, `--save` |
+
 ### System
 | Command | Beschreibung |
 |---------|--------------|
