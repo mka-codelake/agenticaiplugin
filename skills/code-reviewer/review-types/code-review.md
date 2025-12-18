@@ -51,8 +51,35 @@ public boolean authenticate(String email, String password) {
 }
 ```
 
-### 7. Code Quality
-- **WARNING:** Duplicated code (DRY violation)
+### 7. Code Duplication (DRY Principle)
+
+**IMPORTANT:** Code duplication is a high-priority review item. Actively search for duplicated code blocks.
+
+| Duplication Type | Severity | Threshold |
+|------------------|----------|-----------|
+| **Large code blocks** (10+ lines, same or very similar) | **WARNING/CRITICAL** | 2+ occurrences |
+| **Medium code blocks** (5-10 lines) | **WARNING** | 2+ occurrences |
+| **Small patterns** (<5 lines) | **SUGGESTION** | 3+ occurrences |
+
+**Severity Escalation:**
+- 2 occurrences of large block → WARNING
+- 3+ occurrences of large block → CRITICAL
+- Duplication across multiple files → WARNING minimum
+
+**What to look for:**
+- Copy-pasted methods with minor variations
+- Repeated validation logic
+- Similar exception handling blocks
+- Duplicated business calculations
+- Repeated mapping/transformation code
+
+**Always suggest refactoring:**
+- Extract to shared method/function
+- Create utility class
+- Use template method pattern
+- Introduce inheritance/composition where appropriate
+
+### 8. Other Code Quality
 - **WARNING:** Magic numbers (use constants)
 - **WARNING:** Poor naming (unclear variable/method names)
 - **SUGGESTION:** Missing documentation for public APIs
@@ -241,14 +268,134 @@ public void processUserData(UserData userData) {
 
 ---
 
+## Code Duplication - Detailed Examples
+
+### WARNING/CRITICAL: Large Duplicated Code Blocks
+
+**Bad Example - Duplicated validation across files:**
+
+```java
+// UserService.java
+public void createUser(UserRequest request) {
+    if (request.getEmail() == null || request.getEmail().isEmpty()) {
+        throw new ValidationException("Email is required");
+    }
+    if (!request.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+        throw new ValidationException("Invalid email format");
+    }
+    if (request.getName() == null || request.getName().length() < 2) {
+        throw new ValidationException("Name must be at least 2 characters");
+    }
+    // ... business logic
+}
+
+// OrderService.java - SAME CODE DUPLICATED
+public void createOrder(OrderRequest request) {
+    if (request.getEmail() == null || request.getEmail().isEmpty()) {
+        throw new ValidationException("Email is required");
+    }
+    if (!request.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+        throw new ValidationException("Invalid email format");
+    }
+    if (request.getName() == null || request.getName().length() < 2) {
+        throw new ValidationException("Name must be at least 2 characters");
+    }
+    // ... business logic
+}
+```
+
+**Review Finding:**
+```markdown
+**WARNING:** Code duplication detected (DRY violation)
+- [UserService.java:5-14] Email and name validation logic
+- [OrderService.java:5-14] Same validation logic duplicated
+**Lines:** ~10 lines duplicated across 2 files
+**Rule:** development-principles → DRY (Don't Repeat Yourself)
+**Fix:** Extract to shared ValidationUtils class:
+  - ValidationUtils.validateEmail(String email)
+  - ValidationUtils.validateName(String name)
+```
+
+**Good Example - Extracted to shared utility:**
+
+```java
+// ValidationUtils.java
+public class ValidationUtils {
+    public static void validateEmail(String email) {
+        if (email == null || email.isEmpty()) {
+            throw new ValidationException("Email is required");
+        }
+        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            throw new ValidationException("Invalid email format");
+        }
+    }
+
+    public static void validateName(String name, int minLength) {
+        if (name == null || name.length() < minLength) {
+            throw new ValidationException("Name must be at least " + minLength + " characters");
+        }
+    }
+}
+
+// UserService.java - uses shared utility
+public void createUser(UserRequest request) {
+    ValidationUtils.validateEmail(request.getEmail());
+    ValidationUtils.validateName(request.getName(), 2);
+    // ... business logic
+}
+
+// OrderService.java - uses shared utility
+public void createOrder(OrderRequest request) {
+    ValidationUtils.validateEmail(request.getEmail());
+    ValidationUtils.validateName(request.getName(), 2);
+    // ... business logic
+}
+```
+
+### CRITICAL: Same Logic in 3+ Places
+
+**Example - Critical duplication:**
+```markdown
+**CRITICAL:** Severe code duplication (DRY violation)
+- [UserController.java:25-40] Error handling block
+- [OrderController.java:30-45] Same error handling block
+- [PaymentController.java:20-35] Same error handling block
+**Occurrences:** 3 (threshold for CRITICAL: 3+)
+**Lines:** 15 lines duplicated in 3 files
+**Rule:** development-principles → DRY
+**Fix:** Create shared ExceptionHandler using @ControllerAdvice:
+  - GlobalExceptionHandler.handleValidationException()
+  - GlobalExceptionHandler.handleBusinessException()
+```
+
+### SUGGESTION: Minor Repetition
+
+**Example - Small pattern, acceptable:**
+```markdown
+**SUGGESTION:** Minor code pattern repetition
+- [UserService.java:42] log.info("Processing user: {}", userId)
+- [OrderService.java:38] log.info("Processing order: {}", orderId)
+- [PaymentService.java:55] log.info("Processing payment: {}", paymentId)
+**Note:** Similar logging pattern but context-specific. May be acceptable.
+**Fix (optional):** If logging requirements are identical, consider AOP logging aspect.
+```
+
+---
+
 ## Review Process
 
 When reviewing source code:
 
 1. **Check Security First** - CRITICAL findings
 2. **Check YAGNI** - No speculative features
-3. **Check Requirements Traceability** - Story references present
-4. **Check Code Quality** - DRY, naming, size
-5. **Check Correctness** - Logic, edge cases, errors
+3. **Check Code Duplication** - Actively search for duplicated code blocks
+   - Compare similar classes (Services, Controllers, etc.)
+   - Look for copy-pasted validation, error handling, mapping logic
+   - Flag large duplications as WARNING/CRITICAL
+4. **Check Requirements Traceability** - Story references present
+5. **Check Code Quality** - Naming, size, complexity
+6. **Check Correctness** - Logic, edge cases, errors
+
+**IMPORTANT:** Code duplication detection is a HIGH PRIORITY item. Do not just passively notice it - actively search for it across the codebase being reviewed.
 
 **Remember:** Only flag issues based on requirements. Don't demand features not in the story.

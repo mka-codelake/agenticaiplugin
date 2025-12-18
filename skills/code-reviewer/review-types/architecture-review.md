@@ -16,27 +16,112 @@ Trigger architecture review when:
 
 ## Focus Areas
 
-### 1. Layer Separation
+### 1. Architecture Pattern Recognition
+
+**IMPORTANT:** First identify which architectural pattern the project follows:
+
+| Pattern | Key Indicators |
+|---------|----------------|
+| **Layered** | Controller/Service/Repository structure, vertical layers |
+| **Hexagonal** | Ports & Adapters, domain at center, infrastructure at edges |
+| **Clean Architecture** | Use Cases, Entities, Interface Adapters, Frameworks |
+| **Microservices** | Independent deployable services, API gateways |
+| **Modular Monolith** | Bounded contexts, module boundaries within monolith |
+
+**If NO clear pattern is recognizable:**
+```markdown
+**INFO:** No clear architectural pattern detected
+- Project structure does not follow a recognizable architecture pattern
+- Found mixed approaches: {describe what was found}
+**Recommendation:** Document the intended architecture in claudedocs/adrs/ or claudedocs/guidelines/
+**Impact:** Without documented architecture, consistency is harder to maintain
+```
+
+This is NOT a blocker but MUST appear in every architecture review report.
+
+### 2. Layered Architecture Compliance
 - **CRITICAL:** Layer violations (Controller → Repository directly)
 - **CRITICAL:** Circular dependencies between packages/modules
 - **WARNING:** Business logic in wrong layer (e.g., in Controller)
 - **WARNING:** Mixed responsibilities across layers
 
-### 2. Dependency Direction
-- **CRITICAL:** Reverse dependencies (Repository → Controller)
+### 3. Hexagonal Architecture Compliance
+
+When hexagonal/ports-and-adapters pattern is detected:
+
+- **CRITICAL:** Domain depends on infrastructure (dependency inversion violated)
+- **CRITICAL:** Adapter directly accesses another adapter (should go through domain)
+- **WARNING:** Port interface defined in adapter instead of domain
+- **WARNING:** Domain entity contains framework annotations (@Entity, @JsonProperty)
+
+**Hexagonal Structure:**
+```
+┌─────────────────────────────────────────┐
+│              Adapters (Infrastructure)   │
+│  ┌─────────────────────────────────┐    │
+│  │         Ports (Interfaces)       │    │
+│  │  ┌─────────────────────────┐    │    │
+│  │  │    Domain (Core Logic)   │    │    │
+│  │  └─────────────────────────┘    │    │
+│  └─────────────────────────────────┘    │
+└─────────────────────────────────────────┘
+```
+
+**CRITICAL: Domain → Infrastructure Dependency**
+```java
+// BAD: Domain depends on infrastructure
+package com.example.domain;
+
+import org.springframework.data.jpa.repository.JpaRepository;  // CRITICAL!
+import javax.persistence.Entity;  // CRITICAL!
+
+@Entity  // Domain should be framework-agnostic
+public class User { ... }
+```
+
+**Good Example:**
+```java
+// Domain - no framework dependencies
+package com.example.domain;
+
+public class User {
+    private UserId id;
+    private Email email;
+    // Pure domain logic, no annotations
+}
+
+// Port - interface in domain
+package com.example.domain.ports;
+
+public interface UserRepository {
+    User findById(UserId id);
+    void save(User user);
+}
+
+// Adapter - implements port with framework
+package com.example.infrastructure.persistence;
+
+@Repository
+public class JpaUserRepository implements UserRepository {
+    // JPA implementation
+}
+```
+
+### 4. Dependency Direction
+- **CRITICAL:** Reverse dependencies (Repository → Controller, Infrastructure → Domain)
 - **WARNING:** Tight coupling between unrelated modules
 - **WARNING:** New dependencies creating circular references
 
-### 3. ADR Compliance
+### 5. ADR Compliance
 - **WARNING:** Violations of documented Architectural Decision Records
 - **WARNING:** Technology choices inconsistent with ADRs
 
-### 4. API Design
+### 6. API Design
 - **WARNING:** Non-RESTful API design (when REST is project standard)
 - **WARNING:** Breaking changes without versioning
 - **WARNING:** Inconsistent naming conventions across endpoints
 
-### 5. Design Patterns
+### 7. Design Patterns
 - **WARNING:** Inappropriate pattern usage
 - **SUGGESTION:** Missing patterns for common problems
 - **SUGGESTION:** Over-engineering with unnecessary patterns
@@ -410,11 +495,18 @@ public class User {
 
 When performing architecture review:
 
-1. **Check Layer Violations** - CRITICAL priority
-2. **Check Circular Dependencies** - CRITICAL priority
-3. **Check ADR Compliance** - If ADRs exist
-4. **Check API Design** - RESTful conventions, versioning
-5. **Check New Dependencies** - Justification and conflicts
-6. **Check Design Patterns** - Appropriateness
+1. **Identify Architecture Pattern** - ALWAYS do this first
+   - Determine if project follows Layered, Hexagonal, Clean, or other pattern
+   - If no clear pattern: Include INFO note in report (not a blocker)
+2. **Check Pattern-Specific Violations** - CRITICAL priority
+   - Layered: Layer violations, circular dependencies
+   - Hexagonal: Domain→Infrastructure dependencies, adapter violations
+3. **Check Circular Dependencies** - CRITICAL priority
+4. **Check ADR Compliance** - If ADRs exist
+5. **Check API Design** - RESTful conventions, versioning
+6. **Check New Dependencies** - Justification and conflicts
+7. **Check Design Patterns** - Appropriateness
 
 **Remember:** Only flag architectural issues relevant to the changes made. Don't demand full system refactoring unless it directly impacts current story.
+
+**IMPORTANT:** The architecture pattern recognition (or lack thereof) MUST always appear in the report, even if no violations are found.

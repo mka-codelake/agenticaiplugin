@@ -70,32 +70,37 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
 1. **Code Quality Issues**
    - Methods exceeding 50 lines
    - Classes exceeding 300 lines
-   - Code duplication (DRY violations)
    - Magic numbers (use constants)
    - Poor naming conventions
 
-2. **Missing Requirements Traceability**
+2. **Code Duplication (DRY Violations)**
+   - **WARNING:** 2 occurrences of large code blocks (10+ lines)
+   - **WARNING:** Medium code blocks (5-10 lines) duplicated
+   - **CRITICAL:** 3+ occurrences of large duplicated blocks
+   - **CRITICAL:** Duplication of critical business logic
+
+3. **Missing Requirements Traceability**
    - Business logic without story references
    - Missing WHY explanations in comments
 
-3. **Test Coverage Gaps**
+4. **Test Coverage Gaps**
    - Business logic methods without tests
    - Missing edge case tests (null, empty, boundary)
    - Missing error case tests
 
-4. **Test Quality Issues**
+5. **Test Quality Issues**
    - Tests without AAA structure (Arrange-Act-Assert)
    - Multiple unrelated assertions per test
    - Unclear test names
    - Tests with dependencies (not independent)
 
-5. **Architecture Issues**
+6. **Architecture Issues**
    - Business logic in wrong layer (e.g., in Controller)
    - ADR violations (if ADRs exist)
    - Non-RESTful API design (when REST is standard)
    - Breaking API changes without versioning
 
-6. **Dependency Issues**
+7. **Dependency Issues**
    - New dependencies without justification
    - Wrong test placement (unit test in integration directory)
 
@@ -220,8 +225,11 @@ You can lower severity if:
 | Issue | Severity | Rationale |
 |-------|----------|-----------|
 | Hardcoded password | CRITICAL | Security vulnerability |
+| Large code block duplicated 3+ times | CRITICAL | Severe DRY violation |
+| Large code block duplicated 2 times | WARNING | DRY violation |
 | Method 67 lines | WARNING | Code quality issue |
 | Magic number | WARNING | Code quality issue |
+| Small pattern repeated | SUGGESTION | Minor DRY issue |
 | Could extract constant | SUGGESTION | Nice-to-have |
 
 ### Test Review Findings
