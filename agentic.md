@@ -141,6 +141,12 @@ User's `claudedocs/guidelines/*.md` files ALWAYS override plugin skill guideline
 
 **Context-Creator Modes:** Supports creating/updating both agentic.md (AI-optimized) and README.md (human-readable).
 
+**Code-Reviewer Features:**
+- Three modes: Git Diff (default), Single File, Complete Project (`--complete`)
+- Architecture pattern recognition (Layered, Hexagonal, Clean, etc.)
+- Reports when no clear architecture pattern detected
+- Active code duplication detection (DRY violations → WARNING/CRITICAL)
+
 ---
 
 ## Skills Auto-Activation Triggers
@@ -165,7 +171,9 @@ User's `claudedocs/guidelines/*.md` files ALWAYS override plugin skill guideline
 ```bash
 /agenticaiplugin:init                      # Initialize project with claudedocs/
 /agenticaiplugin:gitme                     # Create smart Git commits
-/agenticaiplugin:code-review <file>        # Manual code review of specific file
+/agenticaiplugin:code-review               # Review changed files (git diff) - DEFAULT
+/agenticaiplugin:code-review <file>        # Review specific file
+/agenticaiplugin:code-review --complete    # Review entire project
 /agenticaiplugin:test STORY-042            # Create tests for story
 /agenticaiplugin:create-agentic            # Create/update agentic.md
 /agenticaiplugin:create-docs               # Create/update both agentic.md and README.md

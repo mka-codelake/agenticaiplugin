@@ -157,8 +157,10 @@ The context creator analyzes your project structure, key files, recent commits, 
 While most features activate automatically, you can also invoke them manually:
 
 ```bash
-# Manual code review of specific file
-/agenticaiplugin:code-review src/main/java/UserService.java
+# Code review - three modes:
+/agenticaiplugin:code-review                              # Git diff (default) - review all changed files
+/agenticaiplugin:code-review src/main/java/UserService.java  # Single file review
+/agenticaiplugin:code-review --complete                   # Complete project review
 
 # Create tests for a specific story or epic
 /agenticaiplugin:test STORY-042
@@ -274,10 +276,28 @@ The code-reviewer agent performs comprehensive analysis combining multiple knowl
 3. **Testing Philosophy** - Test quality standards
 4. **Architecture Patterns** - Structural guidelines
 
-**Review types:**
-- Code reviews (implementation quality)
-- Test reviews (test quality and coverage)
-- Architecture reviews (structural decisions)
+**Three review modes:**
+| Mode | Command | Use Case |
+|------|---------|----------|
+| Git Diff (Default) | `/agenticaiplugin:code-review` | PR/branch reviews - reviews all changed files |
+| Single File | `/agenticaiplugin:code-review <file>` | Targeted review of specific file |
+| Complete Project | `/agenticaiplugin:code-review --complete` | Full codebase audit |
+
+**Review types (auto-detected):**
+- **Code reviews** - Security, YAGNI, code duplication (DRY), code quality
+- **Test reviews** - Testing philosophy compliance, coverage gaps
+- **Architecture reviews** - Pattern recognition (Layered, Hexagonal, Clean Architecture), layer violations
+
+**Architecture pattern recognition:**
+- Identifies project architecture pattern (Layered, Hexagonal, Clean, Microservices, Modular Monolith)
+- Reports if no clear pattern is detected (recommendation to document architecture)
+- Pattern-specific violation checks (e.g., Domain→Infrastructure dependencies in Hexagonal)
+
+**Code duplication detection:**
+- Actively searches for duplicated code blocks
+- Large blocks (10+ lines) duplicated 3+ times → CRITICAL
+- Medium blocks duplicated → WARNING
+- Always suggests refactoring approaches
 
 **Ensemble reviews:** Multiple reviewer personas (security, performance, maintainability) analyze code in parallel, then synthesize findings into a comprehensive report.
 
