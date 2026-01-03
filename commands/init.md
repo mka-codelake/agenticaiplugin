@@ -5,10 +5,24 @@ Interactive project setup for AgenticAI Plugin.
 ## Usage
 
 ```
-/agenticaiplugin:init
+/agenticaiplugin:init [--only-claudemd]
 ```
 
-No parameters required.
+## Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `--only-claudemd` | Only create/merge CLAUDE.md, skip claudedocs directories |
+
+## Examples
+
+```bash
+# Full setup (default) - creates CLAUDE.md + claudedocs directories
+/agenticaiplugin:init
+
+# Only CLAUDE.md, no claudedocs directories
+/agenticaiplugin:init --only-claudemd
+```
 
 ## What It Does
 

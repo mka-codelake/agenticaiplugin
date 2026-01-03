@@ -16,6 +16,19 @@ Perform an interactive project setup for the AgenticAI Plugin with the following
 
 ---
 
+## Parameter Handling
+
+Check if the user invoked the command with `--only-claudemd`:
+- If present: Set `onlyClaudeMd = true`
+- If absent: Set `onlyClaudeMd = false` (default)
+
+When `onlyClaudeMd = true`:
+- Skip status check for claudedocs directories
+- Skip directory creation step (Step 5)
+- Only handle CLAUDE.md creation/merge
+
+---
+
 ## CLAUDE.md Template Content
 
 The following is the complete CLAUDE.md template content embedded in this agent.
@@ -414,12 +427,14 @@ This template is provided by the AgenticAI Plugin. Modify it to fit your project
 
 Check the current setup status and display it visually:
 
-**Check for these items:**
+**If onlyClaudeMd = false (default):**
+
+Check for these items:
 1. `CLAUDE.md` in project root (REQUIRED for agents)
 2. `claudedocs/guidelines/` directory (RECOMMENDED - project-specific coding rules)
 3. `claudedocs/testspecs/` directory (RECOMMENDED - test specifications)
 
-**Display format:**
+Display format:
 ```
 🚀 AgenticAI Plugin - Project Setup
 
@@ -427,6 +442,18 @@ Current Status:
 ✅ CLAUDE.md - Already exists
 ❌ claudedocs/guidelines/ - Not found (recommended)
 ✅ claudedocs/testspecs/ - Already exists
+```
+
+**If onlyClaudeMd = true:**
+
+Only check CLAUDE.md, skip claudedocs status:
+
+Display format:
+```
+🚀 AgenticAI Plugin - Project Setup (CLAUDE.md only)
+
+Current Status:
+✅ CLAUDE.md - Already exists
 ```
 
 Use ✅ for existing items, ❌ for missing items.
@@ -437,15 +464,19 @@ Use ✅ for existing items, ❌ for missing items.
 
 Based on the status check, list what the setup will do:
 
-**Example output:**
+**If onlyClaudeMd = false (default):**
 ```
 Setup will perform these actions:
 - Merge CLAUDE.md with plugin template (backup created as CLAUDE.md.backup)
 - Create claudedocs/guidelines/
-- Create claudedocs/epics/
-- Create claudedocs/stories/
-- Create claudedocs/sprints/
-- Create claudedocs/adrs/
+- Create claudedocs/testspecs/
+```
+
+**If onlyClaudeMd = true:**
+```
+Setup will perform these actions:
+- Create CLAUDE.md from plugin template
+  (claudedocs directories skipped per --only-claudemd)
 ```
 
 ---
@@ -517,6 +548,12 @@ Perform intelligent merge:
 
 ## Step 5: Create Missing Directories
 
+**If onlyClaudeMd = true:**
+
+Skip this step entirely. Do not create any directories.
+
+**If onlyClaudeMd = false (default):**
+
 For each missing directory from Step 1 status check, create it using:
 
 ```bash
@@ -536,6 +573,8 @@ Skip directories that already exist (don't report them).
 
 ## Step 6: Final Summary
 
+**If onlyClaudeMd = false (default):**
+
 Display a completion message:
 
 ```
@@ -549,6 +588,26 @@ Next steps:
 1. Add project-specific coding rules to claudedocs/guidelines/
 2. Add test scenarios to claudedocs/testspecs/
 3. Start using plugin features:
+   - /agenticaiplugin:code-review - Review code quality
+   - /agenticaiplugin:gitme - Smart git commits
+   - /agenticaiplugin:test - Run tests
+
+Happy coding with AgenticAI!
+```
+
+**If onlyClaudeMd = true:**
+
+Display a shorter completion message:
+
+```
+✅ Setup complete! CLAUDE.md is ready.
+
+Summary:
+- CLAUDE.md: [Created/Merged/Skipped]
+- Directories: Skipped (--only-claudemd mode)
+
+Next steps:
+1. Start using plugin features:
    - /agenticaiplugin:code-review - Review code quality
    - /agenticaiplugin:gitme - Smart git commits
    - /agenticaiplugin:test - Run tests
