@@ -20,8 +20,9 @@ agenticaiplugin/
 │   ├── test-engineer.md          # Integration/E2E test creation
 │   ├── project-initializer.md    # Project setup automation
 │   └── context-creator.md        # AI session context management
-├── commands/                     # 10 Slash commands
+├── commands/                     # 11 Slash commands
 │   ├── init.md                   # /init - Project initialization
+│   ├── update-rules.md           # /update-rules - Update plugin rules
 │   ├── gitme.md                  # /gitme - Smart Git commits
 │   ├── code-review.md            # /code-review - Manual review
 │   ├── test.md                   # /test - Test creation
@@ -31,6 +32,10 @@ agenticaiplugin/
 │   ├── load-agentic.md           # /load-agentic - Context loading
 │   ├── create-cr.md              # /create-cr - Context to document
 │   └── config.md                 # /config - Plugin configuration
+├── rules-templates/              # Plugin rule templates (copied to projects)
+│   ├── agenticaiplugin-core.md           # Never make assumptions
+│   ├── agenticaiplugin-code-review.md    # Automatic code review
+│   └── agenticaiplugin-protected-dirs.md # Protected directories
 ├── skills/                       # 14 Auto-activated knowledge bases
 │   ├── agile-workflow/           # Epic/Story/Sprint management
 │   ├── git-smart-commit/         # Intelligent commits
@@ -169,7 +174,8 @@ User's `claudedocs/guidelines/*.md` files ALWAYS override plugin skill guideline
 ## Commands Quick Reference
 
 ```bash
-/agenticaiplugin:init                      # Initialize project with claudedocs/
+/agenticaiplugin:init                      # Initialize project with rules + claudedocs/
+/agenticaiplugin:update-rules              # Update plugin rules to latest version
 /agenticaiplugin:gitme                     # Create smart Git commits
 /agenticaiplugin:code-review               # Review changed files (git diff) - DEFAULT
 /agenticaiplugin:code-review <file>        # Review specific file

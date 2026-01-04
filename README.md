@@ -78,10 +78,21 @@ Initialize a new project with recommended directory structure:
 ```
 
 This command creates:
-- `CLAUDE.md` with project-specific instructions
-- `claudedocs/guidelines/` for code review rules
+- `.claude/rules/agenticaiplugin-*.md` - Plugin rules for Claude Code
+- `claudedocs/guidelines/` for project-specific code review rules
 - `claudedocs/testspecs/` for test scenarios
-- `claudedocs/epics/`, `stories/`, `sprints/` for agile workflow
+
+**Plugin rules created:**
+| Rule | Purpose |
+|------|---------|
+| `agenticaiplugin-core.md` | Never make assumptions - always ask |
+| `agenticaiplugin-code-review.md` | Automatic code review after tasks |
+| `agenticaiplugin-protected-dirs.md` | Protected directories and files |
+
+**To update rules after plugin updates:**
+```bash
+/agenticaiplugin:update-rules
+```
 
 ### Common Workflows
 
@@ -235,6 +246,7 @@ agenticaiplugin/
 │   └── context-creator.md    # Documentation generation
 ├── commands/                 # Slash commands
 │   ├── init.md               # Project initialization
+│   ├── update-rules.md       # Update plugin rules
 │   ├── gitme.md              # Smart Git commits
 │   ├── code-review.md        # Manual code review
 │   ├── test.md               # Test creation
@@ -244,6 +256,10 @@ agenticaiplugin/
 │   ├── load-agentic.md       # Context loading
 │   ├── create-cr.md          # Context to document transfer
 │   └── config.md             # Plugin configuration
+├── rules-templates/          # Plugin rule templates
+│   ├── agenticaiplugin-core.md
+│   ├── agenticaiplugin-code-review.md
+│   └── agenticaiplugin-protected-dirs.md
 ├── skills/                   # Auto-activated knowledge
 │   ├── agile-workflow/       # Epic/Story/Sprint management
 │   ├── git-smart-commit/     # Intelligent commits
@@ -260,7 +276,8 @@ agenticaiplugin/
 │   ├── technology-advisor-javascript/
 │   └── technology-advisor-python/
 ├── docs/
-│   └── plugin-howto.md       # Plugin development reference
+│   ├── plugin-howto.md       # Plugin development reference
+│   └── rules-howto.md        # Claude Code Rules documentation
 ├── CLAUDE.md                 # Development instructions
 └── README.md                 # This file
 ```
@@ -363,6 +380,10 @@ ADRs stored in `claudedocs/architecture/` following naming convention `ADR-001-d
 
 ```
 your-project/
+├── .claude/
+│   └── rules/
+│       ├── agenticaiplugin-*.md  # Plugin rules (auto-generated)
+│       └── my-custom-rules.md    # Your own rules (optional)
 ├── claudedocs/
 │   ├── guidelines/           # Code review rules
 │   ├── testspecs/           # Test scenarios
@@ -375,7 +396,7 @@ your-project/
 │   └── test/java/
 │       ├── unit/            # Developer-owned
 │       └── integration/     # Test-engineer-owned
-└── CLAUDE.md                # Project instructions
+└── CLAUDE.md                # Project-specific instructions (optional)
 ```
 
 ### Story Traceability
