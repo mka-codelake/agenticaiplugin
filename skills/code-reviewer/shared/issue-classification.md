@@ -82,7 +82,9 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
 3. **Unused & Dead Code**
    - Unused private methods (no callers within class)
    - Unused classes or interfaces (not referenced in codebase)
+   - Unused packages/modules (no external imports)
    - @Deprecated elements with zero remaining callers
+   - Calls to @Deprecated code (should migrate to alternative)
    - Unreachable code (after return/throw/break)
    - Commented-out code blocks
 
@@ -236,7 +238,9 @@ You can lower severity if:
 | Large code block duplicated 2 times | WARNING | DRY violation |
 | Unused private method | WARNING | Dead code, maintenance burden |
 | Unused class | WARNING | Dead code, YAGNI violation |
+| Unused package/module | WARNING | Dead code, entire component unused |
 | @Deprecated with no callers | WARNING | Should be removed |
+| Call to @Deprecated method | WARNING | Should migrate to alternative |
 | Unreachable code | WARNING | Logic error or dead code |
 | Commented-out code | WARNING | Should be removed |
 | Method 67 lines | WARNING | Code quality issue |

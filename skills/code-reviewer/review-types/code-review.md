@@ -92,7 +92,9 @@ public boolean authenticate(String email, String password) {
 |-----------|----------|-----------|
 | **Unused private methods** | **WARNING** | No callers within class |
 | **Unused classes/interfaces** | **WARNING** | Not referenced in codebase |
+| **Unused packages/modules** | **WARNING** | Entire package with no external references |
 | **@Deprecated without usage** | **WARNING** | Deprecated elements with zero callers |
+| **Calls to @Deprecated code** | **WARNING** | Code calling deprecated methods/classes |
 | **Unreachable code** | **WARNING** | Code after return/throw/break |
 | **Commented-out code** | **WARNING** | Any commented-out code blocks |
 | **Unused public methods** | **SUGGESTION** | No visible callers (may use reflection) |
@@ -108,7 +110,9 @@ public boolean authenticate(String email, String password) {
 **What to look for:**
 - Private methods with no callers within the class
 - Classes only instantiated in removed/commented code
+- Entire packages/modules with no imports from other packages
 - `@Deprecated` annotations on code that has no remaining callers
+- Code that CALLS `@Deprecated` methods/classes (should migrate to alternative)
 - Unreachable branches after return statements
 - Commented-out code blocks (refactoring leftovers)
 - Variables assigned but never read
@@ -118,6 +122,8 @@ public boolean authenticate(String email, String password) {
 - Public methods: Use caution - may be called via reflection, frameworks, or external modules
 - Test code: Unused test helpers may indicate incomplete test coverage
 - Interfaces: May be implemented externally - verify before flagging
+- Packages: Check for internal-only usage vs. external API packages
+- @Deprecated calls: Check if alternative is documented, suggest migration path
 
 ---
 
@@ -533,6 +539,56 @@ public class UserService {
 **Fix (optional):** Verify usage. If unused, remove. If used externally, add comment.
 ```
 
+### WARNING: Calls to Deprecated Code
+
+**Bad Example:**
+```java
+public class AuthenticationService {
+    private final UserRepository userRepository;
+
+    public User authenticate(String username, String password) {
+        // WARNING: Calling deprecated method - should use findByEmail()
+        User user = userRepository.findByUsername(username);
+        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
+            return user;
+        }
+        return null;
+    }
+}
+```
+
+**Review Finding:**
+```markdown
+**WARNING:** Call to deprecated code
+- [AuthenticationService.java:8] Calling deprecated method findByUsername()
+**Rule:** development-principles → Migrate away from deprecated APIs
+**Impact:** Deprecated code may be removed in future versions
+**Fix:** Migrate to findByEmail() as documented in @Deprecated annotation
+```
+
+### WARNING: Unused Package/Module
+
+**Bad Example:**
+```
+src/main/java/com/example/
+├── core/                    # Used by other packages
+├── api/                     # Used by other packages
+├── legacy/                  # WARNING: No imports from other packages
+│   ├── OldPaymentService.java
+│   ├── LegacyOrderMapper.java
+│   └── DeprecatedUtils.java
+└── util/                    # Used by other packages
+```
+
+**Review Finding:**
+```markdown
+**WARNING:** Unused package detected
+- [com.example.legacy] Package has no imports from other packages
+**Rule:** development-principles → YAGNI
+**Impact:** Entire package appears to be dead code (3 classes, ~500 lines)
+**Fix:** Verify no external usage, then remove entire package
+```
+
 ---
 
 ## Review Process
@@ -543,8 +599,9 @@ When reviewing source code:
 2. **Check YAGNI** - No speculative features
 3. **Check Unused Code** - Actively search for dead code
    - Private methods without callers
-   - Unused classes and interfaces
+   - Unused classes, interfaces, and entire packages
    - @Deprecated code that's no longer called
+   - Calls TO @Deprecated code (should migrate)
    - Commented-out code blocks
    - Unreachable code
 4. **Check Code Duplication** - Actively search for duplicated code blocks
