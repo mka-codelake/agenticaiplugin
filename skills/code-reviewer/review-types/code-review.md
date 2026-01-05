@@ -591,6 +591,150 @@ src/main/java/com/example/
 
 ---
 
+### 10. Additional Dead Code Patterns
+
+#### Pass-Only Functions (WARNING)
+
+Functions that only contain `pass`, `return None`, or just a docstring with no implementation.
+
+**Bad Example:**
+```python
+def process_data(data):
+    pass
+
+def validate_input(input):
+    """Validates input."""
+    pass
+
+def get_default_value():
+    return None
+```
+
+**Review Finding:**
+```markdown
+**WARNING:** Pass-only function detected
+- [utils.py:42] Function process_data() contains only 'pass'
+**Rule:** development-principles → YAGNI
+**Fix:** Remove unused placeholder or implement the function
+```
+
+**Exclude:**
+- Abstract methods in base classes (intended to be overridden)
+- Interface placeholder methods with `@abstractmethod`
+- Protocol stubs for type checking
+
+---
+
+#### Unused Class Attributes (WARNING)
+
+Attributes assigned in `__init__` or class body but never read anywhere in the class.
+
+**Bad Example:**
+```python
+class OrderProcessor:
+    def __init__(self, config):
+        self.config = config
+        self.debug_mode = True  # WARNING: Never read
+        self.cache = {}  # WARNING: Never read
+
+    def process(self, order):
+        # Only uses self.config
+        return self.config.process(order)
+```
+
+**Review Finding:**
+```markdown
+**WARNING:** Unused class attribute detected
+- [OrderProcessor:5] Attribute debug_mode assigned but never read
+- [OrderProcessor:6] Attribute cache assigned but never read
+**Rule:** development-principles → YAGNI
+**Fix:** Remove unused attributes or implement their usage
+```
+
+**Exclude:**
+- Attributes used in templates/UI via reflection
+- Serialization attributes (@JsonProperty, @dataclass fields)
+- Attributes accessed via `getattr()` dynamically
+
+---
+
+#### TODO/FIXME Markers (SUGGESTION)
+
+Code markers indicating incomplete or temporary implementation.
+
+**Detection Patterns:**
+- `# TODO:`, `// TODO:`
+- `# FIXME:`, `// FIXME:`
+- `# XXX:`, `// XXX:`
+- `# HACK:`, `// HACK:`
+
+**Review Finding:**
+```markdown
+**SUGGESTION:** Technical debt markers found
+- [PaymentService.java:42] TODO: Add retry logic for failed payments
+- [UserService.java:88] FIXME: This validation is incomplete
+- [OrderController.java:15] HACK: Temporary workaround for API bug
+**Note:** These indicate incomplete implementations. Consider addressing or creating tickets.
+```
+
+**Important:** Report only, do not auto-remove. These markers indicate technical debt that should be tracked.
+
+---
+
+#### Dead Exception Handlers (WARNING)
+
+Exception handlers that silently swallow errors without any handling, logging, or re-throwing.
+
+**Bad Example:**
+```python
+try:
+    process_payment(order)
+except:
+    pass  # WARNING: Silent failure
+
+try:
+    send_notification(user)
+except Exception:
+    pass  # WARNING: Silent failure
+
+try:
+    update_inventory(item)
+except Exception as e:
+    pass  # WARNING: Exception captured but ignored
+```
+
+**Good Example:**
+```python
+try:
+    process_payment(order)
+except PaymentError as e:
+    logger.error(f"Payment failed: {e}")
+    raise  # Re-throw or handle appropriately
+
+try:
+    send_notification(user)
+except NotificationError:
+    # Intentionally silenced: notifications are non-critical
+    # Ticket: INFRA-123 tracks notification reliability
+    pass
+```
+
+**Review Finding:**
+```markdown
+**WARNING:** Dead exception handler detected
+- [PaymentService.py:42] except: pass - silently swallows all errors
+- [OrderService.py:88] except Exception: pass - no logging or handling
+**Rule:** Code should handle errors explicitly
+**Fix:** Add logging, re-throw, or document why silencing is intentional
+```
+
+**Exclude:**
+- Handlers with logging statements
+- Handlers that set error flags/states
+- Intentional silencing with explaining comment
+
+---
+
 ## Review Process
 
 When reviewing source code:
@@ -604,6 +748,10 @@ When reviewing source code:
    - Calls TO @Deprecated code (should migrate)
    - Commented-out code blocks
    - Unreachable code
+   - Pass-only functions (placeholders never implemented)
+   - Unused class attributes (assigned but never read)
+   - Dead exception handlers (except: pass)
+   - TODO/FIXME markers (technical debt indicators)
 4. **Check Code Duplication** - Actively search for duplicated code blocks
    - Compare similar classes (Services, Controllers, etc.)
    - Look for copy-pasted validation, error handling, mapping logic
