@@ -92,7 +92,7 @@ This command creates:
 
 **To update rules after plugin updates:**
 ```bash
-/agenticaiplugin:update-rules
+/agenticaiplugin:update-plugin
 ```
 
 **To install only CLAUDE.md without rules or claudedocs:**
@@ -261,7 +261,7 @@ agenticaiplugin/
 │   └── context-creator.md    # Documentation generation
 ├── commands/                 # Slash commands
 │   ├── init.md               # Project initialization
-│   ├── update-rules.md       # Update plugin rules
+│   ├── update-plugin.md      # Update plugin (rules + migration)
 │   ├── gitme.md              # Smart Git commits
 │   ├── code-review.md        # Manual code review
 │   ├── test.md               # Test creation

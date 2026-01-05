@@ -22,7 +22,7 @@ agenticaiplugin/
 │   └── context-creator.md        # AI session context management
 ├── commands/                     # 14 Slash commands
 │   ├── init.md                   # /init - Project initialization
-│   ├── update-rules.md           # /update-rules - Update plugin rules
+│   ├── update-plugin.md          # /update-plugin - Update plugin + migrate
 │   ├── gitme.md                  # /gitme - Smart Git commits
 │   ├── code-review.md            # /code-review - Manual review
 │   ├── test.md                   # /test - Test creation
@@ -180,7 +180,7 @@ User's `claudedocs/guidelines/*.md` files ALWAYS override plugin skill guideline
 
 ```bash
 /agenticaiplugin:init                      # Initialize project with rules + claudedocs/
-/agenticaiplugin:update-rules              # Update plugin rules to latest version
+/agenticaiplugin:update-plugin             # Update plugin rules + CLAUDE.md migration
 /agenticaiplugin:gitme                     # Create smart Git commits
 /agenticaiplugin:code-review               # Review changed files (git diff) - DEFAULT
 /agenticaiplugin:code-review <file>        # Review specific file

@@ -83,7 +83,7 @@ Next steps:
    - /agenticaiplugin:test - Run tests
 
 To update rules after plugin updates:
-   /agenticaiplugin:update-rules
+   /agenticaiplugin:update-plugin
 
 Happy coding with AgenticAI!
 ```
@@ -102,11 +102,11 @@ These rules are auto-loaded by Claude Code when working in your project.
 
 **To disable a rule:** Simply delete the file from `.claude/rules/`.
 
-**To update rules:** Run `/agenticaiplugin:update-rules` after plugin updates.
+**To update rules:** Run `/agenticaiplugin:update-plugin` after plugin updates.
 
 ## Related
 
-- **/agenticaiplugin:update-rules** - Update rules to latest version
+- **/agenticaiplugin:update-plugin** - Update rules to latest version
 - **/agenticaiplugin:config** - Configure plugin settings
 - **/agenticaiplugin:code-review** - Review code quality
 - **/agenticaiplugin:test** - Write integration tests
