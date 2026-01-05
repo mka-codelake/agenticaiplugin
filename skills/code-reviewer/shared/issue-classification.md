@@ -79,28 +79,35 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
    - **CRITICAL:** 3+ occurrences of large duplicated blocks
    - **CRITICAL:** Duplication of critical business logic
 
-3. **Missing Requirements Traceability**
+3. **Unused & Dead Code**
+   - Unused private methods (no callers within class)
+   - Unused classes or interfaces (not referenced in codebase)
+   - @Deprecated elements with zero remaining callers
+   - Unreachable code (after return/throw/break)
+   - Commented-out code blocks
+
+4. **Missing Requirements Traceability**
    - Business logic without story references
    - Missing WHY explanations in comments
 
-4. **Test Coverage Gaps**
+5. **Test Coverage Gaps**
    - Business logic methods without tests
    - Missing edge case tests (null, empty, boundary)
    - Missing error case tests
 
-5. **Test Quality Issues**
+6. **Test Quality Issues**
    - Tests without AAA structure (Arrange-Act-Assert)
    - Multiple unrelated assertions per test
    - Unclear test names
    - Tests with dependencies (not independent)
 
-6. **Architecture Issues**
+7. **Architecture Issues**
    - Business logic in wrong layer (e.g., in Controller)
    - ADR violations (if ADRs exist)
    - Non-RESTful API design (when REST is standard)
    - Breaking API changes without versioning
 
-7. **Dependency Issues**
+8. **Dependency Issues**
    - New dependencies without justification
    - Wrong test placement (unit test in integration directory)
 
@@ -227,8 +234,15 @@ You can lower severity if:
 | Hardcoded password | CRITICAL | Security vulnerability |
 | Large code block duplicated 3+ times | CRITICAL | Severe DRY violation |
 | Large code block duplicated 2 times | WARNING | DRY violation |
+| Unused private method | WARNING | Dead code, maintenance burden |
+| Unused class | WARNING | Dead code, YAGNI violation |
+| @Deprecated with no callers | WARNING | Should be removed |
+| Unreachable code | WARNING | Logic error or dead code |
+| Commented-out code | WARNING | Should be removed |
 | Method 67 lines | WARNING | Code quality issue |
 | Magic number | WARNING | Code quality issue |
+| Unused public method | SUGGESTION | May use reflection |
+| Unused imports | SUGGESTION | Minor cleanup |
 | Small pattern repeated | SUGGESTION | Minor DRY issue |
 | Could extract constant | SUGGESTION | Nice-to-have |
 

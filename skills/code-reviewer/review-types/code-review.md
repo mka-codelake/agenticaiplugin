@@ -83,7 +83,41 @@ public boolean authenticate(String email, String password) {
 - **WARNING:** Magic numbers (use constants)
 - **WARNING:** Poor naming (unclear variable/method names)
 - **SUGGESTION:** Missing documentation for public APIs
-- **SUGGESTION:** Commented-out code
+
+### 9. Unused & Dead Code Detection
+
+**IMPORTANT:** Actively search for unused code. Dead code increases maintenance burden and violates YAGNI.
+
+| Code Type | Severity | Detection |
+|-----------|----------|-----------|
+| **Unused private methods** | **WARNING** | No callers within class |
+| **Unused classes/interfaces** | **WARNING** | Not referenced in codebase |
+| **@Deprecated without usage** | **WARNING** | Deprecated elements with zero callers |
+| **Unreachable code** | **WARNING** | Code after return/throw/break |
+| **Commented-out code** | **WARNING** | Any commented-out code blocks |
+| **Unused public methods** | **SUGGESTION** | No visible callers (may use reflection) |
+| **Unused imports** | **SUGGESTION** | Import statements for unused types |
+| **Unused variables/parameters** | **SUGGESTION** | Declared but never read |
+
+**Severity Escalation:**
+- Unused business logic (methods/classes) → WARNING
+- Unused infrastructure code (utilities) → WARNING
+- Unused imports/variables → SUGGESTION
+- Unreachable code in critical paths → WARNING
+
+**What to look for:**
+- Private methods with no callers within the class
+- Classes only instantiated in removed/commented code
+- `@Deprecated` annotations on code that has no remaining callers
+- Unreachable branches after return statements
+- Commented-out code blocks (refactoring leftovers)
+- Variables assigned but never read
+- Parameters that are never used in method body
+
+**Special considerations:**
+- Public methods: Use caution - may be called via reflection, frameworks, or external modules
+- Test code: Unused test helpers may indicate incomplete test coverage
+- Interfaces: May be implemented externally - verify before flagging
 
 ---
 
@@ -382,20 +416,145 @@ public void createOrder(OrderRequest request) {
 
 ---
 
+## Unused & Dead Code - Detailed Examples
+
+### WARNING: Unused Private Method
+
+**Bad Example:**
+```java
+public class OrderService {
+    public void processOrder(Order order) {
+        validateOrder(order);
+        calculateTotal(order);
+    }
+
+    // WARNING: Never called - dead code
+    private void sendNotification(Order order) {
+        emailService.send(order.getEmail(), "Order processed");
+    }
+}
+```
+
+**Review Finding:**
+```markdown
+**WARNING:** Unused code detected
+- [OrderService.java:42] Private method sendNotification() has no callers
+**Rule:** development-principles → YAGNI (dead code)
+**Fix:** Remove unused method or implement if required by story
+```
+
+### WARNING: Deprecated Code Without Callers
+
+**Bad Example:**
+```java
+public class UserRepository {
+    @Deprecated
+    public User findByUsername(String username) {
+        // Old implementation - no longer called anywhere
+    }
+
+    public User findByEmail(String email) {
+        // New implementation used everywhere
+    }
+}
+```
+
+**Review Finding:**
+```markdown
+**WARNING:** Deprecated code should be removed
+- [UserRepository.java:15] @Deprecated findByUsername() has no remaining callers
+**Rule:** development-principles → YAGNI
+**Fix:** Remove deprecated method - migration complete
+```
+
+### WARNING: Unused Class
+
+**Bad Example:**
+```java
+// WARNING: This class is not referenced anywhere in the codebase
+public class LegacyPaymentProcessor implements PaymentProcessor {
+    // 200 lines of unused code
+}
+```
+
+**Review Finding:**
+```markdown
+**WARNING:** Unused class detected
+- [LegacyPaymentProcessor.java] Class not referenced in codebase
+**Rule:** development-principles → YAGNI
+**Fix:** Remove unused class or verify if needed for external/reflection usage
+```
+
+### WARNING: Commented-Out Code
+
+**Bad Example:**
+```java
+public class PaymentService {
+    public void processPayment(Payment payment) {
+        validatePayment(payment);
+
+        // Old implementation - commented out during refactoring
+        // if (payment.getAmount() > 1000) {
+        //     requireManagerApproval(payment);
+        //     sendNotificationToManager(payment);
+        //     logHighValueTransaction(payment);
+        // }
+
+        chargeCard(payment);
+    }
+}
+```
+
+**Review Finding:**
+```markdown
+**WARNING:** Commented-out code should be removed
+- [PaymentService.java:8-13] Large block of commented-out code
+**Rule:** development-principles → Keep code clean
+**Fix:** Remove commented code. Use version control to retrieve if needed.
+```
+
+### SUGGESTION: Unused Public Method
+
+**Example:**
+```java
+public class UserService {
+    // SUGGESTION: No visible callers - verify if used via reflection/framework
+    public void refreshUserCache(String userId) {
+        // Implementation
+    }
+}
+```
+
+**Review Finding:**
+```markdown
+**SUGGESTION:** Potentially unused public method
+- [UserService.java:25] Public method refreshUserCache() has no visible callers
+**Note:** May be called via reflection, @Scheduled, or external modules
+**Fix (optional):** Verify usage. If unused, remove. If used externally, add comment.
+```
+
+---
+
 ## Review Process
 
 When reviewing source code:
 
 1. **Check Security First** - CRITICAL findings
 2. **Check YAGNI** - No speculative features
-3. **Check Code Duplication** - Actively search for duplicated code blocks
+3. **Check Unused Code** - Actively search for dead code
+   - Private methods without callers
+   - Unused classes and interfaces
+   - @Deprecated code that's no longer called
+   - Commented-out code blocks
+   - Unreachable code
+4. **Check Code Duplication** - Actively search for duplicated code blocks
    - Compare similar classes (Services, Controllers, etc.)
    - Look for copy-pasted validation, error handling, mapping logic
    - Flag large duplications as WARNING/CRITICAL
-4. **Check Requirements Traceability** - Story references present
-5. **Check Code Quality** - Naming, size, complexity
-6. **Check Correctness** - Logic, edge cases, errors
+5. **Check Requirements Traceability** - Story references present
+6. **Check Code Quality** - Naming, size, complexity
+7. **Check Correctness** - Logic, edge cases, errors
 
-**IMPORTANT:** Code duplication detection is a HIGH PRIORITY item. Do not just passively notice it - actively search for it across the codebase being reviewed.
+**IMPORTANT:** Unused code and code duplication detection are HIGH PRIORITY items. Do not just passively notice them - actively search for dead code and duplicates across the codebase being reviewed.
 
 **Remember:** Only flag issues based on requirements. Don't demand features not in the story.
