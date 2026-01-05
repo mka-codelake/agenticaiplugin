@@ -6,7 +6,7 @@
 
 A **Claude Code Plugin** that enhances development workflows through agents, skills, and commands. Provides intelligent automation for agile workflows, code reviews, testing, and documentation generation across multiple languages with focus on Java/Spring Boot.
 
-**Version:** 0.3.1 | **Tech Stack:** Claude Code Plugin System, Jinja2 Templates, Markdown
+**Version:** 0.3.2 | **Tech Stack:** Claude Code Plugin System, Jinja2 Templates, Markdown
 
 ---
 
