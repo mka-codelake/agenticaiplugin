@@ -19,23 +19,73 @@ No parameters required.
 
 ## Execution Steps
 
-### Step 1: Check Prerequisites
+### Step 1: Detect Installation Type
 
-Check if `.claude/rules/` directory exists:
+This step determines the installation state and required actions.
+
+#### 1.1 Check for Modern Installation
 
 ```bash
-ls -la .claude/rules/ 2>/dev/null
+ls -la .claude/rules/agenticaiplugin-*.md 2>/dev/null
 ```
 
-**If directory does NOT exist:**
+**If rules files exist:** Modern installation detected → Continue to Step 2.
+
+#### 1.2 Check for Legacy Installation (No Rules Directory)
+
+If `.claude/rules/` does not exist or contains no `agenticaiplugin-*.md` files, check for legacy CLAUDE.md:
+
+```bash
+ls CLAUDE.md 2>/dev/null
+```
+
+**If CLAUDE.md does NOT exist:**
 
 ```
-No .claude/rules/ directory found.
+No plugin installation found.
 
 Run /agenticaiplugin:init first to set up your project.
 ```
 
-**STOP here if directory doesn't exist.**
+**STOP here.**
+
+#### 1.3 Check CLAUDE.md for Plugin Content
+
+If CLAUDE.md exists, read it and check for legacy plugin sections using these patterns:
+
+| Pattern | Indicates Legacy Plugin |
+|---------|------------------------|
+| `🚨 CRITICAL: Never Make Assumptions` | Yes |
+| `Never Make Assumptions` | Yes |
+| `Automatic Code Review After Task Completion` | Yes |
+| `CRITICAL: Protected Test Directories` | Yes |
+| `Protected Test Directories` | Yes |
+| `CRITICAL: Protected User Configuration` | Yes |
+| `Protected User Configuration` | Yes |
+
+**If NO plugin patterns found in CLAUDE.md:**
+
+```
+No plugin installation found.
+
+CLAUDE.md exists but contains no plugin content.
+Run /agenticaiplugin:init first to set up your project.
+```
+
+**STOP here.**
+
+**If plugin patterns ARE found:**
+
+```
+Legacy installation detected!
+
+Found old plugin content in CLAUDE.md.
+This will be migrated to .claude/rules/ files.
+```
+
+Set flag: `legacy_migration = true`
+
+Continue to Step 2.
 
 ---
 
@@ -151,6 +201,22 @@ No changes needed.
 
 ### Step 3: Scan Existing Rules
 
+#### 3.1 Handle Legacy Migration
+
+**If `legacy_migration = true`:**
+
+Create the rules directory:
+
+```bash
+mkdir -p .claude/rules
+```
+
+All rules will be marked as "New" (to be created).
+
+Skip to Step 5 with all rules marked for creation.
+
+#### 3.2 Scan Modern Installation
+
 List all `agenticaiplugin-*.md` files in `.claude/rules/`:
 
 For each file found:
@@ -182,7 +248,22 @@ For each rule:
 
 ### Step 5: Show Update Preview
 
-Display what will be updated:
+**For Legacy Migration (`legacy_migration = true`):**
+
+```
+Legacy Migration Preview:
+
+Migrating from CLAUDE.md to .claude/rules/:
+  agenticaiplugin-core.md - will be created (v1.0)
+  agenticaiplugin-code-review.md - will be created (v1.0)
+  agenticaiplugin-protected-dirs.md - will be created (v1.0)
+
+Actions:
+- 3 rules will be created
+- Plugin sections will be removed from CLAUDE.md
+```
+
+**For Modern Installation:**
 
 ```
 Rules Update Preview:
