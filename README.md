@@ -319,7 +319,7 @@ The code-reviewer agent performs comprehensive analysis combining multiple knowl
 | Complete Project | `/agenticaiplugin:code-review --complete` | Full codebase audit |
 
 **Review types (auto-detected):**
-- **Code reviews** - Security, YAGNI, code duplication (DRY), unused/dead code, deprecated APIs, unused packages, code quality
+- **Code reviews** - Security, YAGNI, code duplication (DRY), unused/dead code, deprecated API calls, unused packages, code quality
 - **Test reviews** - Testing philosophy compliance, coverage gaps
 - **Architecture reviews** - Pattern recognition (Layered, Hexagonal, Clean Architecture), layer violations
 

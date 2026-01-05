@@ -6,7 +6,7 @@
 
 A **Claude Code Plugin** that enhances development workflows through agents, skills, and commands. Provides intelligent automation for agile workflows, code reviews, testing, and documentation generation across multiple languages with focus on Java/Spring Boot.
 
-**Version:** 0.1.0 | **Tech Stack:** Claude Code Plugin System, Jinja2 Templates, Markdown
+**Version:** 0.3.0 | **Tech Stack:** Claude Code Plugin System, Jinja2 Templates, Markdown
 
 ---
 
@@ -251,13 +251,13 @@ Changes available immediately after marketplace update.
 ## Current Development
 
 **Recent commits:**
+- `f1a4631` docs: add deprecated API and unused packages detection
 - `c7127a5` feat(command): replace update-rules with update-plugin
 - `44c4352` feat(code-review): add deprecated calls and unused packages detection
 - `fd60cad` docs: add unused code detection to project documentation
 - `284a323` feat(code-review): add unused & dead code detection
-- `0b3697f` docs: sync documentation with latest plugin features
 
-**Current focus:** Enhanced code review capabilities (deprecated calls, unused packages, dead code detection), command consolidation (update-plugin), comprehensive documentation
+**Current focus:** Enhanced code review capabilities (deprecated API detection, unused packages, dead code detection), command consolidation (update-plugin replacing update-rules), comprehensive documentation updates
 
 ---
 
