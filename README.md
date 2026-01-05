@@ -30,6 +30,7 @@ The plugin architecture separates concerns intelligently: test engineers write i
 - **Git Intelligence:** Analyzes changes and creates meaningful atomic commits following project conventions
 - **Architecture Decision Records:** ADR creation and management with standard templates
 - **Progressive Disclosure:** Skills load essential information by default, detailed references on demand
+- **Modular Rules System:** Flexible plugin rules that can be selectively installed and updated
 
 ## Installation
 
@@ -52,7 +53,7 @@ The plugin architecture separates concerns intelligently: test engineers write i
 
    # Examples for different platforms:
    # Windows: /plugin marketplace add C:\dev\marketplace
-   # WSL:     /plugin marketplace add /mnt/c/dev/marketplace
+   # WSL:     /plugin marketplace add /mnt/c/dev\marketplace
    # Linux:   /plugin marketplace add ~/dev/marketplace
    # macOS:   /plugin marketplace add ~/dev/marketplace
    ```
@@ -92,6 +93,11 @@ This command creates:
 **To update rules after plugin updates:**
 ```bash
 /agenticaiplugin:update-rules
+```
+
+**To install only CLAUDE.md without rules or claudedocs:**
+```bash
+/agenticaiplugin:init --only-claudemd
 ```
 
 ### Common Workflows
@@ -179,6 +185,15 @@ While most features activate automatically, you can also invoke them manually:
 
 # Smart Git commits
 /agenticaiplugin:gitme
+
+# Dependency audit report
+/agenticaiplugin:renovate
+
+# Plugin help
+/agenticaiplugin:help
+
+# Promote permissions for commands
+/agenticaiplugin:promote-perms
 ```
 
 ## Configuration
@@ -255,7 +270,10 @@ agenticaiplugin/
 │   ├── create-readme.md      # README generation
 │   ├── load-agentic.md       # Context loading
 │   ├── create-cr.md          # Context to document transfer
-│   └── config.md             # Plugin configuration
+│   ├── config.md             # Plugin configuration
+│   ├── help.md               # Plugin help
+│   ├── promote-perms.md      # Permissions promotion
+│   └── renovate.md           # Dependency audit
 ├── rules-templates/          # Plugin rule templates
 │   ├── agenticaiplugin-core.md
 │   ├── agenticaiplugin-code-review.md
@@ -373,6 +391,20 @@ Create and manage ADRs with standard templates:
 - Consequences (positive and negative)
 
 ADRs stored in `claudedocs/architecture/` following naming convention `ADR-001-description.md`.
+
+### Dependency Audit
+
+Generate comprehensive dependency audit reports:
+
+```bash
+/agenticaiplugin:renovate
+```
+
+Analyzes project dependencies and creates detailed audit reports including:
+- Security vulnerabilities
+- Outdated versions
+- License compliance
+- Dependency health metrics
 
 ## Best Practices
 

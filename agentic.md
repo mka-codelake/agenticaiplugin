@@ -20,7 +20,7 @@ agenticaiplugin/
 │   ├── test-engineer.md          # Integration/E2E test creation
 │   ├── project-initializer.md    # Project setup automation
 │   └── context-creator.md        # AI session context management
-├── commands/                     # 11 Slash commands
+├── commands/                     # 14 Slash commands
 │   ├── init.md                   # /init - Project initialization
 │   ├── update-rules.md           # /update-rules - Update plugin rules
 │   ├── gitme.md                  # /gitme - Smart Git commits
@@ -31,7 +31,10 @@ agenticaiplugin/
 │   ├── create-readme.md          # /create-readme - README generation
 │   ├── load-agentic.md           # /load-agentic - Context loading
 │   ├── create-cr.md              # /create-cr - Context to document
-│   └── config.md                 # /config - Plugin configuration
+│   ├── config.md                 # /config - Plugin configuration
+│   ├── help.md                   # /help - Plugin help
+│   ├── promote-perms.md          # /promote-perms - Permissions promotion
+│   └── renovate.md               # /renovate - Dependency audit
 ├── rules-templates/              # Plugin rule templates (copied to projects)
 │   ├── agenticaiplugin-core.md           # Never make assumptions
 │   ├── agenticaiplugin-code-review.md    # Automatic code review
@@ -187,6 +190,9 @@ User's `claudedocs/guidelines/*.md` files ALWAYS override plugin skill guideline
 /agenticaiplugin:load-agentic              # Load agentic.md into context
 /agenticaiplugin:create-cr                 # Transfer context to structured document
 /agenticaiplugin:config                    # View/edit plugin configuration
+/agenticaiplugin:help                      # Show plugin help
+/agenticaiplugin:promote-perms             # Promote permissions for commands
+/agenticaiplugin:renovate                  # Dependency audit report
 ```
 
 ---
@@ -242,13 +248,13 @@ Changes available immediately after marketplace update.
 ## Current Development
 
 **Recent commits:**
-- `469d729` feat(command): add create-cr for context-to-document transfer
-- `b31411a` fix(skill): strengthen git-smart-commit activation triggers
-- `b60a9e6` fix(docs): update command usage to /agenticaiplugin: prefix
-- `946a953` refactor(init): remove optional folders from project initialization
-- `db81482` feat(review): add ensemble code-review with parallel reviewers
+- `9d2f9fb` feat(rules): migrate from CLAUDE.md template to modular rules
+- `a05f7ef` feat(init): add --only-claudemd parameter to skip claudedocs
+- `d95d1f6` docs: update documentation with code-review enhancements
+- `0608536` feat(code-review): add three review modes and architecture pattern detection
+- `0101812` feat(command): add renovate for dependency audit reports
 
-**Current focus:** Context-to-document transfer, ensemble code reviews, refined command naming conventions
+**Current focus:** Modular rules system, enhanced initialization options, dependency audit capabilities
 
 ---
 
