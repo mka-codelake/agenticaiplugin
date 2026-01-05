@@ -155,6 +155,7 @@ User's `claudedocs/guidelines/*.md` files ALWAYS override plugin skill guideline
 - Reports when no clear architecture pattern detected
 - Active code duplication detection (DRY violations → WARNING/CRITICAL)
 - Unused & dead code detection (unreferenced methods, classes, fields)
+- Deprecated API calls and unused packages detection
 - Multi-persona ensemble reviews (security, performance, maintainability)
 
 ---
@@ -250,13 +251,13 @@ Changes available immediately after marketplace update.
 ## Current Development
 
 **Recent commits:**
+- `c7127a5` feat(command): replace update-rules with update-plugin
+- `44c4352` feat(code-review): add deprecated calls and unused packages detection
+- `fd60cad` docs: add unused code detection to project documentation
 - `284a323` feat(code-review): add unused & dead code detection
 - `0b3697f` docs: sync documentation with latest plugin features
-- `9d2f9fb` feat(rules): migrate from CLAUDE.md template to modular rules
-- `a05f7ef` feat(init): add --only-claudemd parameter to skip claudedocs
-- `d95d1f6` docs: update documentation with code-review enhancements
 
-**Current focus:** Enhanced code review capabilities (unused/dead code detection), modular rules system, comprehensive documentation
+**Current focus:** Enhanced code review capabilities (deprecated calls, unused packages, dead code detection), command consolidation (update-plugin), comprehensive documentation
 
 ---
 
