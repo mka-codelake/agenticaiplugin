@@ -5,6 +5,7 @@ description: |
   Analyzes uncommitted changes, groups them logically, creates meaningful commit messages.
   TRIGGER WORDS: commit, committe, committen, git commit, push (if uncommitted changes exist), einchecken, stage and commit.
   This skill REPLACES manual git commit commands.
+user-invocable: true
 allowed-tools:
   - Bash(git:*)
   - Read
