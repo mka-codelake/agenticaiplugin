@@ -72,11 +72,15 @@ Instructions, guidelines, best practices.
 
 ### Frontmatter Fields
 
-| Field | Required | Notes |
-|-------|----------|-------|
-| `name` | YES | Lowercase, hyphens only |
-| `description` | YES | Include auto-activation conditions |
-| `allowed-tools` | NO | Omit to allow all tools |
+| Field | Required | Default | Notes |
+|-------|----------|---------|-------|
+| `name` | YES | - | Lowercase, hyphens only |
+| `description` | YES | - | Include auto-activation conditions |
+| `allowed-tools` | NO | all | Tool restrictions (YAML list supported) |
+| `context` | NO | - | `fork` for isolated sub-agent context |
+| `agent` | NO | - | Agent type for execution |
+| `hooks` | NO | - | PreToolUse/PostToolUse/Stop hooks |
+| `user-invocable` | NO | `true` | Show in slash command menu |
 
 ### Auto-Activation Patterns
 
@@ -91,6 +95,102 @@ Use this skill PROACTIVELY when:
 - ✅ User says "commit" or "commit changes"
 - ✅ User mentions creating commits
 ```
+
+### Forked Context (`context: fork`)
+
+Run skill in isolated sub-agent context:
+
+```yaml
+---
+name: heavy-analysis
+description: Deep code analysis
+context: fork
+---
+```
+
+**Use when:**
+- Skill performs complex, multi-step operations
+- Need isolated context (won't pollute main conversation)
+- Long-running operations that benefit from dedicated focus
+
+**Behavior:**
+- Skill runs as sub-agent with own context
+- Does NOT see previous conversation history
+- Results returned to main conversation when complete
+
+### Agent Field (`agent`)
+
+Specify which agent type executes the skill:
+
+```yaml
+---
+name: code-check
+description: Quick code validation
+agent: code-reviewer
+---
+```
+
+**Use when:**
+- Skill should leverage existing agent capabilities
+- Need specific agent's tools or model configuration
+
+### Hooks in Skills
+
+Skills can define lifecycle hooks:
+
+```yaml
+---
+name: my-skill
+description: Skill with hooks
+hooks:
+  PreToolUse:
+    - command: "echo 'Before any tool'"
+      once: true  # Only first time
+  PostToolUse:
+    - command: "log-tool-usage.sh"
+  Stop:
+    - command: "cleanup.sh"
+---
+```
+
+**Hook types:**
+| Hook | Trigger |
+|------|---------|
+| `PreToolUse` | Before each tool execution |
+| `PostToolUse` | After each tool execution |
+| `Stop` | When skill/session ends |
+
+**Options:**
+- `once: true` - Execute only on first occurrence
+
+### User Invocability (`user-invocable`)
+
+Control visibility in slash command menu:
+
+```yaml
+---
+name: internal-helper
+description: Internal skill not for direct use
+user-invocable: false
+---
+```
+
+**Default:** `true` - Skills appear as `/plugin:skill-name` in menu
+
+**Set to `false` when:**
+- Skill is only for internal/programmatic use
+- Skill should only auto-activate, never be called directly
+
+### Hot-Reload Behavior
+
+Skills in these directories auto-reload without restart:
+- `~/.claude/skills/` (global)
+- `.claude/skills/` (project)
+
+**Workflow:**
+1. Create/modify skill file
+2. Skill immediately available
+3. No session restart needed
 
 ### Progressive Disclosure (reference.md)
 
