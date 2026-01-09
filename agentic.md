@@ -12,52 +12,13 @@ A **Claude Code Plugin** that enhances development workflows through agents, ski
 
 ## Project Structure
 
-```
-agenticaiplugin/
-├── .claude-plugin/plugin.json    # Plugin metadata
-├── agents/                       # 4 Sub-agents (isolated context)
-│   ├── code-reviewer.md          # Automatic code reviews
-│   ├── test-engineer.md          # Integration/E2E test creation
-│   ├── project-initializer.md    # Project setup automation
-│   └── context-creator.md        # AI session context management
-├── commands/                     # 14 Slash commands
-│   ├── init.md                   # /init - Project initialization
-│   ├── update-plugin.md          # /update-plugin - Update plugin + migrate
-│   ├── gitme.md                  # /gitme - Smart Git commits
-│   ├── code-review.md            # /code-review - Manual review
-│   ├── test.md                   # /test - Test creation
-│   ├── create-agentic.md         # /create-agentic - Context creation
-│   ├── create-docs.md            # /create-docs - Documentation generation
-│   ├── create-readme.md          # /create-readme - README generation
-│   ├── load-agentic.md           # /load-agentic - Context loading
-│   ├── create-cr.md              # /create-cr - Context to document
-│   ├── config.md                 # /config - Plugin configuration
-│   ├── help.md                   # /help - Plugin help
-│   ├── promote-perms.md          # /promote-perms - Permissions promotion
-│   └── renovate.md               # /renovate - Dependency audit
-├── rules-templates/              # Plugin rule templates (copied to projects)
-│   ├── agenticaiplugin-core.md           # Never make assumptions
-│   ├── agenticaiplugin-code-review.md    # Automatic code review
-│   └── agenticaiplugin-protected-dirs.md # Protected directories
-├── skills/                       # 14 Auto-activated knowledge bases
-│   ├── agile-workflow/           # Epic/Story/Sprint management
-│   ├── git-smart-commit/         # Intelligent commits
-│   ├── code-reviewer/            # Review criteria
-│   ├── development-principles/   # YAGNI, KISS, Story-traceability
-│   ├── testing-philosophy/       # "Test YOUR Code, Not THE Code"
-│   ├── java-best-practices/      # Java 17+/21+/25+
-│   ├── spring-boot-best-practices/
-│   ├── integration-testing/      # TestContainers, Awaitility
-│   ├── maven-best-practices/
-│   ├── dependency-analysis/      # Story-dependencies with ULTRATHINK
-│   ├── architecture-decisions/   # ADR management
-│   ├── technology-advisor-jvm/   # Library recommendations JVM
-│   ├── technology-advisor-javascript/
-│   └── technology-advisor-python/
-├── docs/plugin-howto.md          # PRIMARY DEV REFERENCE
-├── CLAUDE.md                     # Plugin development instructions
-└── README.md                     # Installation and feature guide
-```
+| Directory | Contents | Purpose |
+|-----------|----------|---------|
+| `agents/` | 4 agents | code-reviewer, test-engineer, project-initializer, context-creator |
+| `commands/` | 14 commands | Slash commands (/init, /gitme, /code-review, /test, etc.) |
+| `skills/` | 14 skills | Auto-activated knowledge (agile, java, spring, testing, etc.) |
+| `rules-templates/` | 3 templates | Plugin rules copied to user projects |
+| `docs/` | plugin-howto.md | Primary development reference |
 
 ---
 
@@ -233,36 +194,3 @@ src/test/java/
 
 **Critical:** Developer-agent NEVER modifies integration/system/e2e tests - only test-engineer can change them.
 
----
-
-## Development Workflow
-
-1. **Edit files** in plugin directory
-2. **Update marketplace:**
-   ```bash
-   /plugin marketplace update local-dev-marketplace
-   ```
-3. **Test** in a project using the plugin
-
-Changes available immediately after marketplace update.
-
----
-
-## Current Development
-
-**Recent commits:**
-- `f1a4631` docs: add deprecated API and unused packages detection
-- `c7127a5` feat(command): replace update-rules with update-plugin
-- `44c4352` feat(code-review): add deprecated calls and unused packages detection
-- `fd60cad` docs: add unused code detection to project documentation
-- `284a323` feat(code-review): add unused & dead code detection
-
-**Current focus:** Enhanced code review capabilities (deprecated API detection, unused packages, dead code detection), command consolidation (update-plugin replacing update-rules), comprehensive documentation updates
-
----
-
-## Legacy Framework Reference
-
-**Location:** `C:\Dev\repos\agenticai`
-
-Previous version of this framework. Consult only when explicitly relevant for migration or historical context.

@@ -96,13 +96,6 @@ find . -maxdepth 2 -type d -not -path '*/\.*' -not -path './node_modules/*' -not
 - Architecture patterns
 - Testing patterns
 
-#### 4.5 Recent Activity
-
-```bash
-git log --oneline -5
-git diff --stat HEAD~5 2>/dev/null || echo "No recent commits"
-```
-
 ### Step 5: Write Output File(s)
 
 Based on target, write the appropriate file(s) using the formats below.
@@ -169,11 +162,6 @@ Based on target, write the appropriate file(s) using the formats below.
 | Project instructions | CLAUDE.md |
 | ... | ... |
 
----
-
-## Current Development
-
-[Last 3-5 commits or current focus areas]
 ```
 
 ### agentic.md Writing Style
