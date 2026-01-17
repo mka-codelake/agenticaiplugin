@@ -96,11 +96,6 @@ This command creates:
 /agenticaiplugin:update-plugin
 ```
 
-**To install only CLAUDE.md without rules or claudedocs:**
-```bash
-/agenticaiplugin:init --only-claudemd
-```
-
 ### Common Workflows
 
 #### Agile Development
