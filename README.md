@@ -89,6 +89,7 @@ This command creates:
 | `agenticaiplugin-core.md` | Never make assumptions - always ask |
 | `agenticaiplugin-code-review.md` | Automatic code review after tasks |
 | `agenticaiplugin-protected-dirs.md` | Protected directories and files |
+| `agenticaiplugin-git-commit.md` | Enforce git-smart-commit skill for commits |
 
 **To update rules after plugin updates:**
 ```bash
@@ -148,6 +149,9 @@ Claude:
 #### Context Management
 
 ```bash
+# Inspect project comprehensively (loads existing or creates new agentic.md)
+/agenticaiplugin:inspect
+
 # Create/update AI-optimized context file
 /agenticaiplugin:create-agentic
 
@@ -262,6 +266,7 @@ agenticaiplugin/
 ├── commands/                 # Slash commands
 │   ├── init.md               # Project initialization
 │   ├── update-plugin.md      # Update plugin (rules + migration)
+│   ├── inspect.md            # Comprehensive project analysis
 │   ├── gitme.md              # Smart Git commits
 │   ├── code-review.md        # Manual code review
 │   ├── test.md               # Test creation
@@ -277,7 +282,8 @@ agenticaiplugin/
 ├── rules-templates/          # Plugin rule templates
 │   ├── agenticaiplugin-core.md
 │   ├── agenticaiplugin-code-review.md
-│   └── agenticaiplugin-protected-dirs.md
+│   ├── agenticaiplugin-protected-dirs.md
+│   └── agenticaiplugin-git-commit.md
 ├── skills/                   # Auto-activated knowledge
 │   ├── agile-workflow/       # Epic/Story/Sprint management
 │   ├── git-smart-commit/     # Intelligent commits

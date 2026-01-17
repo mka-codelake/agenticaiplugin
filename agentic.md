@@ -6,7 +6,7 @@
 
 A **Claude Code Plugin** that enhances development workflows through agents, skills, and commands. Provides intelligent automation for agile workflows, code reviews, testing, and documentation generation across multiple languages with focus on Java/Spring Boot.
 
-**Version:** 0.3.3 | **Tech Stack:** Claude Code Plugin System, Jinja2 Templates, Markdown
+**Version:** 0.3.5 | **Tech Stack:** Claude Code Plugin System, Jinja2 Templates, Markdown
 
 ---
 
@@ -15,9 +15,9 @@ A **Claude Code Plugin** that enhances development workflows through agents, ski
 | Directory | Contents | Purpose |
 |-----------|----------|---------|
 | `agents/` | 4 agents | code-reviewer, test-engineer, project-initializer, context-creator |
-| `commands/` | 14 commands | Slash commands (/init, /gitme, /code-review, /test, etc.) |
+| `commands/` | 15 commands | Slash commands (/init, /inspect, /gitme, /code-review, /test, etc.) |
 | `skills/` | 14 skills | Auto-activated knowledge (agile, java, spring, testing, etc.) |
-| `rules-templates/` | 3 templates | Plugin rules copied to user projects |
+| `rules-templates/` | 4 templates | Plugin rules copied to user projects |
 | `docs/` | plugin-howto.md | Primary development reference |
 
 ---
@@ -143,6 +143,7 @@ User's `claudedocs/guidelines/*.md` files ALWAYS override plugin skill guideline
 ```bash
 /agenticaiplugin:init                      # Initialize project with rules + claudedocs/
 /agenticaiplugin:update-plugin             # Update plugin rules + CLAUDE.md migration
+/agenticaiplugin:inspect                   # Analyze project comprehensively (creates agentic.md if missing)
 /agenticaiplugin:gitme                     # Create smart Git commits
 /agenticaiplugin:code-review               # Review changed files (git diff) - DEFAULT
 /agenticaiplugin:code-review <file>        # Review specific file
