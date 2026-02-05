@@ -1,5 +1,7 @@
 ---
+name: create-readme
 description: Create or update README.md — human-readable project documentation
+disable-model-invocation: true
 ---
 
 # Create README Command

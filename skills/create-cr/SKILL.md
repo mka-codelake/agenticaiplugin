@@ -1,5 +1,7 @@
 ---
+name: create-cr
 description: Create or update a Change Request document from current session context
+disable-model-invocation: true
 ---
 
 # Create Change Request Command

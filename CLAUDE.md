@@ -103,8 +103,7 @@ agenticaiplugin/
 ├── .claude-plugin/
 │   └── plugin.json           # REQUIRED metadata
 ├── agents/                    # Sub-agents (isolated context)
-├── commands/                  # Slash commands
-├── skills/                    # Auto-loaded knowledge
+├── skills/                    # All skills (knowledge + commands)
 │   └── skill-name/
 │       ├── SKILL.md          # Main skill definition
 │       ├── reference.md      # Progressive disclosure (optional)
@@ -118,17 +117,25 @@ agenticaiplugin/
 
 - **Skills:** `skill-name` (directory), `SKILL.md` (uppercase)
 - **Agents:** `agent-name.md` (lowercase, hyphens)
-- **Commands:** `command-name.md` (lowercase, hyphens)
 - **Templates:** `template-name.md.j2` (Jinja2 extension)
 
 ### Frontmatter Requirements
 
-**Skills (SKILL.md):**
+**Knowledge Skills (auto-activated, SKILL.md):**
 ```yaml
 ---
 name: skill-identifier
 description: What it does and WHEN to auto-activate. Include trigger keywords.
-allowed-tools: [optional list]
+user-invocable: false
+---
+```
+
+**Command Skills (slash commands, SKILL.md):**
+```yaml
+---
+name: command-identifier
+description: What this command does (shown in command menu)
+disable-model-invocation: true
 ---
 ```
 
@@ -143,15 +150,11 @@ color: cyan
 ---
 ```
 
-**Commands:**
-No frontmatter required. File name becomes command name.
-
 ### Auto-Discovery
 
 Claude Code automatically discovers:
 - All `.md` files in `agents/` → Agents
 - All `SKILL.md` files in `skills/*/` → Skills
-- All `.md` files in `commands/` → Commands
 
 **No registration needed in plugin.json.**
 

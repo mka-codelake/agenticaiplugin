@@ -1,5 +1,7 @@
 ---
+name: promote-perms
 description: Promote workspace permissions to user level (apply across all projects)
+disable-model-invocation: true
 ---
 
 # Promote Permissions Command

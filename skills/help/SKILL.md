@@ -1,5 +1,7 @@
 ---
+name: help
 description: Show overview of all plugin commands, skills, and agents
+disable-model-invocation: true
 ---
 
 # AgenticAI Plugin Help

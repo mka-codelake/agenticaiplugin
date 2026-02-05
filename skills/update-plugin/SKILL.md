@@ -1,5 +1,7 @@
 ---
+name: update-plugin
 description: Update plugin rules and migrate legacy CLAUDE.md installations
+disable-model-invocation: true
 ---
 
 # Update Plugin Command

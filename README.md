@@ -255,26 +255,13 @@ agenticaiplugin/
 │   ├── test-engineer.md      # Integration test creation
 │   ├── project-initializer.md # Project setup
 │   └── context-creator.md    # Documentation generation
-├── commands/                 # Slash commands
-│   ├── init.md               # Project initialization
-│   ├── update-plugin.md      # Update plugin (rules + migration)
-│   ├── inspect.md            # Comprehensive project analysis
-│   ├── gitme.md              # Smart Git commits
-│   ├── code-review.md        # Manual code review
-│   ├── test.md               # Test creation
-│   ├── create-docs.md        # Full documentation generation
-│   ├── create-readme.md      # README generation
-│   ├── create-cr.md          # Context to document transfer
-│   ├── config.md             # Plugin configuration
-│   ├── help.md               # Plugin help
-│   ├── promote-perms.md      # Permissions promotion
-│   └── renovate.md           # Dependency audit
 ├── rules-templates/          # Plugin rule templates
 │   ├── agenticaiplugin-core.md
 │   ├── agenticaiplugin-code-review.md
 │   ├── agenticaiplugin-protected-dirs.md
 │   └── agenticaiplugin-git-commit.md
-├── skills/                   # Auto-activated knowledge
+├── skills/                   # All skills (knowledge + commands)
+│   ├── # Auto-activated knowledge skills:
 │   ├── agile-workflow/       # Epic/Story/Sprint management
 │   ├── git-smart-commit/     # Intelligent commits
 │   ├── code-reviewer/        # Review criteria
@@ -288,7 +275,21 @@ agenticaiplugin/
 │   ├── architecture-decisions/ # ADR management
 │   ├── technology-advisor-jvm/
 │   ├── technology-advisor-javascript/
-│   └── technology-advisor-python/
+│   ├── technology-advisor-python/
+│   ├── # Slash command skills (user-invocable):
+│   ├── init/                 # Project initialization
+│   ├── update-plugin/        # Update plugin rules
+│   ├── inspect/              # Comprehensive project analysis
+│   ├── gitme/                # Smart Git commits
+│   ├── code-review/          # Manual code review
+│   ├── test/                 # Test creation
+│   ├── create-docs/          # Full documentation generation
+│   ├── create-readme/        # README generation
+│   ├── create-cr/            # Context to document transfer
+│   ├── config/               # Plugin configuration
+│   ├── help/                 # Plugin help
+│   ├── promote-perms/        # Permissions promotion
+│   └── renovate/             # Dependency audit
 ├── docs/
 │   ├── plugin-howto.md       # Plugin development reference
 │   └── rules-howto.md        # Claude Code Rules documentation
@@ -529,11 +530,20 @@ For developers working on the plugin itself:
    ```
 3. Update marketplace
 
-### Adding New Commands
+### Adding New Commands (as Skills)
 
-1. Create file: `commands/command-name.md`
-2. Write command implementation (no frontmatter needed)
-3. Update marketplace
+1. Create directory: `skills/command-name/`
+2. Add `SKILL.md` with frontmatter:
+   ```yaml
+   ---
+   name: command-name
+   description: What this command does
+   disable-model-invocation: true
+   ---
+
+   # Command instructions
+   ```
+3. Update marketplace: `/plugin marketplace update local-dev-marketplace`
 4. Use: `/agenticaiplugin:command-name`
 
 ## Contributing

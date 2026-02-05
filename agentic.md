@@ -6,7 +6,7 @@
 
 A **Claude Code Plugin** that enhances development workflows through agents, skills, and commands. Provides intelligent automation for agile workflows, code reviews, testing, and documentation generation across multiple languages with focus on Java/Spring Boot.
 
-**Version:** 0.3.5 | **Tech Stack:** Claude Code Plugin System, Jinja2 Templates, Markdown
+**Version:** 0.4.1 | **Tech Stack:** Claude Code Plugin System, Jinja2 Templates, Markdown
 
 ---
 
@@ -15,8 +15,7 @@ A **Claude Code Plugin** that enhances development workflows through agents, ski
 | Directory | Contents | Purpose |
 |-----------|----------|---------|
 | `agents/` | 4 agents | code-reviewer, test-engineer, project-initializer, context-creator |
-| `commands/` | 13 commands | Slash commands (/init, /inspect, /gitme, /code-review, /test, etc.) |
-| `skills/` | 14 skills | Auto-activated knowledge (agile, java, spring, testing, etc.) |
+| `skills/` | 27 skills | 14 auto-activated knowledge + 13 slash commands (migrated from commands/) |
 | `rules-templates/` | 4 templates | Plugin rules copied to user projects |
 | `docs/` | plugin-howto.md | Primary development reference |
 
@@ -55,7 +54,6 @@ A **Claude Code Plugin** that enhances development workflows through agents, ski
 Claude Code automatically discovers:
 - All `.md` files in `agents/` as Agents
 - All `SKILL.md` files in `skills/*/` as Skills
-- All `.md` files in `commands/` as Commands
 
 **No registration needed in plugin.json.**
 

@@ -1,5 +1,7 @@
 ---
+name: config
 description: Configure plugin settings (e.g. ensemble code review count)
+disable-model-invocation: true
 ---
 
 Interactive configuration wizard for AgenticAI Plugin settings.
