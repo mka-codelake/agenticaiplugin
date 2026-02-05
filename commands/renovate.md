@@ -1,3 +1,7 @@
+---
+description: Audit all dependencies for updates, deprecations, and modern alternatives
+---
+
 # Renovate - Dependency Audit Command
 
 Prüft alle Dependencies im Projekt auf Updates, Deprecations und moderne Alternativen. Generiert einen Report ohne automatische Updates (ähnlich Renovate Bot).

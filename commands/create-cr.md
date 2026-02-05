@@ -1,3 +1,7 @@
+---
+description: Create or update a Change Request document from current session context
+---
+
 # Create Change Request Command
 
 Transfers all relevant context from the current planning session into a Change Request (CR) document, ensuring a new agent in a fresh session has all information needed for implementation.

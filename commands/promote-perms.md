@@ -1,3 +1,7 @@
+---
+description: Promote workspace permissions to user level (apply across all projects)
+---
+
 # Promote Permissions Command
 
 Promotes workspace-specific permissions to user level, so they apply across all projects.

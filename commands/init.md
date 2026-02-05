@@ -1,3 +1,7 @@
+---
+description: Initialize project for AgenticAI Plugin (rules, directories, guidelines)
+---
+
 # Project Initialization Command
 
 Interactive project setup for AgenticAI Plugin.

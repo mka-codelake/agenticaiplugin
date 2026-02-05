@@ -1,3 +1,7 @@
+---
+description: Analyze project structure, tech stack, and domain — save context to agentic.md
+---
+
 # Inspect Command
 
 Analyzes a project comprehensively to understand its structure, technology, and domain - then saves the context for future sessions.

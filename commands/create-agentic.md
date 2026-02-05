@@ -1,3 +1,7 @@
+---
+description: Create or update agentic.md — AI-optimized project context document
+---
+
 # Create Agentic Command
 
 Creates or updates the `agentic.md` file - a context-optimized project overview for AI sessions.

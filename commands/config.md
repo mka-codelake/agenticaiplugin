@@ -1,3 +1,7 @@
+---
+description: Configure plugin settings (e.g. ensemble code review count)
+---
+
 Interactive configuration wizard for AgenticAI Plugin settings.
 
 ## Usage

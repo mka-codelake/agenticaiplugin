@@ -1,3 +1,7 @@
+---
+description: Show overview of all plugin commands, skills, and agents
+---
+
 # AgenticAI Plugin Help
 
 Zeigt eine Übersicht über alle verfügbaren Commands, Skills und Agents.

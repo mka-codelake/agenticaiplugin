@@ -1,3 +1,7 @@
+---
+description: Write integration/system/E2E tests from acceptance criteria via test-engineer agent
+---
+
 # Test-Engineer Agent Command
 
 Invoke the test-engineer agent to write integration, system, or E2E tests based on acceptance criteria.

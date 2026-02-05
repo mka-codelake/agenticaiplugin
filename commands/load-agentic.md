@@ -1,3 +1,7 @@
+---
+description: Load existing agentic.md into session context for quick project understanding
+---
+
 # Load Agentic Command
 
 Loads and processes the `agentic.md` file to quickly understand the project context.

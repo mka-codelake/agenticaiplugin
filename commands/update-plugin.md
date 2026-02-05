@@ -1,3 +1,7 @@
+---
+description: Update plugin rules and migrate legacy CLAUDE.md installations
+---
+
 # Update Plugin Command
 
 Updates AgenticAI Plugin to the latest version, including rules and CLAUDE.md migration.

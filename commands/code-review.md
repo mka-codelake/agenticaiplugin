@@ -1,3 +1,7 @@
+---
+description: Run intelligent code review (git diff, single file, or full project)
+---
+
 Perform a code review using the code-reviewer agent.
 
 ## Usage

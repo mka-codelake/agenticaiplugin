@@ -1,3 +1,7 @@
+---
+description: Create or update README.md — human-readable project documentation
+---
+
 # Create README Command
 
 Creates or updates the `README.md` file - a human-readable project overview.

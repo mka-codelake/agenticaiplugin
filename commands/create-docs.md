@@ -1,3 +1,7 @@
+---
+description: Create both agentic.md and README.md in a single analysis pass
+---
+
 # Create Docs Command
 
 Creates or updates both `agentic.md` and `README.md` in one pass.
