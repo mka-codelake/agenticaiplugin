@@ -1,6 +1,7 @@
 ---
 name: technology-advisor-javascript
 description: Research best-practice JavaScript/TypeScript libraries and latest versions for Node.js/npm/yarn/pnpm projects. Use PROACTIVELY when adding dependencies to package.json, choosing JavaScript libraries, updating versions, or making JavaScript technology decisions. ALWAYS use before adding npm packages.
+user-invocable: false
 allowed-tools:
   - WebSearch
   - WebFetch

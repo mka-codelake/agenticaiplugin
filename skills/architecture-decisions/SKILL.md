@@ -1,6 +1,7 @@
 ---
 name: architecture-decisions
 description: Creates and manages Architectural Decision Records (ADRs). Use PROACTIVELY when user mentions "ADR", "architecture decision", "design decision", "why did we choose", or discusses significant technical choices. ALWAYS document major architectural decisions.
+user-invocable: false
 ---
 
 Use this skill when creating or managing Architectural Decision Records (ADRs) to document important architectural and design decisions.

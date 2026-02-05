@@ -1,6 +1,7 @@
 ---
 name: technology-advisor-python
 description: Research best-practice Python libraries and latest versions for Python/pip/poetry/conda projects. Use PROACTIVELY when adding dependencies to requirements.txt, pyproject.toml, or environment.yml, choosing Python libraries, updating versions, or making Python technology decisions. ALWAYS use before adding Python packages.
+user-invocable: false
 allowed-tools:
   - WebSearch
   - WebFetch
