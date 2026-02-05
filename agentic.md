@@ -15,7 +15,7 @@ A **Claude Code Plugin** that enhances development workflows through agents, ski
 | Directory | Contents | Purpose |
 |-----------|----------|---------|
 | `agents/` | 4 agents | code-reviewer, test-engineer, project-initializer, context-creator |
-| `commands/` | 15 commands | Slash commands (/init, /inspect, /gitme, /code-review, /test, etc.) |
+| `commands/` | 13 commands | Slash commands (/init, /inspect, /gitme, /code-review, /test, etc.) |
 | `skills/` | 14 skills | Auto-activated knowledge (agile, java, spring, testing, etc.) |
 | `rules-templates/` | 4 templates | Plugin rules copied to user projects |
 | `docs/` | plugin-howto.md | Primary development reference |
@@ -149,10 +149,9 @@ User's `claudedocs/guidelines/*.md` files ALWAYS override plugin skill guideline
 /agenticaiplugin:code-review <file>        # Review specific file
 /agenticaiplugin:code-review --complete    # Review entire project
 /agenticaiplugin:test STORY-042            # Create tests for story
-/agenticaiplugin:create-agentic            # Create/update agentic.md
+/agenticaiplugin:inspect --update          # Update existing agentic.md incrementally
 /agenticaiplugin:create-docs               # Create/update both agentic.md and README.md
 /agenticaiplugin:create-readme             # Create/update README.md
-/agenticaiplugin:load-agentic              # Load agentic.md into context
 /agenticaiplugin:create-cr                 # Transfer context to structured document
 /agenticaiplugin:config                    # View/edit plugin configuration
 /agenticaiplugin:help                      # Show plugin help

@@ -147,17 +147,14 @@ Claude:
 # Inspect project comprehensively (loads existing or creates new agentic.md)
 /agenticaiplugin:inspect
 
-# Create/update AI-optimized context file
-/agenticaiplugin:create-agentic
+# Create/update AI-optimized context file (incremental update)
+/agenticaiplugin:inspect --update
 
 # Create/update both agentic.md and README.md
 /agenticaiplugin:create-docs
 
 # Create/update human-readable README
 /agenticaiplugin:create-readme
-
-# Load existing context into current session
-/agenticaiplugin:load-agentic
 
 # Transfer context to structured document
 /agenticaiplugin:create-cr
@@ -265,10 +262,8 @@ agenticaiplugin/
 │   ├── gitme.md              # Smart Git commits
 │   ├── code-review.md        # Manual code review
 │   ├── test.md               # Test creation
-│   ├── create-agentic.md     # Context creation
 │   ├── create-docs.md        # Full documentation generation
 │   ├── create-readme.md      # README generation
-│   ├── load-agentic.md       # Context loading
 │   ├── create-cr.md          # Context to document transfer
 │   ├── config.md             # Plugin configuration
 │   ├── help.md               # Plugin help

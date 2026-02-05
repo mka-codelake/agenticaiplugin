@@ -1,5 +1,5 @@
 ---
-description: Analyze project structure, tech stack, and domain — save context to agentic.md
+description: Analyze project structure, tech stack, and domain — save context to agentic.md. Use --update to incrementally update an existing agentic.md.
 ---
 
 # Inspect Command
@@ -9,23 +9,32 @@ Analyzes a project comprehensively to understand its structure, technology, and 
 ## Usage
 
 ```
-/agenticaiplugin:inspect
+/agenticaiplugin:inspect [--update]
 ```
 
-No parameters required.
+## Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `--update` | No | If agentic.md exists, perform an incremental update instead of just reading it. If agentic.md does not exist, creates it (same as without --update). |
 
 ## What It Does
 
 1. **Check for existing agentic.md:**
    - Look for `agentic.md` in the project root
 
-2. **If agentic.md EXISTS:**
+2. **If agentic.md EXISTS (no --update):**
    - Read and internalize the existing context
    - Output a summary in chat
    - **Important:** Inform user that this comes from an existing `agentic.md` file (they may have forgotten it exists)
    - Signal readiness for questions
 
-3. **If agentic.md does NOT exist:**
+3. **If agentic.md EXISTS (with --update):**
+   - Invoke context-creator agent in UPDATE mode to incrementally update the existing agentic.md
+   - Output a summary in chat
+   - Signal readiness for questions
+
+4. **If agentic.md does NOT exist (with or without --update):**
    - Perform comprehensive project analysis (technical AND domain)
    - Write findings to `agentic.md`
    - Output a summary in chat
@@ -33,13 +42,17 @@ No parameters required.
 
 ## Execution Steps
 
+### Step 0: Parse Parameters
+
+Check if `--update` flag was passed as an argument to the command.
+
 ### Step 1: Check for Existing Context
 
 ```bash
 ls agentic.md 2>/dev/null
 ```
 
-### Step 2A: If agentic.md EXISTS
+### Step 2A: If agentic.md EXISTS and NO --update flag
 
 1. Read the file using the Read tool
 2. Parse and internalize:
@@ -51,7 +64,7 @@ ls agentic.md 2>/dev/null
 3. Output summary with notice:
 
 ```
-ℹ️ Found existing agentic.md - loading saved context.
+Info: Found existing agentic.md - loading saved context.
 
 Project: [Project Name]
 
@@ -62,12 +75,12 @@ Summary:
 - [X] critical rules
 
 This context was previously saved. If it's outdated, run:
-  /agenticaiplugin:create-agentic
+  /agenticaiplugin:inspect --update
 
 Ready for your questions about this project.
 ```
 
-**STOP here if agentic.md existed.**
+**STOP here if agentic.md existed and no --update flag.**
 
 ### Step 2B: If agentic.md does NOT exist
 
@@ -87,6 +100,18 @@ Task(
 
     After writing agentic.md, output a brief summary for the chat.
     Target: agentic"
+)
+```
+
+### Step 2C: If agentic.md EXISTS and --update flag is set
+
+Invoke the context-creator agent in UPDATE mode for incremental update:
+
+```
+Task(
+    subagent_type="context-creator",
+    description="Update agentic.md",
+    prompt="Analyze this project and UPDATE the existing agentic.md file with any changes. Target: agentic"
 )
 ```
 
@@ -116,6 +141,7 @@ This command:
 - Saves you from re-analyzing the project every session
 - Creates persistent context in `agentic.md`
 - Gives you a quick overview immediately
+- With `--update`, keeps your agentic.md current after project changes
 
 ## Analysis Depth
 
@@ -127,7 +153,7 @@ This command always performs a **thorough, comprehensive analysis**:
 - Architecture patterns detected
 - No quick/shallow mode
 
-## Example
+## Examples
 
 ### New Project (no agentic.md)
 
@@ -142,7 +168,7 @@ Summary:
 - REST API for managing customer orders with real-time notifications
 - Node.js / Express / TypeScript / PostgreSQL
 - Key features: Order CRUD, WebSocket notifications, PDF invoice generation
-- Layered architecture (routes → services → repositories)
+- Layered architecture (routes -> services -> repositories)
 
 Full context saved to agentic.md.
 
@@ -154,7 +180,7 @@ Ready for your questions about this project.
 ```
 User: /agenticaiplugin:inspect
 
-AI: ℹ️ Found existing agentic.md - loading saved context.
+AI: Info: Found existing agentic.md - loading saved context.
 
 Project: awesome-api
 
@@ -165,7 +191,27 @@ Summary:
 - Focus: Order management with real-time updates
 
 This context was previously saved. If it's outdated, run:
-  /agenticaiplugin:create-agentic
+  /agenticaiplugin:inspect --update
+
+Ready for your questions about this project.
+```
+
+### Update Existing Context (agentic.md found, --update flag)
+
+```
+User: /agenticaiplugin:inspect --update
+
+AI: [Invokes context-creator agent in UPDATE mode]
+
+Project analyzed: awesome-api
+
+Summary:
+- REST API for managing customer orders with real-time notifications
+- Node.js / Express / TypeScript / PostgreSQL
+- Key features: Order CRUD, WebSocket notifications, PDF invoice generation
+- Layered architecture (routes -> services -> repositories)
+
+agentic.md has been updated with latest project changes.
 
 Ready for your questions about this project.
 ```
@@ -175,9 +221,9 @@ Ready for your questions about this project.
 - **Opening a new/unfamiliar project:** First thing to understand what you're working with
 - **Third-party code:** GitHub repos, vendor code, inherited projects
 - **Starting a new session:** Quick way to get up to speed (checks for existing context first)
+- **After major changes:** Use `--update` to refresh the context after adding features or changing architecture
 
 ## Related
 
-- **/agenticaiplugin:load-agentic** - Only loads existing agentic.md (fails if missing)
-- **/agenticaiplugin:create-agentic** - Always creates/updates agentic.md (no existence check)
 - **/agenticaiplugin:create-docs** - Creates both agentic.md and README.md
+- **/agenticaiplugin:create-readme** - Creates only README.md (human-readable)

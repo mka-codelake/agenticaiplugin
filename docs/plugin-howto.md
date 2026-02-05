@@ -11,7 +11,7 @@ plugin-name/
 ├── .mcp.json                 # OPTIONAL: MCP server configuration
 ├── agents/                   # OPTIONAL: Sub-agents
 │   └── agent-name.md
-├── commands/                 # OPTIONAL: Slash commands
+├── commands/                 # LEGACY: Slash commands (use skills/ for new development)
 │   └── command-name.md
 ├── skills/                   # OPTIONAL: Auto-loaded context
 │   └── skill-name/
@@ -72,6 +72,8 @@ Instructions, guidelines, best practices.
 
 ### Frontmatter Fields
 
+These fields apply to SKILL.md files in `skills/` and also to command files in `commands/` (legacy).
+
 | Field | Required | Default | Notes |
 |-------|----------|---------|-------|
 | `name` | YES | - | Lowercase, hyphens only |
@@ -81,6 +83,8 @@ Instructions, guidelines, best practices.
 | `agent` | NO | - | Agent type for execution |
 | `hooks` | NO | - | PreToolUse/PostToolUse/Stop hooks |
 | `user-invocable` | NO | `true` | Show in slash command menu |
+| `disable-model-invocation` | NO | `false` | Prevent Claude from auto-invoking |
+| `argument-hint` | NO | - | Hint shown in slash command menu |
 
 ### Auto-Activation Patterns
 
@@ -309,15 +313,15 @@ Agent can still conditionally load additional skills based on context (e.g., lan
 - Keep conditional skills (context-dependent) in agent logic
 - Document auto-loaded skills in agent instructions to avoid redundancy
 
-### Skills vs Agents
+### Skills vs Agents vs Commands
 
-| Aspect | Skills | Agents |
-|--------|--------|--------|
-| Context | Shared main | Isolated per agent |
-| Invocation | Model-invoked only | Model OR user-invoked |
-| Structure | Directory + SKILL.md | Single .md file |
-| Purpose | Knowledge/guidelines | Workflow execution |
-| Use when | "Remember X automatically" | "Automate Y workflow" |
+| Aspect | Skills | Agents | Commands (legacy) |
+|--------|--------|--------|-------------------|
+| Context | Shared main | Isolated per agent | Shared main |
+| Invocation | Model and/or user | Model OR user | User-invoked only |
+| Structure | Directory + SKILL.md | Single .md file | Single .md file |
+| Purpose | Knowledge/guidelines | Workflow execution | User actions |
+| Use when | "Remember X automatically" | "Automate Y workflow" | Backward compat only |
 
 ### Invoking Agents
 
@@ -334,10 +338,25 @@ Task(
 - `@agent-name` mentions
 - Auto-invoked based on description matching
 
-## Commands (Slash Commands)
+## Commands (Slash Commands) -- LEGACY
 
-### Purpose
-Custom slash commands for users.
+> **Legacy notice:** Since Claude Code v2.1.3 (Jan 2026), Anthropic's official Plugins Reference labels `commands/` as _"Skill Markdown files (legacy; use skills/ for new skills)"_. Slash commands and skills have been merged. **Use `skills/` for all new development.** Existing command files continue to work.
+
+### When to Keep Existing Commands
+- Commands that already exist and work -- no urgent need to migrate
+- Simple commands that do not need supporting files, auto-invocation, `context: fork`, `agent`, or hooks
+
+### What Skills Offer Over Commands
+Skills support features that commands do not:
+- Supporting files directory (reference.md, templates/)
+- Auto-invocation by Claude (model-initiated)
+- `context: fork` for isolated sub-agent execution
+- `agent` field for agent-type delegation
+- Hooks (PreToolUse, PostToolUse, Stop)
+- `disable-model-invocation` field
+- Dynamic context injection
+
+**If a skill and a command share the same name, the skill takes precedence.**
 
 ### Structure
 Single markdown file per command in `commands/`:
@@ -348,18 +367,25 @@ commands/
 ```
 
 ### Command File Format
+
+Commands now support the same YAML frontmatter as skills:
+
 ```markdown
+---
+name: command-identifier
+description: What this command does
+allowed-tools:
+  - Read
+  - Bash(git:*)
+argument-hint: "<file-path>"
+user-invocable: true
+disable-model-invocation: true
+---
+
 Brief description of what this command does.
 
 ## Usage
-```
 /command-name <arg1> <arg2>
-```
-
-## Examples
-```
-/command-name example
-```
 
 ## Instructions
 
@@ -371,6 +397,17 @@ Detailed steps for Claude to execute when this command is invoked.
 ```
 
 **Command naming:** Use kebab-case, can include hyphens (e.g., `cc-code-review`)
+
+### Migrating Commands to Skills
+
+To migrate a command to a skill:
+
+1. Create the skill directory: `skills/my-command/`
+2. Move (or copy) `commands/my-command.md` to `skills/my-command/SKILL.md`
+3. Add or update the YAML frontmatter (name, description, etc.)
+4. Optionally add `reference.md` or `templates/` for supporting content
+5. Delete the old command file to avoid name collisions
+6. Test: `/plugin:my-command` should invoke the new skill
 
 ## MCP Servers
 
@@ -501,7 +538,7 @@ Document that certain features require MCP server and how to verify availability
 Claude Code automatically discovers:
 - All `.md` files in `agents/`
 - All `SKILL.md` files in `skills/*/`
-- All `.md` files in `commands/`
+- All `.md` files in `commands/` (legacy; use `skills/` for new development)
 
 **No manual registration needed in plugin.json.**
 
@@ -532,11 +569,12 @@ Claude Code automatically discovers:
 3. **Structured output:** Define exact format for reports
 4. **No assumptions:** Agent works independently, no shared context
 
-### Commands
-1. **Parameter validation:** Always validate user input
-2. **Usage messages:** Show help if parameters missing/wrong
-3. **Error handling:** Clear error messages
-4. **One purpose:** Keep commands focused
+### Commands (Legacy)
+1. **Prefer skills for new features:** Commands are legacy; use `skills/` instead
+2. **Parameter validation:** Always validate user input
+3. **Usage messages:** Show help if parameters missing/wrong
+4. **Error handling:** Clear error messages
+5. **One purpose:** Keep commands focused
 
 ### General
 1. **No examples in plugin:** Don't create sample projects/files unless needed
@@ -728,7 +766,7 @@ Creating a plugin:
 - [ ] Create `.claude-plugin/plugin.json` with required fields
 - [ ] Add skills in `skills/skill-name/SKILL.md` (if needed)
 - [ ] Add agents in `agents/agent-name.md` (if needed)
-- [ ] Add commands in `commands/command-name.md` (if needed)
+- [ ] Add commands in `commands/command-name.md` (legacy; prefer `skills/` for new features)
 - [ ] Add MCP servers in `.mcp.json` or plugin.json (if needed)
 - [ ] Use correct frontmatter for each component
 - [ ] Include auto-activation keywords in descriptions

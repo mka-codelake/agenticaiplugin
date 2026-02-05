@@ -72,6 +72,6 @@ Task(
 
 ## Related
 
-- **/agenticaiplugin:create-agentic** - Create AI-optimized context (agentic.md)
+- **/agenticaiplugin:inspect** - Load existing agentic.md or create it; use `--update` to incrementally update
 - **/agenticaiplugin:create-docs** - Create both agentic.md and README.md
 - **CLAUDE.md** - Project-specific instructions

@@ -31,10 +31,9 @@ Zeige dem Benutzer folgende Übersicht:
 ### Dokumentation
 | Command | Beschreibung |
 |---------|--------------|
-| **create-agentic** | Erstellt/aktualisiert `agentic.md` - ein KI-optimiertes Projektdokument, das Claude hilft, das Projekt schnell zu verstehen |
+| **inspect** | Analysiert ein Projekt umfassend und erstellt/lädt `agentic.md`. Mit `--update`: aktualisiert eine existierende agentic.md inkrementell |
 | **create-readme** | Erstellt/aktualisiert `README.md` - klassische Projektdokumentation für Menschen |
 | **create-docs** | Erstellt beide Dokumente (agentic.md + README.md) in einem Durchgang |
-| **load-agentic** | Lädt eine existierende agentic.md ins Kontext, um das Projekt schnell zu verstehen |
 
 ### Entwicklung
 | Command | Beschreibung |

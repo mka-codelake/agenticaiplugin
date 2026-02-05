@@ -66,6 +66,5 @@ Task(
 
 ## Related
 
-- **/agenticaiplugin:create-agentic** - Create only agentic.md (AI-optimized)
+- **/agenticaiplugin:inspect** - Load existing agentic.md or create it; use `--update` to incrementally update
 - **/agenticaiplugin:create-readme** - Create only README.md (human-readable)
-- **/agenticaiplugin:load-agentic** - Load agentic.md to understand a project
