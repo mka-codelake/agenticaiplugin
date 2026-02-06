@@ -1,5 +1,4 @@
 ---
-name: integration-testing
 description: Integration, system, and E2E testing patterns for Spring Boot. TestContainers, @SpringBootTest, async testing. Auto-activates when test-engineer agent is invoked.
 user-invocable: false
 ---

@@ -1,5 +1,4 @@
 ---
-name: dependency-analysis
 description: Analyzes story dependencies with ULTRATHINK for complex interdependencies. Use PROACTIVELY when planning sprints, slicing epics into stories, or when user mentions "dependencies", "blocked by", or "depends on". Detects circular dependencies automatically.
 user-invocable: false
 ---

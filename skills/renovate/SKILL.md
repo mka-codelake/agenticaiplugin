@@ -1,5 +1,4 @@
 ---
-name: renovate
 description: Audit all dependencies for updates, deprecations, and modern alternatives
 disable-model-invocation: true
 ---

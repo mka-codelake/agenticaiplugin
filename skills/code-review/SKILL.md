@@ -1,5 +1,4 @@
 ---
-name: code-review
 description: Run intelligent code review (git diff, single file, or full project)
 disable-model-invocation: true
 ---

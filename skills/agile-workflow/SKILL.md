@@ -1,5 +1,4 @@
 ---
-name: agile-workflow
 description: Structures and manages Epics, Stories, and Sprints with templates. Use PROACTIVELY when user mentions "epic", "story", "sprint", "backlog", "planning", "slice", or wants to create agile artifacts. ALWAYS use templates from skills/agile-workflow/templates/.
 user-invocable: false
 ---

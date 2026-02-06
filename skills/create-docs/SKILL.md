@@ -1,5 +1,4 @@
 ---
-name: create-docs
 description: Create both agentic.md and README.md in a single analysis pass
 disable-model-invocation: true
 ---

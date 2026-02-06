@@ -1,5 +1,4 @@
 ---
-name: inspect
 description: Analyze project structure, tech stack, and domain — save context to agentic.md. Use --update to incrementally update an existing agentic.md.
 disable-model-invocation: true
 ---

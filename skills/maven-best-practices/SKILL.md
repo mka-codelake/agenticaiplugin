@@ -1,5 +1,4 @@
 ---
-name: maven-best-practices
 description: Maven build tool best practices. Standard directory layout, dependency management, build commands. Use PROACTIVELY when running Maven commands (mvn, ./mvnw), modifying pom.xml, or troubleshooting build issues. ALWAYS use -q flag for builds unless debugging.
 user-invocable: false
 ---

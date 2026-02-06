@@ -1,5 +1,4 @@
 ---
-name: test
 description: Write integration/system/E2E tests from acceptance criteria via test-engineer agent
 disable-model-invocation: true
 ---

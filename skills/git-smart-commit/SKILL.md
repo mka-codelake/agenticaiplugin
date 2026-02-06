@@ -1,5 +1,4 @@
 ---
-name: git-smart-commit
 description: |
   🚫 MANDATORY for ALL git commits. NEVER run 'git commit' directly - ALWAYS invoke this skill first.
   Analyzes uncommitted changes, groups them logically, creates meaningful commit messages.

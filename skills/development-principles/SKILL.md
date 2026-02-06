@@ -1,5 +1,4 @@
 ---
-name: development-principles
 description: Language-agnostic development principles (YAGNI, KISS, SRP, story traceability). Use PROACTIVELY when implementing features, refactoring code, or reviewing code quality. ALWAYS add story references (STORY-XXX) to implementation code.
 user-invocable: false
 ---

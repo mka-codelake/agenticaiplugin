@@ -1,5 +1,4 @@
 ---
-name: init
 description: Initialize project for AgenticAI Plugin (rules, directories, guidelines)
 disable-model-invocation: true
 ---

@@ -1,5 +1,4 @@
 ---
-name: code-reviewer
 description: Code review criteria and guidelines for source code, tests, and architecture. Auto-activates when code-reviewer agent is invoked.
 user-invocable: false
 ---

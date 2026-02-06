@@ -1,5 +1,4 @@
 ---
-name: java-best-practices
 description: Java language best practices (17+, 21+, 25+). Use PROACTIVELY when writing or reviewing Java code (.java files). Covers naming conventions, null safety, immutability, modern syntax. For Spring Boot, also load spring-boot-best-practices.
 user-invocable: false
 ---

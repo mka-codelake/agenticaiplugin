@@ -1,5 +1,4 @@
 ---
-name: technology-advisor-jvm
 description: Research best-practice JVM libraries and latest versions for JVM projects (Java/Kotlin/Scala with Maven/Gradle). Use PROACTIVELY when adding dependencies to pom.xml or build.gradle, choosing libraries, updating versions, or making technology decisions. ALWAYS use before adding dependencies.
 user-invocable: false
 allowed-tools:

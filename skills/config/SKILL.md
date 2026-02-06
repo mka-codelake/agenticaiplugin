@@ -1,5 +1,4 @@
 ---
-name: config
 description: Configure plugin settings (e.g. ensemble code review count)
 disable-model-invocation: true
 ---

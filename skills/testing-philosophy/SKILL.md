@@ -1,5 +1,4 @@
 ---
-name: testing-philosophy
 description: Guides testing decisions based on code classification - "Test YOUR Code, Not THE Code". Use PROACTIVELY when writing tests, discussing test coverage, or deciding what to test. Key rule: Test business logic, NOT frameworks.
 user-invocable: false
 ---
