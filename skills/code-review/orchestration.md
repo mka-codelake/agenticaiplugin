@@ -1,0 +1,251 @@
+# Code Review Orchestration Playbook
+
+Detailed orchestration logic for the multi-specialist code review architecture. Referenced by SKILL.md during review execution.
+
+---
+
+## Specialist Activation Matrix
+
+| # | Specialist | Phase | Activate When |
+|---|-----------|-------|---------------|
+| 1 | Dependencies & Versions | **1** | ALWAYS |
+| 2 | Security & Data Safety | 2 | Source files modified |
+| 3 | Architecture & Layers | 2 | 3+ layers affected OR new dependencies |
+| 4 | Design Patterns (GoF) | 2 | Source files modified |
+| 5 | SOLID & Code Smells | 2 | Source files modified |
+| 6 | Code Quality & Correctness | 2 | Source files modified |
+| 7 | Dead Code & Duplication | 2 | Source files modified |
+| 8 | Cross-Cutting Concerns | 2 | Source files modified |
+| 9 | Test Quality | 2 | Test files modified |
+| 10 | Test Completeness & Infra | 2 | Source files modified |
+
+### Selection Logic
+
+```
+ALWAYS activate:
+  → Specialist 1 (Dependencies & Versions)
+
+IF source_files_modified:
+  → Specialists 2, 4, 5, 6, 7, 8
+
+IF source_files_modified AND (layers_affected >= 3 OR new_dependencies):
+  → Specialist 3 (Architecture)
+
+IF test_files_modified:
+  → Specialist 9 (Test Quality)
+
+IF source_files_modified:
+  → Specialist 10 (Test Completeness)
+
+IF ONLY docs/config changed:
+  → Skip all specialists
+  → Return "No code review needed — documentation/config changes only."
+```
+
+---
+
+## Phase Execution
+
+### Phase 1: Dependencies & Versions (Sequential)
+
+Specialist 1 runs first because version findings provide context for Phase 2 specialists (e.g., if a dependency is severely outdated, pattern recommendations may differ).
+
+**Spawn via Task tool:**
+```
+subagent_type: general-purpose
+model: haiku
+```
+
+Wait for completion. Capture results.
+
+### Phase 2: All Applicable Specialists (Parallel)
+
+Spawn ALL applicable Phase 2 specialists in a single message using multiple Task tool calls. This runs them concurrently for faster total review time.
+
+**Spawn each via Task tool:**
+```
+subagent_type: general-purpose
+model: haiku
+```
+
+---
+
+## Specialist Prompt Template
+
+Each specialist receives this prompt (fill in placeholders):
+
+```
+You are a code review specialist for [{specialist_name}].
+
+## Your Rules
+Read your review rules file:
+skills/code-reviewer/specialists/{specialist_file}
+
+## Output Format
+Follow the output format defined in:
+skills/code-reviewer/shared/specialist-output-format.md
+
+## Severity Definitions
+Use the severity classification from:
+skills/code-reviewer/shared/issue-classification.md
+(Focus on: {relevant_severity_sections})
+
+{IF project_guidelines_exist}
+## Project Guidelines (OVERRIDE skill rules when conflicts occur)
+Read and apply project-specific guidelines from:
+claudedocs/guidelines/*.md
+{ENDIF}
+
+## Files to Review
+{file_list_with_paths}
+
+{IF git_diff_mode}
+## Review Context
+Focus on changed lines. Here is the git diff context:
+{diff_content}
+{ENDIF}
+
+{IF phase1_results}
+## Phase 1 Context (Dependencies & Versions)
+The dependency/version review found:
+{phase1_summary}
+Consider this context when making recommendations.
+{ENDIF}
+
+## Instructions
+1. Read your specialist rules file
+2. Read the output format specification
+3. Review each file against your specialist rules
+4. Return findings ONLY in the standard output format
+5. If no issues found, return "No findings."
+6. Do NOT fix code — only identify and describe issues
+```
+
+---
+
+## Report Consolidation
+
+After all specialists complete, the orchestrator consolidates results.
+
+### Step 1: Collect Results
+
+Gather output from all specialists. If a specialist failed or timed out, include:
+```
+[Specialist {N}: {Name}] Failed to complete — results unavailable.
+```
+
+### Step 2: Merge Findings
+
+Combine all findings from all specialists into a single list.
+
+### Step 3: Deduplicate
+
+When the same file:line is flagged by multiple specialists:
+- Keep the finding with the higher severity
+- If same severity, keep the one with more specific rule reference
+- Note which specialists flagged it (e.g., "Also flagged by: Specialist 5")
+
+**Deduplication heuristic:** Same file + same line number + similar description = duplicate.
+
+### Step 4: Sort
+
+Order all findings:
+1. Critical → Warning → Suggestion
+2. Within same severity: group by specialist category
+
+### Step 5: Generate Summary Table
+
+```markdown
+## Code Review Findings Summary
+
+| Severity | File | Finding | Specialist |
+|----------|------|---------|------------|
+| CRITICAL | ApiClient.java:12 | Hardcoded API key | Security |
+| CRITICAL | UserController.java:25 | SQL injection | Security |
+| WARNING | OrderService.java:156 | Missing null check | Code Quality |
+| WARNING | PaymentService.java:23 | Method too long | Code Quality |
+| SUGGESTION | Config.java:12 | Consider @Value | Dependencies |
+
+**Summary:** 2 Critical, 2 Warnings, 1 Suggestion
+**Specialists activated:** 7/10
+**Phase 1 duration:** ~30s | **Phase 2 duration:** ~45s (parallel)
+```
+
+### Step 6: Generate Full Report
+
+```markdown
+## Code Review Report
+
+**Files Reviewed:** {count}
+**Specialists Activated:** {activated_count}/10
+**Phase 1:** Dependencies & Versions
+**Phase 2:** {list of activated specialists}
+**Project Guidelines:** {found or "None"}
+
+---
+
+### Critical Issues
+
+#### {Specialist Category}
+- [{File}:{Line}] {Description}
+  **Rule:** {Rule reference}
+  **Fix:** {Fix direction}
+
+---
+
+### Warnings
+
+#### {Specialist Category}
+- [{File}:{Line}] {Description}
+  **Rule:** {Rule reference}
+  **Impact:** {Why it matters}
+  **Fix:** {Fix direction}
+
+---
+
+### Suggestions
+
+#### {Specialist Category}
+- [{File}:{Line}] {Description}
+  **Benefit:** {What would improve}
+
+---
+
+### Summary
+- **Critical:** {count} issues requiring fixes
+- **Warnings:** {count} items needing attention
+- **Suggestions:** {count} optional improvements
+- **Overall Assessment:** {Brief assessment}
+
+### Specialist Results
+| Specialist | Findings | Status |
+|------------|----------|--------|
+| Dependencies & Versions | 2W, 1S | Complete |
+| Security & Data Safety | 2C | Complete |
+| Architecture & Layers | — | Skipped (2 layers) |
+| Design Patterns | 1W | Complete |
+| SOLID & Code Smells | 1W | Complete |
+| Code Quality | 1W, 1S | Complete |
+| Dead Code & Duplication | 1C, 2W | Complete |
+| Cross-Cutting Concerns | — | Complete (no findings) |
+| Test Quality | 1C, 1W | Complete |
+| Test Completeness | 2W | Complete |
+```
+
+---
+
+## Failure Handling
+
+- If a specialist fails, include "[Specialist X] failed to complete" in report
+- Continue with remaining specialist results
+- Never fail the entire review because one specialist failed
+- If Phase 1 fails, still run Phase 2 without version context
+
+---
+
+## Token/Cost Optimization
+
+- **Model choice:** Specialists use `haiku` (fast, cheap, sufficient for focused rule checking)
+- **Selective activation:** Only applicable specialists are spawned
+- **Parallel execution:** Phase 2 specialists run concurrently
+- **Focused context:** Each specialist reads only ~150-250 lines of rules (vs. ~3,200 lines in single-agent approach)

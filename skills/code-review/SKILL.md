@@ -1,9 +1,9 @@
 ---
-description: Run intelligent code review (git diff, single file, or full project)
+description: Run intelligent code review with specialist team (git diff, single file, or full project)
 disable-model-invocation: true
 ---
 
-Perform a code review using the code-reviewer agent.
+Perform a multi-specialist code review. You are the **Chief Architect / Team Lead** orchestrating focused review specialists.
 
 ## Usage
 
@@ -27,17 +27,16 @@ Perform a code review using the code-reviewer agent.
 
 # Review a specific file
 /agenticaiplugin:code-review src/main/java/com/example/UserService.java
-/agenticaiplugin:code-review UserController.java
 
-# Review entire project (all source files)
+# Review entire project
 /agenticaiplugin:code-review --complete
 ```
 
-## Parameter Handling
+---
+
+## Step 1: Determine Mode & Get Files
 
 ### Mode 1: No Parameter (Git Diff - Default)
-
-When called without parameters:
 
 1. **Detect default branch:**
    ```bash
@@ -56,145 +55,197 @@ When called without parameters:
    git diff --name-only origin/${default_branch}...HEAD
    ```
 
-3. **If no changes detected:**
+3. **If no changes:** Display "No changes detected" message and STOP.
+
+4. **Get diff content for specialists:**
+   ```bash
+   git diff origin/${default_branch}...HEAD
    ```
-   No changes detected against origin/{branch}.
-
-   Your working tree is clean. Nothing to review.
-
-   Alternatives:
-   - /agenticaiplugin:code-review <file>      Review a specific file
-   - /agenticaiplugin:code-review --complete  Review entire project
-   ```
-   STOP execution.
-
-4. **If changes detected:**
-   - Display list of changed files
-   - Proceed with code-reviewer agent
 
 ### Mode 2: File Parameter
 
-When called with a file path (not `--complete`):
-
-1. **Validate file exists:**
-   - If not found: Report error and STOP
-   - If found: Proceed with review
-
-2. **Error message if file not found:**
-   ```
-   Error: File not found: {file_path}
-
-   Please verify the file path and try again.
-   ```
+1. Validate file exists. If not found: error and STOP.
+2. Read file content for specialists.
 
 ### Mode 3: --complete Parameter
 
-When called with `--complete`:
+1. Display warning about review time for large codebases.
+2. Find all source files (exclude node_modules, target, build, .git, dist, venv, __pycache__).
+3. Read file contents for specialists.
 
-1. **Display warning:**
-   ```
-   Complete Project Review
+---
 
-   This will review ALL source files in the project.
-   This may take significant time for large codebases.
+## Step 2: Categorize Files & Analyze Changes
 
-   Scanning for source files...
-   ```
+Categorize all files to review:
 
-2. **Find all source files:**
-   ```bash
-   find . -type f \( \
-     -name "*.java" -o -name "*.kt" -o -name "*.scala" -o \
-     -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.tsx" -o \
-     -name "*.go" -o -name "*.rs" -o -name "*.rb" -o -name "*.php" \
-   \) \
-   ! -path "*/node_modules/*" \
-   ! -path "*/target/*" \
-   ! -path "*/build/*" \
-   ! -path "*/.git/*" \
-   ! -path "*/dist/*" \
-   ! -path "*/venv/*" \
-   ! -path "*/__pycache__/*"
-   ```
+**Source Files:** `*.java`, `*.kt`, `*.scala`, `*.py`, `*.js`, `*.ts`, `*.tsx`, `*.go`, `*.rs`, `*.rb`, `*.php` (excluding test files)
 
-3. **Display file count:**
-   ```
-   Found {count} source files to review.
+**Test Files:** `*Test.java`, `*Tests.java`, `test_*.py`, `*.test.js`, `*.spec.ts`, files in `test/` or `__tests__/` directories
 
-   Proceeding with complete project review...
-   ```
+**Config Files:** `pom.xml`, `build.gradle`, `package.json`, `requirements.txt`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `*.yaml`, `*.yml`, `*.properties`
 
-4. **Proceed with code-reviewer agent**
+**Documentation Files:** `*.md`, `*.txt`, `*.adoc`, `docs/**`, `README.*`
 
-## Execution
+**Analyze patterns:**
+- Count affected layers (controller, service, repository, entity, model)
+- Detect security-relevant patterns in diff (password, secret, token, api_key, @Query)
+- Detect dependency file changes
 
-Once mode is determined, invoke the code-reviewer agent:
-
-### For Git Diff Mode (Default)
-
+Display analysis:
 ```
-Review all changed files in this branch compared to the main branch.
-
-Instructions:
-1. Use git diff to detect all changed files (you have built-in support for this)
-2. Categorize files by type (source, test, config, docs)
-3. Decide which review types to perform (Code/Test/Architecture)
-4. Load all project guidelines from claudedocs/guidelines/*.md
-5. Apply relevant development skills
-6. Remember: Project guidelines override skill guidelines when conflicts occur
-7. Generate a structured finding report organized by severity
-
-Provide only the finding report, no code fixes.
+Change Analysis:
+- Source files: {count} ({list})
+- Test files: {count} ({list})
+- Config files: {count} ({list})
+- Docs files: {count} ({list})
+- Layers affected: {count}
+- New dependencies: {yes/no}
 ```
 
-### For Single File Mode
+---
 
+## Step 3: Select Specialists
+
+Based on change analysis, select which specialists to activate. Read `orchestration.md` for the full activation matrix.
+
+**Quick reference:**
+
+| Condition | Specialists to Activate |
+|-----------|------------------------|
+| ALWAYS | 1 (Dependencies & Versions) |
+| Source files modified | 2 (Security), 4 (Patterns), 5 (SOLID), 6 (Quality), 7 (Dead Code), 8 (Cross-Cutting) |
+| 3+ layers OR new deps | 3 (Architecture) |
+| Test files modified | 9 (Test Quality) |
+| Source files modified | 10 (Test Completeness) |
+| ONLY docs/config | Skip all → "No code review needed" and STOP |
+
+Display selection:
 ```
-Review the following file for code quality issues:
-
-File: {file_path}
-
-Instructions:
-1. Load all project guidelines from claudedocs/guidelines/*.md
-2. Activate relevant development skills (development-principles, java-best-practices, etc.)
-3. Review the file against all applicable rules
-4. Remember: Project guidelines override skill guidelines when conflicts occur
-5. Generate a structured finding report with:
-   - Critical issues (must fix)
-   - Warnings (should address)
-   - Suggestions (optional improvements)
-6. Include specific line numbers and rule references for each finding
-
-Provide only the finding report, no code fixes.
-```
-
-### For Complete Project Mode
-
-```
-Perform a complete project review of all source files.
-
-Files to review:
-{list of files from find command}
-
-Instructions:
-1. This is a COMPLETE project review, not just changed files
-2. Categorize files by type (source, test, config)
-3. Perform all relevant review types (Code/Test/Architecture)
-4. Load all project guidelines from claudedocs/guidelines/*.md
-5. Apply relevant development skills
-6. Remember: Project guidelines override skill guidelines when conflicts occur
-7. Focus on critical and warning issues (skip minor suggestions for large reviews)
-8. Generate a consolidated finding report organized by severity
-
-Provide only the finding report, no code fixes.
+Specialists Selected:
+- Phase 1: [1] Dependencies & Versions
+- Phase 2: [2] Security, [4] Design Patterns, [5] SOLID, [6] Code Quality, [7] Dead Code, [8] Cross-Cutting, [10] Test Completeness
+- Skipped: [3] Architecture (only 2 layers), [9] Test Quality (no test files changed)
 ```
 
-## Agent Invocation
+---
 
-Use the Task tool with:
-- **subagent_type:** `code-reviewer`
-- **description:** `Review code` (or `Review changed files` / `Review project`)
-- **prompt:** Mode-specific prompt from above
+## Step 4: Execute Phase 1 (Sequential)
+
+Spawn Specialist 1 (Dependencies & Versions) and wait for completion.
+
+**Use the Task tool with:**
+- **subagent_type:** `general-purpose`
+- **model:** `haiku`
+- **description:** `Review dependencies and versions`
+- **prompt:** Build from template in orchestration.md, including:
+  - Path to specialist rules: `skills/code-reviewer/specialists/01-dependencies-versions.md`
+  - Path to output format: `skills/code-reviewer/shared/specialist-output-format.md`
+  - Path to severity definitions: `skills/code-reviewer/shared/issue-classification.md`
+  - Project guidelines path (if exists): `claudedocs/guidelines/*.md`
+  - File list and diff content
+
+Capture Phase 1 results for Phase 2 context.
+
+---
+
+## Step 5: Execute Phase 2 (Parallel)
+
+Spawn ALL applicable Phase 2 specialists **in a single message** using multiple Task tool calls. This runs them concurrently.
+
+**For each specialist, use the Task tool with:**
+- **subagent_type:** `general-purpose`
+- **model:** `haiku`
+- **description:** `Review {specialist_area}`
+- **prompt:** Build from template in orchestration.md, including:
+  - Path to specialist rules: `skills/code-reviewer/specialists/{NN-name}.md`
+  - Path to output format: `skills/code-reviewer/shared/specialist-output-format.md`
+  - Path to severity definitions: `skills/code-reviewer/shared/issue-classification.md`
+  - Project guidelines path (if exists): `claudedocs/guidelines/*.md`
+  - Phase 1 results summary (version context)
+  - File list and diff content
+
+**IMPORTANT:** Launch all Phase 2 specialists in ONE message to maximize parallelism.
+
+---
+
+## Step 6: Consolidate Report
+
+After all specialists complete, consolidate per orchestration.md:
+
+1. **Collect** all specialist results
+2. **Merge** findings into single list
+3. **Deduplicate** same file:line flagged by multiple specialists (keep higher severity)
+4. **Sort** by severity: Critical → Warning → Suggestion
+5. **Group** by specialist category within severity
+6. **Handle failures:** If a specialist failed, note it in report
+
+---
+
+## Step 7: Output Report
+
+### Summary Table (for quick scanning)
+
+```
+## Code Review Findings Summary
+
+| Severity | File | Finding | Specialist |
+|----------|------|---------|------------|
+| CRITICAL | ApiClient.java:12 | Hardcoded API key | Security |
+| WARNING | OrderService.java:156 | Missing null check | Code Quality |
+| SUGGESTION | Config.java:12 | Consider @Value | Dependencies |
+
+**Summary:** 1 Critical, 1 Warning, 1 Suggestion
+**Specialists activated:** {N}/10
+```
+
+### Full Report
+
+```
+## Code Review Report
+
+**Files Reviewed:** {count}
+**Specialists Activated:** {count}/10
+**Phase 1:** Dependencies & Versions
+**Phase 2:** {list}
+**Project Guidelines:** {found or "None"}
+
+---
+
+### Critical Issues
+#### {Specialist Category}
+- [{File}:{Line}] {Description}
+  **Rule:** {reference}
+  **Fix:** {direction}
+
+### Warnings
+#### {Specialist Category}
+- [{File}:{Line}] {Description}
+  **Rule:** {reference}
+  **Impact:** {why it matters}
+  **Fix:** {direction}
+
+### Suggestions
+#### {Specialist Category}
+- [{File}:{Line}] {Description}
+  **Benefit:** {what would improve}
+
+---
+
+### Summary
+- **Critical:** {count}
+- **Warnings:** {count}
+- **Suggestions:** {count}
+- **Overall Assessment:** {brief assessment}
+
+### Specialist Results
+| Specialist | Findings | Status |
+|------------|----------|--------|
+| Dependencies & Versions | {counts} | {status} |
+| ... | ... | ... |
+```
+
+---
 
 ## After Review
 
@@ -204,8 +255,10 @@ Use the Task tool with:
 
 ## Important Notes
 
-- **Git Diff mode** is the default - optimized for PR/branch reviews
+- **Git Diff mode** is the default — optimized for PR/branch reviews
 - **Single File mode** is for targeted reviews of specific files
-- **Complete Project mode** can be slow for large codebases - use sparingly
-- The code-reviewer agent checks both project guidelines and skills
-- Project-specific guidelines (claudedocs/guidelines/*.md) take precedence
+- **Complete Project mode** can be slow for large codebases — use sparingly
+- **Project guidelines** (claudedocs/guidelines/*.md) always override skill guidelines
+- **Phase 1 → Phase 2** sequencing ensures version context is available
+- **Parallel Phase 2** execution minimizes total review time
+- If a specialist fails, the review continues with remaining results
