@@ -488,44 +488,46 @@ Happy coding with AgenticAI!
 
 Use this workflow when mode = UPDATE (update existing installation).
 
-## Update Step 1: agentic.md Cleanup
+## ⚠️ MANDATORY PRE-STEP: Deprecated File Cleanup (ALWAYS EXECUTE FIRST)
 
-Check if `agentic.md` exists in the project root:
+**This step is NOT optional. Execute it BEFORE anything else, even if all rules are up to date.**
+
+Search for and remove deprecated files that are no longer part of the plugin:
 
 ```bash
 ls agentic.md 2>/dev/null
 ```
 
-**If agentic.md EXISTS:**
-
-Delete it:
+**If agentic.md EXISTS → DELETE IT:**
 ```bash
 rm agentic.md
 ```
 
 Report:
 ```
-agentic.md Cleanup:
-  ✓ Removed deprecated agentic.md file
+Deprecated File Cleanup:
+  ✓ Removed deprecated agentic.md (no longer used by plugin)
 ```
 
-**If agentic.md does NOT exist:** Skip silently.
+**If agentic.md does NOT exist:** Report: `No deprecated files found.`
+
+**IMPORTANT:** This cleanup MUST run and MUST be reported to the user, regardless of whether rules need updating. Only after this step, proceed to Step 1.
 
 ---
 
-## Update Step 2: Detect Installation Type
+## Update Step 1: Detect Installation Type
 
 This step determines the installation state and required actions.
 
-### 2.1 Check for Modern Installation
+### 1.1 Check for Modern Installation
 
 ```bash
 ls -la .claude/rules/agenticaiplugin-*.md 2>/dev/null
 ```
 
-**If rules files exist:** Modern installation detected → Set `installation_type = modern` → Continue to Update Step 3.
+**If rules files exist:** Modern installation detected → Set `installation_type = modern` → Continue to Update Step 2.
 
-### 2.2 Check for Legacy Installation (No Rules Directory)
+### 1.2 Check for Legacy Installation (No Rules Directory)
 
 If `.claude/rules/` does not exist or contains no `agenticaiplugin-*.md` files:
 
@@ -543,7 +545,7 @@ Run /agenticaiplugin:init first to set up your project.
 
 **STOP here.**
 
-### 2.3 Check CLAUDE.md for Plugin Content
+### 1.3 Check CLAUDE.md for Plugin Content
 
 If CLAUDE.md exists, read it and check for legacy plugin sections using these patterns:
 
@@ -579,21 +581,21 @@ This will be migrated to .claude/rules/ files.
 
 Set `installation_type = legacy`
 
-Continue to Update Step 3.
+Continue to Update Step 2.
 
 ---
 
-## Update Step 3: CLAUDE.md Migration
+## Update Step 2: CLAUDE.md Migration
 
 **Skip this step if `installation_type = modern` AND CLAUDE.md does not exist.**
 
 Check if `CLAUDE.md` exists in project root.
 
-**If CLAUDE.md does NOT exist:** Skip to Update Step 4.
+**If CLAUDE.md does NOT exist:** Skip to Update Step 3.
 
 **If CLAUDE.md exists:**
 
-### 3.1 Create Backup
+### 2.1 Create Backup
 
 ```bash
 cp CLAUDE.md CLAUDE.md.backup
@@ -601,11 +603,11 @@ cp CLAUDE.md CLAUDE.md.backup
 
 Report: `Backup created: CLAUDE.md.backup`
 
-### 3.2 Read and Parse CLAUDE.md
+### 2.2 Read and Parse CLAUDE.md
 
 Read the file and split into sections by `##` headers.
 
-### 3.3 Identify Plugin Sections
+### 2.3 Identify Plugin Sections
 
 Check each section against these patterns:
 
@@ -626,7 +628,7 @@ Check each section against these patterns:
 2. For each section, check if header matches any pattern above
 3. Mark as "plugin" or "project"
 
-### 3.4 Build Cleaned Content
+### 2.4 Build Cleaned Content
 
 Keep only sections marked as "project".
 
@@ -635,7 +637,7 @@ Preserve:
 - All project-specific sections
 - Comments, whitespace between sections
 
-### 3.5 Check if Result is Empty
+### 2.5 Check if Result is Empty
 
 After removing plugin sections, check if CLAUDE.md is "empty":
 
@@ -645,7 +647,7 @@ After removing plugin sections, check if CLAUDE.md is "empty":
 - Only HTML comments (`<!-- -->`)
 - Less than 50 characters of actual content
 
-### 3.6 Handle Result
+### 2.6 Handle Result
 
 **If empty:**
 ```bash
@@ -695,9 +697,9 @@ No changes needed.
 
 ---
 
-## Update Step 4: Scan Existing Rules
+## Update Step 3: Scan Existing Rules
 
-### 4.1 Handle Legacy Migration
+### 3.1 Handle Legacy Migration
 
 **If `installation_type = legacy`:**
 
@@ -709,9 +711,9 @@ mkdir -p .claude/rules
 
 All rules will be marked as "New" (to be created).
 
-Skip to Update Step 6 with all rules marked for creation.
+Skip to Update Step 5 with all rules marked for creation.
 
-### 4.2 Scan Modern Installation
+### 3.2 Scan Modern Installation
 
 List all `agenticaiplugin-*.md` files in `.claude/rules/`:
 
@@ -728,7 +730,7 @@ For each file found:
 
 ---
 
-## Update Step 5: Compare Versions
+## Update Step 4: Compare Versions
 
 Compare each existing rule with the current plugin version.
 
@@ -748,7 +750,7 @@ For each rule:
 
 ---
 
-## Update Step 6: Show Update Preview
+## Update Step 5: Show Update Preview
 
 **For Legacy Migration (`installation_type = legacy`):**
 
@@ -794,7 +796,7 @@ All plugin rules are up to date (v1.0).
 
 ---
 
-## Update Step 7: Ask for Confirmation
+## Update Step 6: Ask for Confirmation
 
 Only if there are rules to update or create. Use the AskUserQuestion tool:
 - Question: "Proceed with plugin update?"
@@ -804,7 +806,7 @@ If user chooses "No, cancel" → Stop.
 
 ---
 
-## Update Step 8: Apply Updates
+## Update Step 7: Apply Updates
 
 For each rule that needs updating or creating:
 
@@ -821,7 +823,7 @@ Updating rules...
 
 ---
 
-## Update Step 9: Show Final Summary
+## Update Step 8: Show Final Summary
 
 **For Legacy Migration:**
 

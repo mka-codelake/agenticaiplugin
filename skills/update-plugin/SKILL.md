@@ -21,24 +21,24 @@ Updates an existing AgenticAI Plugin installation. Handles both modern (rules-ba
 
 Invokes the `project-initializer` agent in update mode which:
 
-1. **Detects Installation Type:**
+1. **Cleanup (ALWAYS runs first):**
+   - Removes deprecated `agentic.md` file if present in project root
+
+2. **Detects Installation Type:**
    - Modern: `.claude/rules/agenticaiplugin-*.md` files exist
    - Legacy: Plugin content in CLAUDE.md (no rules files)
    - None: No plugin installation found
 
-2. **For Legacy Installations:**
+3. **For Legacy Installations:**
    - Migrates plugin content from CLAUDE.md to `.claude/rules/`
    - Removes plugin sections from CLAUDE.md
    - Preserves project-specific content
    - Creates backup (CLAUDE.md.backup)
 
-3. **For Modern Installations:**
+4. **For Modern Installations:**
    - Compares rule versions
    - Updates outdated rules
    - Creates missing rules
-
-4. **Cleanup:**
-   - Removes deprecated `agentic.md` file if present in project root
 
 5. **Summary:**
    - Reports what was migrated/updated
