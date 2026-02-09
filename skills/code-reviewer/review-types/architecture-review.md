@@ -121,10 +121,11 @@ public class JpaUserRepository implements UserRepository {
 - **WARNING:** Breaking changes without versioning
 - **WARNING:** Inconsistent naming conventions across endpoints
 
-### 7. Design Patterns
-- **WARNING:** Inappropriate pattern usage
-- **SUGGESTION:** Missing patterns for common problems
-- **SUGGESTION:** Over-engineering with unnecessary patterns
+### 7. Design Patterns & Structural Quality
+- **CRITICAL:** Clear pattern opportunity ignored, leading to scattered/inconsistent code (same problem solved 3+ ways)
+- **WARNING:** Inappropriate or forced pattern usage (pattern for pattern's sake)
+- **WARNING:** Recognizable pattern opportunity that would significantly simplify code
+- **SUGGESTION:** Optional pattern that could improve clarity but current code is acceptable
 
 ---
 
@@ -388,48 +389,128 @@ public UserResponse getUserV2(@PathVariable Long id) {
 
 ---
 
-## Design Patterns
+## Design Patterns & Structural Quality
+
+**Core Principle:** Never suggest a pattern just to apply a pattern. Only flag when a pattern would solve an actual structural problem in the code. But when a clear opportunity exists and the current code is scattered, inconsistent, or unnecessarily complex — flag it with appropriate severity.
+
+### Severity Rules for Patterns
+
+| Situation | Severity |
+|-----------|----------|
+| Same problem solved 3+ different ways, code is scattered and inconsistent | **CRITICAL** |
+| Clear pattern opportunity that would significantly reduce complexity or duplication | **WARNING** |
+| Pattern applied unnecessarily (over-engineering, YAGNI) | **WARNING** |
+| Optional pattern that could improve clarity, but current code works fine | **SUGGESTION** |
+
+### Pattern Trigger Matrix
+
+Use this matrix to detect when a design pattern should be suggested. Only suggest when the trigger condition is clearly met.
+
+| Trigger Condition | Suggested Pattern | Severity |
+|-------------------|-------------------|----------|
+| Same task solved 3+ different ways in the codebase | **Strategy** | WARNING / CRITICAL |
+| Long if/else or switch chain selecting behavior by type | **Strategy** or polymorphism | WARNING |
+| Complex object construction with many optional fields | **Builder** | SUGGESTION |
+| Many similar objects with small variations created in code | **Factory Method** | SUGGESTION / WARNING |
+| Same before/after logic wrapping different core operations | **Template Method** or **Decorator** | WARNING |
+| Direct dependency on expensive/external resource everywhere | **Proxy** | SUGGESTION |
+| State-dependent behavior with many if-checks on state field | **State** | WARNING |
+| Tight coupling for event/notification needs | **Observer / Event** | SUGGESTION |
+| Multiple algorithms for the same problem, selected at runtime | **Strategy** | WARNING |
+| Need to add behavior dynamically without modifying existing classes | **Decorator** | SUGGESTION |
+| Complex conditional object creation based on type/config | **Abstract Factory** | WARNING |
+| Need to undo/replay operations | **Command** | SUGGESTION |
+
+### CRITICAL: Same Problem, Multiple Solutions
+
+When the same type of problem (e.g., data transformation, notification sending, validation strategy) is solved in 3+ inconsistent ways across the codebase.
+
+**Bad Example:**
+```python
+# File 1: Uses if/elif chain
+def calculate_discount(customer_type, amount):
+    if customer_type == "premium":
+        return amount * 0.2
+    elif customer_type == "gold":
+        return amount * 0.15
+    elif customer_type == "silver":
+        return amount * 0.1
+    return 0
+
+# File 2: Uses dictionary lookup
+DISCOUNT_MAP = {"premium": 0.2, "gold": 0.15}
+def get_discount(ctype, amt):
+    return amt * DISCOUNT_MAP.get(ctype, 0)
+
+# File 3: Uses separate methods
+def premium_discount(amount): return amount * 0.2
+def gold_discount(amount): return amount * 0.15
+```
+
+**Review Finding:**
+```markdown
+**CRITICAL:** Same problem solved 3 inconsistent ways
+- [pricing.py:10] if/elif chain for discount calculation
+- [utils.py:5] Dictionary lookup for discount calculation
+- [discounts.py:1-3] Separate methods for discount calculation
+**Rule:** architecture → Design Pattern Consistency
+**Fix:** Unify with Strategy pattern. Define DiscountStrategy interface, implement per type, select via factory or registry.
+```
 
 ### WARNING: Inappropriate Pattern Usage
 
+Patterns applied without justification, adding complexity without benefit.
+
 **Bad Example - Unnecessary Singleton:**
 ```java
-// YAGNI violation: Singleton pattern when not needed
+// YAGNI violation: Singleton when DI container manages lifecycle
 public class UserValidator {
     private static UserValidator instance;
-
-    private UserValidator() {}  // Overengineering
-
+    private UserValidator() {}
     public static UserValidator getInstance() {
-        if (instance == null) {
-            instance = new UserValidator();
-        }
+        if (instance == null) instance = new UserValidator();
         return instance;
     }
-
     public boolean validate(User user) { ... }
 }
 ```
 
-**Good Example - Simple Class:**
-```java
-// Simple, testable, no unnecessary pattern
-@Component
-public class UserValidator {
-    public boolean validate(User user) { ... }
-}
-```
-
-### SUGGESTION: Missing Factory Pattern
-
-When creating complex objects with many variations:
-
-**Suggestion:**
+**Review Finding:**
 ```markdown
-**SUGGESTION:** Consider Factory pattern
-- [OrderService.java:25-45] Complex order creation logic with multiple variations
-**Benefit:** Factory pattern would centralize order creation logic
-**Fix (optional):** Extract to OrderFactory if complexity grows
+**WARNING:** Unnecessary Singleton pattern
+- [UserValidator.java:3] Manual Singleton in DI-managed project
+**Rule:** architecture → No pattern for pattern's sake
+**Fix:** Remove Singleton, let DI container manage lifecycle. Use @Component or equivalent.
+```
+
+### WARNING: Missing Pattern Opportunity
+
+When code complexity would be significantly reduced by introducing a well-known pattern.
+
+**Detection triggers:**
+- Method with >5 branches selecting behavior by type/category → **Strategy**
+- Same setup/teardown code wrapping 3+ different operations → **Template Method**
+- Object construction spread across >3 locations with different field combinations → **Builder/Factory**
+- Direct resource access (DB, API, filesystem) scattered across business logic → **Repository/Proxy**
+
+**Review Finding Example:**
+```markdown
+**WARNING:** Pattern opportunity - Strategy pattern
+- [PaymentService.java:25-60] 8-branch switch selecting payment processing by type
+- New payment types require modifying this method (OCP violation)
+**Rule:** architecture → Design Pattern Opportunities
+**Fix:** Extract PaymentProcessor interface, implement per type (CreditCardProcessor, PayPalProcessor, etc.), use factory to select.
+```
+
+### SUGGESTION: Optional Pattern Improvement
+
+When a pattern could improve code but the current implementation is acceptable.
+
+```markdown
+**SUGGESTION:** Consider Builder pattern
+- [Order.java:15-35] Constructor with 8 parameters, 5 optional
+**Benefit:** More readable object construction, self-documenting parameter names
+**Fix (optional):** Introduce Order.builder().customer(...).items(...).build()
 ```
 
 ---
@@ -505,7 +586,11 @@ When performing architecture review:
 4. **Check ADR Compliance** - If ADRs exist
 5. **Check API Design** - RESTful conventions, versioning
 6. **Check New Dependencies** - Justification and conflicts
-7. **Check Design Patterns** - Appropriateness
+7. **Check Design Patterns** - Use Pattern Trigger Matrix
+   - Same problem solved 3+ ways → CRITICAL (suggest unifying pattern)
+   - Long switch/if-else on type → Strategy/polymorphism opportunity
+   - Complex construction, repeated wrapping, state-dependent behavior → check matrix
+   - Pattern applied without justification → WARNING (over-engineering)
 
 **Remember:** Only flag architectural issues relevant to the changes made. Don't demand full system refactoring unless it directly impacts current story.
 

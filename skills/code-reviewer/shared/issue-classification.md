@@ -41,6 +41,26 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
    - Circular dependencies between packages
    - Reverse dependencies (lower layer calling higher layer)
 
+7. **Cross-Cutting Concern Chaos**
+   - No recognizable unified error handling strategy across the project
+   - Same problem (error handling, validation, logging) solved in fundamentally incompatible ways
+
+8. **Behavioral Regressions**
+   - Changed return type of public method without updating all callers
+   - Changed exception type that callers may be catching specifically
+
+9. **Design Pattern Inconsistency**
+   - Same problem solved 3+ completely different ways across the codebase (no strategy recognizable)
+   - God Class with >10 dependencies accumulating unrelated responsibilities
+
+10. **Missing Critical Infrastructure Tests**
+    - Primary data store (main database) has no integration test
+    - Core messaging system (e.g., Kafka in event-driven architecture) has no integration test
+
+11. **Severely Outdated Dependencies**
+    - Dependency 2+ major versions behind (likely missing critical security patches)
+    - Known security vulnerability (CVE) in current dependency version
+
 ### CRITICAL Finding Format
 
 ```markdown
@@ -112,6 +132,62 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
 8. **Dependency Issues**
    - New dependencies without justification
    - Wrong test placement (unit test in integration directory)
+
+9. **SOLID Violations (beyond SRP)**
+   - OCP: Long switch/if-else chains on type requiring modification for each new variant
+   - LSP: Subclass throwing UnsupportedOperationException for inherited methods
+   - ISP: Fat interface where implementors leave methods empty
+   - DIP: Business logic directly instantiating concrete infrastructure classes
+
+10. **Cross-Cutting Concern Inconsistency**
+    - Mixed error handling strategies across modules (exceptions vs. error codes vs. Optional)
+    - Different logging frameworks or inconsistent formats in the same project
+    - Validation approach inconsistent across layers/modules
+
+11. **Code Smells (Fowler)**
+    - Feature Envy: method uses another object's data more than its own
+    - God Class: >7 dependencies, generic name, unrelated methods
+    - Message Chains: >3 levels deep (Law of Demeter violation)
+    - Data Clumps: same 3+ parameters in 3+ method signatures
+    - Shotgun Surgery: one change requires >5 unrelated file modifications
+
+12. **Cohesion & Coupling Issues**
+    - Low cohesion: class methods operate on unrelated data subsets
+    - High coupling: >10 project-internal imports, bidirectional dependencies
+
+13. **Naming Inconsistency**
+    - Inconsistent suffixes for same-layer types (Service + Manager + Handler)
+    - Inconsistent verbs for same operation type (get + fetch + retrieve + load)
+
+14. **Behavioral Changes**
+    - Changed default values affecting existing behavior
+    - Changed method signatures (parameter order, types, nullability)
+    - Changed visibility modifiers
+
+15. **Immutability Issues**
+    - Mutable internal state exposed via getters (returning live collections)
+    - Shared mutable state between threads without synchronization
+
+16. **Infrastructure Test Gaps**
+    - Secondary infrastructure component (cache, external API, file storage) has no integration test
+    - Integration test uses mocks instead of real/containerized infrastructure
+
+17. **E2E Test & Traceability Gaps**
+    - Documented business case has no corresponding E2E test
+    - E2E test without story/requirement reference
+    - No business requirements documentation found (can't verify E2E completeness)
+
+18. **Test Distribution Issues**
+    - Complex logic (>5 conditional paths) tested only at integration/E2E level
+    - Many input variations tested only via E2E tests (slow, expensive)
+    - All tests are unit tests with mocks (no integration tests proving real integration works)
+    - Integration/E2E tests without requirement traceability
+
+19. **Dependency & Framework Issues**
+    - Dependency 1 major version behind (stable for >6 months)
+    - Dependency significantly behind on minor/patch versions
+    - Code uses deprecated/legacy framework pattern when modern alternative exists
+    - Inconsistent framework usage (some files modernized, others still legacy)
 
 ### WARNING Finding Format
 
@@ -192,11 +268,35 @@ Does it violate framework testing rules or create layer violations?
     YES → CRITICAL
     NO  ↓
 
-Does it impact code quality, test coverage, or architecture significantly?
+Is there no recognizable strategy for a cross-cutting concern (error handling, logging)?
+    YES → CRITICAL
+    NO  ↓
+
+Is the same problem solved 3+ inconsistent ways, or is there a behavioral regression?
+    YES → CRITICAL
+    NO  ↓
+
+Is a critical infrastructure component (primary DB, core messaging) missing integration tests?
+    YES → CRITICAL
+    NO  ↓
+
+Is a dependency 2+ major versions behind or has a known CVE?
+    YES → CRITICAL
+    NO  ↓
+
+Does it violate SOLID principles, show code smells, or create inconsistent cross-cutting concerns?
     YES → WARNING
     NO  ↓
 
-Is it a nice-to-have improvement or style preference?
+Are there infrastructure test gaps, E2E coverage gaps, test distribution issues, or outdated dependencies?
+    YES → WARNING
+    NO  ↓
+
+Does it impact code quality, test coverage, naming consistency, or architecture?
+    YES → WARNING
+    NO  ↓
+
+Is it a nice-to-have improvement, optional pattern, or style preference?
     YES → SUGGESTION
 ```
 
@@ -249,6 +349,32 @@ You can lower severity if:
 | Unused imports | SUGGESTION | Minor cleanup |
 | Small pattern repeated | SUGGESTION | Minor DRY issue |
 | Could extract constant | SUGGESTION | Nice-to-have |
+| No error handling strategy recognizable | CRITICAL | Cross-cutting chaos |
+| Same problem solved 3+ different ways | CRITICAL | Design pattern inconsistency |
+| God Class >10 dependencies | CRITICAL | Severe code smell |
+| Changed return type without caller update | CRITICAL | Behavioral regression |
+| OCP violation (switch on type) | WARNING | SOLID violation |
+| LSP violation (disabled inherited method) | WARNING | SOLID violation |
+| ISP violation (fat interface) | WARNING | SOLID violation |
+| Feature Envy | WARNING | Code smell |
+| God Class >7 dependencies | WARNING | Code smell |
+| Message chain >3 levels | WARNING | Code smell |
+| Data Clumps (same params 3+ methods) | WARNING | Code smell |
+| Mixed error handling strategies | WARNING | Cross-cutting inconsistency |
+| Inconsistent logging format/levels | WARNING | Cross-cutting inconsistency |
+| Inconsistent naming suffixes in layer | WARNING | Naming inconsistency |
+| Changed default values | WARNING | Behavioral change |
+| Mutable state exposed via getter | WARNING | Immutability issue |
+| Low cohesion (unrelated methods) | WARNING | Cohesion issue |
+| >10 project-internal imports | WARNING | Coupling issue |
+| Primitive obsession | SUGGESTION | Code smell |
+| Could use Builder pattern | SUGGESTION | Optional improvement |
+| Dependency 2+ major versions behind | CRITICAL | Severely outdated, security risk |
+| Known CVE in dependency | CRITICAL | Security vulnerability |
+| Dependency 1 major version behind | WARNING | Outdated dependency |
+| Legacy framework pattern in use | WARNING | Framework modernization needed |
+| Inconsistent old/new framework patterns | WARNING | Partial migration |
+| Newer minor/patch version available | SUGGESTION | Routine update |
 
 ### Test Review Findings
 
@@ -258,6 +384,15 @@ You can lower severity if:
 | Missing tests for business logic | WARNING | Test coverage gap |
 | Unclear test name | WARNING | Test quality issue |
 | Could use better assertion | SUGGESTION | Optional improvement |
+| Primary DB has no integration test | CRITICAL | Missing critical infrastructure test |
+| Core messaging has no integration test | CRITICAL | Missing critical infrastructure test |
+| Secondary infra has no integration test | WARNING | Infrastructure test gap |
+| Documented business case has no E2E test | WARNING | E2E coverage gap |
+| E2E test without requirement reference | WARNING | Missing traceability |
+| No requirements documentation found | WARNING | Cannot verify E2E completeness |
+| Complex logic only at integration/E2E | WARNING | Wrong test level |
+| Many variations only at E2E level | WARNING | Test distribution issue |
+| Integration test without requirement ref | WARNING | Missing traceability |
 
 ### Architecture Review Findings
 
@@ -266,7 +401,12 @@ You can lower severity if:
 | Controller calls Repository | CRITICAL | Layer violation |
 | Business logic in Controller | WARNING | Wrong layer responsibility |
 | ADR violation | WARNING | Architecture compliance |
+| Same problem solved 3+ ways | CRITICAL | Pattern inconsistency |
+| Unnecessary Singleton/pattern | WARNING | Over-engineering |
+| Missing Strategy pattern (clear trigger) | WARNING | Pattern opportunity |
+| Missing Template Method (clear trigger) | WARNING | Pattern opportunity |
 | Could use Factory pattern | SUGGESTION | Optional pattern introduction |
+| Could use Builder pattern | SUGGESTION | Optional pattern introduction |
 
 ---
 
@@ -308,8 +448,8 @@ In the review report, group findings by:
 
 ## Remember
 
-- **CRITICAL** = Must fix (security, YAGNI, framework testing, layer violations)
-- **WARNING** = Should fix (code quality, coverage, architecture)
-- **SUGGESTION** = Can fix (nice-to-haves, style preferences)
+- **CRITICAL** = Must fix (security, YAGNI, framework testing, layer violations, cross-cutting chaos, behavioral regressions, pattern inconsistency 3+ ways, missing critical infrastructure tests, severely outdated dependencies/CVEs)
+- **WARNING** = Should fix (SOLID violations, code smells, cross-cutting inconsistency, cohesion/coupling, naming inconsistency, behavioral changes, infrastructure/E2E test gaps, test distribution issues, outdated dependencies, legacy framework patterns, code quality, coverage, architecture)
+- **SUGGESTION** = Can fix (optional patterns, primitive obsession, routine dependency updates, nice-to-haves, style preferences)
 
 When in doubt, err on the side of lower severity and provide clear justification for the classification.

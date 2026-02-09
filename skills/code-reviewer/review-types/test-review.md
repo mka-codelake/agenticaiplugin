@@ -310,15 +310,259 @@ void validateEmail_rejectsEmailsWithoutAtSign() { ... }
 
 ---
 
+## Infrastructure Integration Test Completeness
+
+**IMPORTANT:** Actively identify all infrastructure components the application depends on, then verify that each has at least one integration test.
+
+### 5. Infrastructure Component Detection
+
+Scan the project for infrastructure dependencies:
+
+**Databases:**
+- Connection strings, ORM configuration, repository classes, migration scripts
+- Examples: PostgreSQL, MySQL, MongoDB, Redis, Elasticsearch
+
+**Messaging Systems:**
+- Producer/consumer configuration, topic/queue definitions, message handlers
+- Examples: Kafka, RabbitMQ, ActiveMQ, SQS, NATS
+
+**External APIs:**
+- HTTP client configuration, API client classes, endpoint URLs
+- Examples: REST clients, GraphQL clients, gRPC stubs
+
+**Caches:**
+- Cache configuration, cache annotations, cache manager setup
+- Examples: Redis, Memcached, Hazelcast, in-memory caches
+
+**File Systems / Object Storage:**
+- File read/write operations, storage configuration
+- Examples: S3, Azure Blob, local filesystem, SFTP
+
+**Other Infrastructure:**
+- SMTP/email services, LDAP/identity providers, scheduler/cron jobs
+
+### 6. Integration Test Requirements
+
+For each detected infrastructure component, verify:
+
+- **CRITICAL:** Primary data store (main database) has no integration test
+- **CRITICAL:** Core messaging system (e.g., Kafka for event-driven architecture) has no integration test
+- **WARNING:** Secondary infrastructure component has no integration test
+- **WARNING:** Integration test exists but doesn't test the actual integration point (e.g., uses in-memory mock instead of real container)
+- **SUGGESTION:** Integration test exists but covers only happy path (no failure scenarios)
+
+**What constitutes a valid integration test:**
+- Uses real or containerized infrastructure (TestContainers, Docker, embedded server)
+- Tests the actual integration boundary (connection, read/write, publish/consume)
+- Verifies that data crosses the boundary correctly (format, encoding, schema)
+
+**Review Finding Example:**
+```markdown
+**CRITICAL:** Missing integration test for primary database
+- Project uses PostgreSQL (detected via application.yml + JPA entities)
+- No integration test found that tests actual database operations with real/containerized PostgreSQL
+**Rule:** test-review → Infrastructure Integration Test Completeness
+**Fix:** Add integration test using TestContainers PostgreSQL or equivalent containerized approach
+```
+
+```markdown
+**WARNING:** Missing integration test for Kafka messaging
+- Project uses Kafka (detected via KafkaTemplate, @KafkaListener)
+- No integration test verifying message produce/consume with real Kafka broker
+**Rule:** test-review → Infrastructure Integration Test Completeness
+**Fix:** Add integration test with containerized Kafka verifying end-to-end message flow
+```
+
+### 7. Integration Test → Technical Requirement Traceability
+
+Integration tests should reference the technical requirement they validate:
+
+- **WARNING:** Integration test without reference to requirement, epic, or technical story
+- **SUGGESTION:** Group integration tests by infrastructure component for clarity
+
+**Good Example:**
+```java
+@Test
+void shouldPersistUserToPostgreSQL() {
+    // EPIC-005: Database Integration
+    // Technical Requirement: User data persisted to PostgreSQL
+    // ...
+    // REQUIREMENT ✓
+}
+```
+
+**Bad Example:**
+```java
+@Test
+void testDatabase() {
+    // No requirement reference - why does this test exist?
+    // ...
+}
+```
+
+---
+
+## E2E Test Coverage & Business Case Traceability
+
+### 8. Business Requirements Documentation Check
+
+Before checking E2E test completeness, verify that business requirements are documented:
+
+**Check for requirements documentation in:**
+- `claudedocs/stories/` or `docs/stories/` (story files)
+- `claudedocs/epics/` or `docs/epics/` (epic files)
+- `claudedocs/requirements/` or `docs/requirements/` (requirements files)
+- Story references in code comments (STORY-XXX patterns)
+- README or project documentation describing business use cases
+
+**If NO requirements documentation found:**
+```markdown
+**WARNING:** No business requirements documentation found
+- Cannot verify E2E test completeness without documented business cases
+- Found test files but no traceable requirements to validate against
+**Recommendation:** Document business requirements in claudedocs/stories/ or equivalent location
+**Impact:** Without documented requirements, E2E test coverage cannot be objectively assessed
+```
+
+**If requirements documentation found → continue to section 9.**
+
+### 9. E2E Test Completeness
+
+For each documented business case / acceptance criterion, verify an E2E test exists:
+
+- **WARNING:** Documented business case has no corresponding E2E test
+- **WARNING:** E2E test exists but doesn't cover the full flow (partial coverage)
+- **SUGGESTION:** E2E test covers happy path only (no error/edge scenarios documented in requirements)
+
+**What constitutes a valid E2E test:**
+- Tests the complete business flow from entry point (API, UI, message) to final state (database, response, side effect)
+- Uses real or containerized infrastructure (not mocked boundaries)
+- Validates the business outcome, not just technical correctness
+- References the business requirement it validates (STORY-XXX, AC-N)
+
+**Review Finding Example:**
+```markdown
+**WARNING:** Missing E2E test for business case
+- STORY-042 AC-3: "When a user submits an order via REST API, the order is persisted and a confirmation email is sent"
+- No E2E test found that validates this complete flow
+**Rule:** test-review → E2E Test Completeness
+**Fix:** Add E2E test that: POST /api/orders → verify DB persistence → verify email sent
+```
+
+### 10. E2E Test → Business Requirement Traceability
+
+E2E tests MUST reference the business requirement they validate:
+
+- **WARNING:** E2E test without story/requirement reference
+- **WARNING:** E2E test references a story but doesn't match acceptance criteria
+- **SUGGESTION:** Consider requirement coverage matrix (which AC is covered by which test)
+
+**Good Example:**
+```python
+def test_order_submission_creates_order_and_sends_confirmation():
+    """
+    STORY-042 AC-3: When a user submits an order via REST API,
+    the order is persisted and a confirmation email is sent.
+    """
+    # Given: valid order data
+    # When: POST /api/orders
+    # Then: order in database AND email sent
+    # AC-3 ✓
+```
+
+**Bad Example:**
+```python
+def test_order():
+    # No requirement reference
+    # Tests something but unclear what business case
+    response = client.post("/api/orders", json=order_data)
+    assert response.status_code == 201
+```
+
+---
+
+## Test Level Distribution Strategy
+
+### 11. Smart Test Distribution
+
+Verify that tests are distributed sensibly across test levels (unit, integration, E2E).
+
+**Test Pyramid Principle:**
+```
+        /  E2E  \        ← Few: complete business flows
+       / Integr. \       ← Medium: infrastructure boundaries
+      /   Unit    \      ← Many: business logic variations
+```
+
+#### Complex Logic → Unit Tests (WARNING if missing)
+
+When business logic has many variations, conditional paths, or calculation rules:
+
+- **WARNING:** Complex logic (>5 conditional paths) tested only at integration/E2E level
+- **WARNING:** Many input variations (>10 combinations) tested only via integration/E2E tests
+- **SUGGESTION:** Consider unit tests for logic-heavy methods to test all variations cheaply
+
+**Rationale:** Unit tests are fast, focused, and cheap. Testing 50 discount calculation scenarios via E2E tests (each spinning up the full application) is wasteful when a unit test with parameterized inputs achieves the same coverage in seconds.
+
+**Detection:** Look for complex business logic (calculations, state machines, rule engines, validation chains) and check if test variations exist at unit level.
+
+**Review Finding Example:**
+```markdown
+**WARNING:** Complex logic tested only at integration level
+- [DiscountCalculator.java] Has 8 discount rules with 12 conditional branches
+- Only 2 integration tests found (happy path + one error case)
+- Remaining variations (edge cases, boundary values, rule combinations) untested
+**Rule:** test-review → Test Level Distribution
+**Fix:** Add parameterized unit tests for DiscountCalculator covering all rule variations. Keep integration tests for verifying the calculator works within the service context.
+```
+
+#### Infrastructure Boundaries → Integration Tests (WARNING if wrong level)
+
+- **WARNING:** Infrastructure integration tested only at unit level with mocks (doesn't prove real integration works)
+- **SUGGESTION:** Consider contract tests for external API integrations
+
+#### Business Flows → E2E Tests (WARNING if missing)
+
+- **WARNING:** Complete business flow has no E2E test
+- **WARNING:** E2E test doesn't cover the full flow (stops mid-way)
+
+#### Anti-Patterns
+
+- **WARNING:** Hundreds of variation tests at E2E level when they could be unit tests (slow test suite, expensive feedback loop)
+- **WARNING:** All tests are integration/E2E tests with no unit tests (missing test pyramid base)
+- **WARNING:** All tests are unit tests with mocked dependencies (no proof that real integration works)
+- **SUGGESTION:** Test suite takes >10 minutes → review test distribution for optimization opportunities
+
+---
+
 ## Review Process
 
 When reviewing test code:
 
 1. **Check Framework Testing** - CRITICAL violations first
-2. **Check Coverage** - Are business logic methods tested?
-3. **Check Quality** - AAA pattern, focused assertions, clear names
-4. **Check Placement** - Unit vs Integration directory correct?
+2. **Check Unit Test Coverage** - Business logic methods tested? Complex logic with variations at unit level?
+3. **Check Quality** - AAA/Given-When-Then, focused assertions, clear names
+4. **Check Placement** - Unit vs Integration vs E2E directory correct?
+5. **Check Infrastructure Integration Tests** - HIGH PRIORITY
+   - Identify all infrastructure components (DB, messaging, caches, external APIs)
+   - For each: verify integration test with real/containerized infrastructure exists
+   - Primary data store + core messaging without integration test = CRITICAL
+6. **Check E2E Test Completeness** - HIGH PRIORITY
+   - Find business requirements documentation (stories, ACs, specs)
+   - For each documented business case: verify E2E test exists
+   - Check that E2E tests cover full flow (entry point → final state)
+   - If no requirements documentation found: flag as WARNING
+7. **Check Test→Requirement Traceability**
+   - Integration tests reference technical requirements (EPIC-XXX)?
+   - E2E tests reference business requirements (STORY-XXX, AC-N)?
+8. **Check Test Distribution** - Smart pyramid
+   - Complex logic with many variations → should be unit tests (not only integration/E2E)
+   - Infrastructure boundaries → should be integration tests (not only mocked unit tests)
+   - Business flows → should be E2E tests
+   - Anti-pattern: hundreds of variations at E2E level, or all-mocks no integration
 
 **Remember:** Testing framework code is a CRITICAL violation. Always flag it.
 
 **Remember:** Only require tests for business logic that implements story requirements. Don't demand tests for framework functionality.
+
+**Remember:** Infrastructure integration tests and E2E test completeness are HIGH PRIORITY. Actively detect infrastructure components and check for corresponding tests.
