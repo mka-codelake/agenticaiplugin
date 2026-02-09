@@ -19,14 +19,12 @@
 
 Tests in these directories are immutable requirements (test-first workflow):
 
-| Test Type | Location | Owner | Modifiable? |
-|-----------|----------|-------|-------------|
-| Integration/System/E2E | `integration/`, `system/`, `e2e/` | test-engineer | NO |
-| Unit Tests | `unit/` | developer-agent | YES |
+| Test Type | Location | Modifiable? |
+|-----------|----------|-------------|
+| Integration/System/E2E | `integration/`, `system/`, `e2e/` | NO |
+| Unit Tests | `unit/` | YES |
 
-**Developer agent:** If integration tests fail, fix the IMPLEMENTATION, never the tests. Tests represent user requirements written before implementation (TDD Red-Green-Refactor).
-
-For detailed test-first workflow and examples, see test-engineer agent documentation.
+If integration tests fail, fix the IMPLEMENTATION, never the tests. Tests represent user requirements written before implementation (TDD Red-Green-Refactor).
 
 ---
 
@@ -63,7 +61,7 @@ These directories contain **user-provided** configuration and requirements:
    - User-defined test scenarios
    - Expected inputs/outputs
    - Explicit test specifications
-   - **Test-engineer reads these to write tests**
+   - **Used when writing integration tests**
 
 2. **claudedocs/guidelines/**
    - Project-specific coding rules

@@ -1,5 +1,5 @@
 ---
-description: Integration, system, and E2E testing patterns for Spring Boot. TestContainers, @SpringBootTest, async testing. Auto-activates when test-engineer agent is invoked.
+description: Integration, system, and E2E testing patterns for Spring Boot. TestContainers, @SpringBootTest, async testing. Auto-activates when writing integration, system, or E2E tests.
 user-invocable: false
 ---
 
@@ -14,19 +14,19 @@ Use this skill when writing integration, system, or E2E tests (not unit tests).
 
 ## Integration vs Unit Tests
 
-**Unit Tests (Developer-Agent):**
+**Unit Tests:**
 - Test single class/method in isolation
 - Mock all dependencies
 - Fast (milliseconds)
 - Location: `src/test/java/unit/`
 
-**Integration Tests (Test-Engineer):**
+**Integration Tests:**
 - Test multiple components together
 - Real dependencies (database, Kafka, Redis via TestContainers)
 - Slower (seconds)
 - Location: `src/test/java/integration/`
 
-**System/E2E Tests (Test-Engineer):**
+**System/E2E Tests:**
 - Test entire application flow
 - Full Spring Boot context
 - Real infrastructure
@@ -706,6 +706,6 @@ See `reference.md` (load only when user explicitly needs details).
 
 ---
 
-**This skill activates automatically when test-engineer agent is invoked.**
+**This skill activates automatically when writing integration, system, or E2E tests.**
 
 **Note:** This skill covers **Integration/System/E2E testing only**. For unit testing, see `spring-boot-best-practices` (Unit Testing section).

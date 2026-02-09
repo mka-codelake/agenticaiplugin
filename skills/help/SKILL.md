@@ -39,7 +39,6 @@ Zeige dem Benutzer folgende Übersicht:
 |---------|--------------|
 | **gitme** | Intelligente Git-Commits: Analysiert alle Änderungen, gruppiert sie logisch und erstellt aussagekräftige Commit-Messages. Kann mehrere Commits erstellen wenn sinnvoll |
 | **code-review** | Führt ein intelligentes Code-Review durch. Vier Modi: ohne Parameter = Git Diff (Standard), mit Datei = Einzeldatei, `--complete` = ganzes Projekt, `--renovate` = Dependency-Audit (Optionen: `--stack jvm/js/python`, `--quick`, `--save`) |
-| **test** `[STORY-ID]` | Lässt den Test-Engineer Integration-/System-/E2E-Tests schreiben. Optional mit Story-ID für Traceability |
 
 ### Change Management
 | Command | Beschreibung |
@@ -92,7 +91,6 @@ Agents sind isolierte Kontexte für spezifische Aufgaben.
 | **code-review** | Multi-Specialist Code-Reviews (10 fokussierte Spezialisten, kein separater Agent mehr) |
 | **context-creator** | Erstellt README.md |
 | **project-initializer** | Richtet Projekte für das Plugin ein |
-| **test-engineer** | Schreibt Integration-/System-/E2E-Tests basierend auf Akzeptanzkriterien |
 
 ---
 

@@ -85,7 +85,6 @@ Next steps:
 3. Start using plugin features:
    - /agenticaiplugin:code-review - Review code quality
    - /agenticaiplugin:gitme - Smart git commits
-   - /agenticaiplugin:test - Run tests
 
 To update rules after plugin updates:
    /agenticaiplugin:update-plugin
@@ -114,4 +113,3 @@ These rules are auto-loaded by Claude Code when working in your project.
 - **/agenticaiplugin:update-plugin** - Update rules to latest version
 - **/agenticaiplugin:config** - Configure plugin settings
 - **/agenticaiplugin:code-review** - Review code quality
-- **/agenticaiplugin:test** - Write integration tests

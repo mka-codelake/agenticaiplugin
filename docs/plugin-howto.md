@@ -130,7 +130,7 @@ Specify which agent type executes the skill:
 ---
 name: code-check
 description: Quick code validation
-agent: test-engineer
+agent: context-creator
 ---
 ```
 
@@ -229,7 +229,6 @@ Specialized AI assistants for discrete workflows with isolated context. Think: "
 Single markdown file per agent in `agents/` directory:
 ```
 agents/
-├── test-engineer.md
 ├── context-creator.md
 └── project-initializer.md
 ```
@@ -278,15 +277,6 @@ Clear description.
 Agents can automatically load specific skills when they start using the `skills:` frontmatter field.
 
 **Syntax:**
-```yaml
----
-name: test-engineer
-tools: Read, Write, Edit, Grep, Bash
-model: sonnet
-skills: integration-testing, testing-philosophy, java-best-practices
----
-```
-
 **Behavior:**
 - Skills are loaded into the agent's isolated context at startup
 - Comma-separated list of skill names (matches skill's frontmatter `name:` field)
@@ -295,18 +285,8 @@ skills: integration-testing, testing-philosophy, java-best-practices
 
 **Use cases:**
 - **Core skills:** Always-needed knowledge (e.g., `development-principles` for code reviewers)
-- **Domain skills:** Specialized knowledge (e.g., `integration-testing` for test engineers)
+- **Domain skills:** Specialized knowledge (e.g., `integration-testing` for test writers)
 - **Language skills:** Tech-specific patterns when agent is language-specific
-
-**Example:**
-```yaml
----
-name: test-engineer
-skills: integration-testing, testing-philosophy, java-best-practices
----
-```
-
-Agent can still conditionally load additional skills based on context (e.g., language-specific skills based on file extensions).
 
 **Best practices:**
 - Only auto-load skills that are ALWAYS relevant to the agent

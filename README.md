@@ -24,7 +24,6 @@ The plugin architecture separates concerns intelligently: test engineers write i
 
 - **Intelligent Agile Workflow:** Epic/Story/Sprint management with templates, acceptance criteria generation, and story point estimation
 - **Smart Code Reviews:** Multi-type reviews (code, tests, architecture) combining project guidelines with best-practice skills
-- **Test-First Development:** Separate test-engineer agent writes integration tests from user requirements, not implementation
 - **README Generation:** Creates and updates human-readable project documentation
 - **Technology Advisors:** Language-specific recommendations for JVM, JavaScript, and Python ecosystems
 - **Git Intelligence:** Analyzes changes and creates meaningful atomic commits following project conventions
@@ -113,21 +112,6 @@ Claude: Creates sprint plan with capacity tracking and dependencies
 
 Files are created in `claudedocs/epics/`, `stories/`, and `sprints/` following naming conventions.
 
-#### Test-First Development
-
-```
-User: "Write integration tests for STORY-042"
-Claude: test-engineer agent creates tests based on story's acceptance criteria
-
-User: "Implement STORY-042"
-Claude: Developer implements features until integration tests pass
-
-User: "Review my implementation"
-Claude: multi-specialist code review checks against project guidelines
-```
-
-The test-engineer works in isolated context - it sees user requirements but not implementation details, ensuring true black-box testing.
-
 #### Smart Git Commits
 
 ```
@@ -166,10 +150,6 @@ While most features activate automatically, you can also invoke them manually:
 /agenticaiplugin:code-review src/main/java/UserService.java  # Single file review
 /agenticaiplugin:code-review --complete                   # Complete project review
 /agenticaiplugin:code-review --renovate                   # Dependency audit
-
-# Create tests for a specific story or epic
-/agenticaiplugin:test STORY-042
-/agenticaiplugin:test EPIC-005
 
 # Smart Git commits
 /agenticaiplugin:gitme
@@ -231,7 +211,7 @@ Create `.md` files in `claudedocs/testspecs/` for integration test scenarios:
 - Username is "john"
 ```
 
-The test-engineer agent reads these specifications and creates TestContainer-based integration tests.
+The integration-testing skill uses these specifications when creating TestContainer-based integration tests.
 
 ## Project Structure
 
@@ -240,7 +220,6 @@ agenticaiplugin/
 ├── .claude-plugin/
 │   └── plugin.json           # Plugin metadata
 ├── agents/                   # Specialized sub-agents
-│   ├── test-engineer.md      # Integration test creation
 │   ├── project-initializer.md # Project setup
 │   └── context-creator.md    # README generation
 ├── rules-templates/          # Plugin rule templates
@@ -269,7 +248,6 @@ agenticaiplugin/
 │   ├── update-plugin/        # Update plugin rules
 │   ├── gitme/                # Smart Git commits
 │   ├── code-review/          # Manual code review
-│   ├── test/                 # Test creation
 │   ├── create-readme/        # README generation
 │   ├── create-cr/            # Context to document transfer
 │   ├── config/               # Plugin configuration
@@ -318,22 +296,6 @@ The code review system uses a team-based architecture with 10 focused specialist
 - Findings are deduplicated, sorted by severity, and consolidated into a single report
 - Specialists only identify issues — they never fix code or modify files
 - Project guidelines (`claudedocs/guidelines/*.md`) always override skill rules
-
-### Test Engineer Agent
-
-Works in **isolated context** - deliberately doesn't see implementation details. This ensures integration tests validate user requirements, not implementation choices.
-
-**Workflow:**
-1. Test-engineer reads story acceptance criteria and test specifications
-2. Creates integration tests using TestContainers (real infrastructure)
-3. Developer implements features to make tests pass
-4. Tests remain immutable - implementation must adapt to pass them
-
-**Technology stack:**
-- TestContainers (Kafka, PostgreSQL, Redis, etc.)
-- @SpringBootTest (full application context)
-- Awaitility (async testing without Thread.sleep)
-- AssertJ (fluent assertions)
 
 ### Agile Workflow Skill
 
@@ -409,8 +371,8 @@ your-project/
 ├── src/
 │   ├── main/java/
 │   └── test/java/
-│       ├── unit/            # Developer-owned
-│       └── integration/     # Test-engineer-owned
+│       ├── unit/            # Mutable (implementation-specific)
+│       └── integration/     # Immutable (requirement-based)
 └── CLAUDE.md                # Project-specific instructions (optional)
 ```
 
@@ -434,13 +396,11 @@ if (userRepository.existsByEmail(email)) {
 ### Test Separation
 
 **Integration tests (immutable):**
-- Written by test-engineer agent
-- Based on user requirements
-- Never modified by developer
+- Based on user requirements and acceptance criteria
+- Never modified during implementation
 - Located in `src/test/java/integration/`
 
 **Unit tests (mutable):**
-- Written by developer
 - Implementation-specific
 - Can be refactored freely
 - Located in `src/test/java/unit/`
