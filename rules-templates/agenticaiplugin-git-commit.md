@@ -20,7 +20,7 @@
 When user wants to commit (says "commit", "committe", "einchecken", or similar):
 
 1. **STOP** - Do not run `git commit`
-2. **USE** the `git-smart-commit` skill
+2. **USE** the `agenticaiplugin:git-smart-commit` skill
 3. **FOLLOW** the skill's process (analyze, group, commit)
 
 **This is mandatory** - the skill ensures atomic commits with meaningful messages.

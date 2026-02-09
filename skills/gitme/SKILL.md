@@ -17,7 +17,7 @@ No parameters required.
 
 ## What It Does
 
-Invokes the `git-smart-commit` skill to:
+Invokes the `agenticaiplugin:git-smart-commit` skill to:
 
 1. **Analyze Changes:**
    - Scan all uncommitted changes (staged and unstaged)
@@ -61,4 +61,4 @@ Creating commits...
 ## Related
 
 - **/agenticaiplugin:code-review** - Review code before committing
-- **git-smart-commit skill** - Underlying skill for commit logic
+- **agenticaiplugin:git-smart-commit** - Underlying skill for commit logic
