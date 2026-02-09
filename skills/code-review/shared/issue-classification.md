@@ -75,7 +75,7 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
 ```markdown
 **CRITICAL:** Hardcoded API key
 - [ApiClient.java:12] API_KEY = "sk_live_12345"
-**Rule:** development-principles → Security
+**Rule:** Security & Data Safety (Specialist 02)
 **Fix:** Move to environment variable. Use System.getenv("API_KEY").
 ```
 
@@ -204,7 +204,7 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
 ```markdown
 **WARNING:** Method exceeds size limit
 - [UserService.java:42] Method processUser() has 67 lines (limit: 50)
-**Rule:** development-principles → Code Size
+**Rule:** Code Quality → Code Size (Rule 6.2)
 **Impact:** Harder to understand and test
 **Fix:** Extract validation logic to separate method validateUser()
 ```

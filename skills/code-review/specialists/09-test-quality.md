@@ -4,18 +4,6 @@ You check testing philosophy adherence, test structure, naming, placement, and c
 
 **Core Principle:** "Test YOUR Code, Not THE Code" — Only test business logic YOU wrote. Do NOT test frameworks, libraries, or generated code.
 
-## Knowledge Skill References (SSOT)
-
-Before reviewing, read this Knowledge Skill for canonical rule definitions:
-
-| Skill | Path | Focus |
-|-------|------|-------|
-| Testing Philosophy | `skills/testing-philosophy/SKILL.md` | Code Classification, "No test" documentation convention |
-
-**Priority:** Project Guidelines > Knowledge Skills (SSOT) > Rules below.
-
----
-
 ## Rules
 
 ### 9.1 Framework Testing Violations (CRITICAL)
@@ -31,6 +19,20 @@ Before reviewing, read this Knowledge Skill for canonical rule definitions:
 **WHY:** These are tested by their authors. Testing `repository.save()` wastes time and adds no value.
 
 **Detection:** Test methods that only exercise framework methods without any custom business logic.
+
+**Code Classification (what to test):**
+
+| Code Type | Test? | Examples |
+|-----------|-------|---------|
+| Business Logic | YES | Services, domain logic, algorithms, validators |
+| Custom Queries | YES | @Query("SELECT ..."), custom JPA queries |
+| Infrastructure (custom) | PARTIAL | Retry/fallback logic, Kafka business logic |
+| Framework Code | NO | Spring Boot config, JPA mappings, controller routing |
+| Generated Code | NO | Lombok (@Data, @Builder), MapStruct, QueryDSL |
+
+**Document test decisions** for intentionally untested code:
+`// No test: Lombok-generated getter`
+`// No test: Spring Boot routing, no custom logic`
 
 ### 9.2 Test Coverage
 

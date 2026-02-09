@@ -8,7 +8,7 @@ The AgenticAI Plugin brings production-ready development patterns and automation
 
 **What makes it different?**
 
-This plugin doesn't just provide commands - it enhances Claude's capabilities with specialized knowledge that activates automatically when you need it. Writing tests? Testing philosophy kicks in. Adding dependencies? Technology advisors ensure current versions. Everything works together seamlessly.
+This plugin doesn't just provide commands - it enhances Claude's capabilities with specialized knowledge that activates automatically when you need it. Writing tests? Testing philosophy is built into the review rules. Conducting code reviews? Ten focused specialists run in parallel. Everything works together seamlessly.
 
 The plugin architecture separates concerns intelligently: test engineers write integration tests without seeing implementation details (true TDD), and code reviewers combine project-specific guidelines with universal best practices.
 
@@ -24,7 +24,6 @@ The plugin architecture separates concerns intelligently: test engineers write i
 
 - **Smart Code Reviews:** Multi-type reviews (code, tests, architecture) combining project guidelines with best-practice skills
 - **README Generation:** Creates and updates human-readable project documentation
-- **Technology Advisors:** Language-specific recommendations for JVM and JavaScript ecosystems
 - **Git Intelligence:** Analyzes changes and creates meaningful atomic commits following project conventions
 - **Progressive Disclosure:** Skills load essential information by default, detailed references on demand
 - **Modular Rules System:** Flexible plugin rules that can be selectively installed and updated
@@ -87,6 +86,7 @@ This command creates:
 | `agenticaiplugin-code-review.md` | Automatic code review after tasks |
 | `agenticaiplugin-protected-dirs.md` | Protected directories and files |
 | `agenticaiplugin-git-commit.md` | Enforce git-smart-commit skill for commits |
+| `agenticaiplugin-engineering.md` | Engineering principles (traceability, code size, test classification) |
 
 **To update rules after plugin updates:**
 ```bash
@@ -208,16 +208,13 @@ agenticaiplugin/
 │   ├── agenticaiplugin-core.md
 │   ├── agenticaiplugin-code-review.md
 │   ├── agenticaiplugin-protected-dirs.md
-│   └── agenticaiplugin-git-commit.md
+│   ├── agenticaiplugin-git-commit.md
+│   └── agenticaiplugin-engineering.md
 ├── skills/                   # All skills (knowledge + commands)
 │   ├── # Auto-activated knowledge skills:
 │   ├── git-smart-commit/     # Intelligent commits
 │   ├── code-review/          # Multi-specialist code review (orchestrator + 10 specialists)
-│   ├── development-principles/ # Story traceability, code size limits
-│   ├── testing-philosophy/   # Code classification, test documentation
 │   ├── architecture-audit/    # Architecture audit (7 analyzers, A-E ratings)
-│   ├── technology-advisor-jvm/
-│   ├── technology-advisor-javascript/
 │   ├── # Slash command skills (user-invocable):
 │   ├── init/                 # Project initialization
 │   ├── update-plugin/        # Update plugin rules
@@ -270,15 +267,6 @@ The code review system uses a team-based architecture with 10 focused specialist
 - Findings are deduplicated, sorted by severity, and consolidated into a single report
 - Specialists only identify issues — they never fix code or modify files
 - Project guidelines (`claudedocs/guidelines/*.md`) always override skill rules
-
-### Technology Advisors
-
-Enforce current-version research before adding dependencies:
-
-- **JVM:** WebSearch + Maven Central API verification for Maven/Gradle projects
-- **JavaScript:** WebSearch + npm Registry API verification for npm/yarn/pnpm projects
-
-Advisors ensure you never get outdated library versions from training data.
 
 ### Architecture Audit
 

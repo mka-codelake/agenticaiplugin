@@ -27,7 +27,7 @@ The controller has a security issue.
 ### Cite Sources
 
 **Always reference:**
-- Specific guidelines (development-principles, testing-philosophy)
+- Specialist rules and project guidelines
 - Project guidelines (claudedocs/guidelines/exception-handling.md)
 - Skill sources
 
@@ -38,7 +38,7 @@ This violates best practices.
 
 **Good Example:**
 ```markdown
-**Rule:** development-principles → YAGNI Principle
+**Rule:** Code Quality → YAGNI (Rule 6.1)
 **Source:** claudedocs/guidelines/coding-standards.md → Section 2.3
 ```
 
@@ -286,7 +286,7 @@ You clearly don't understand Spring Boot.
 
 **When conflict:**
 ```markdown
-**Note:** This violates generic best practice (development-principles) but follows project guideline (exception-handling.md). No issue.
+**Note:** This violates generic best practice but follows project guideline (exception-handling.md). No issue.
 ```
 
 ### Cite Correctly
@@ -298,7 +298,7 @@ You clearly don't understand Spring Boot.
 
 **When only skill guideline:**
 ```markdown
-**Rule:** development-principles → Single Responsibility
+**Rule:** SOLID → SRP (Rule 5.1)
 ```
 
 **When both apply:**
@@ -371,7 +371,7 @@ Your code has problems.
 #### Code Review
 **CRITICAL:** SQL injection vulnerability
 - [UserController.java:25] String concatenation in query: "SELECT * FROM users WHERE email = '" + email + "'"
-**Rule:** development-principles → Security
+**Rule:** Security & Data Safety (Specialist 02)
 **Fix:** Use PreparedStatement:
 ```java
 PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE email = ?");
@@ -381,7 +381,7 @@ stmt.setString(1, email);
 #### Test Review
 **CRITICAL:** Testing framework code
 - [UserServiceTest.java:15] Testing JPA save() method
-**Rule:** testing-philosophy → "Test YOUR Code, Not THE Code"
+**Rule:** Test Quality → Framework Testing (Rule 9.1)
 **Fix:** Remove test. JPA save is tested by Hibernate team.
 
 ---
@@ -390,7 +390,7 @@ stmt.setString(1, email);
 
 **WARNING:** Method exceeds size limit
 - [UserService.java:42] processUser() has 67 lines (limit: 50)
-**Rule:** development-principles → Code Size
+**Rule:** Code Quality → Code Size (Rule 6.2)
 **Impact:** Harder to understand and test
 **Fix:** Extract validation to validateUser(), discount calculation to calculateDiscount()
 

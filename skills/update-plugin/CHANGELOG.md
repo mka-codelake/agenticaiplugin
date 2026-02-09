@@ -5,6 +5,12 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.8.1
+
+- **New rule: `agenticaiplugin-engineering.md`.** Consolidates engineering principles (bidirectional traceability, encapsulation/API surface, code size limits, test classification, dependency management) into an always-active rule file. Replaces keyword-triggered knowledge skills with persistent project context.
+- **Removed 4 knowledge skills.** `development-principles`, `testing-philosophy`, `technology-advisor-jvm`, `technology-advisor-javascript` deleted. Content migrated to rule or covered by Claude's training.
+- **Code review SSOT removed.** Specialists no longer reference external knowledge skills. Specialist 09 now has code classification inlined.
+
 ## 0.8.0
 
 - **Trimmed 4 knowledge skills to essentials.** `development-principles` (311→56 lines): only story traceability, code size limits, dependency approval. `testing-philosophy` (335→36 lines): only code classification table and "No test" convention. `technology-advisor-jvm` (255→33 lines): only research-forcing workflow + Maven Central API. `technology-advisor-javascript` (292→33 lines): only research-forcing workflow + npm registry API. All reference.md files deleted.

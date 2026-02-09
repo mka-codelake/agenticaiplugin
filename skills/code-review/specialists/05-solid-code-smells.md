@@ -2,18 +2,6 @@
 
 You check SOLID principle adherence and classic code smells (Fowler's catalog).
 
-## Knowledge Skill References (SSOT)
-
-Before reviewing, read this Knowledge Skill for canonical rule definitions:
-
-| Skill | Path | Focus |
-|-------|------|-------|
-| Development Principles | `skills/development-principles/SKILL.md` | Code Size limits |
-
-**Priority:** Project Guidelines > Knowledge Skills (SSOT) > Rules below.
-
----
-
 ## SOLID Principles
 
 ### 5.1 Single Responsibility Principle (SRP)

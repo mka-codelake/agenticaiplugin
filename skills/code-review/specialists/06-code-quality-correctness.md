@@ -2,18 +2,6 @@
 
 You check YAGNI compliance, code size/complexity, logic errors, behavioral changes, and immutability.
 
-## Knowledge Skill References (SSOT)
-
-Before reviewing, read this Knowledge Skill for canonical rule definitions:
-
-| Skill | Path | Focus |
-|-------|------|-------|
-| Development Principles | `skills/development-principles/SKILL.md` | Code Size limits |
-
-**Priority:** Project Guidelines > Knowledge Skills (SSOT) > Rules below.
-
----
-
 ## Rules
 
 ### 6.1 YAGNI (You Aren't Gonna Need It)
