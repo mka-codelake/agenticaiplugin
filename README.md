@@ -10,7 +10,7 @@ The AgenticAI Plugin brings production-ready development patterns and automation
 
 This plugin doesn't just provide commands - it enhances Claude's capabilities with specialized knowledge that activates automatically when you need it. Writing Java code? Best practices are immediately available. Creating tests? Testing philosophy kicks in. Planning a sprint? Agile workflow tools appear. Everything works together seamlessly.
 
-The plugin architecture separates concerns intelligently: test engineers write integration tests without seeing implementation details (true TDD), code reviewers combine project-specific guidelines with universal best practices, and documentation generators create both AI-optimized and human-readable formats.
+The plugin architecture separates concerns intelligently: test engineers write integration tests without seeing implementation details (true TDD), and code reviewers combine project-specific guidelines with universal best practices.
 
 **Who is it for?**
 
@@ -25,7 +25,7 @@ The plugin architecture separates concerns intelligently: test engineers write i
 - **Intelligent Agile Workflow:** Epic/Story/Sprint management with templates, acceptance criteria generation, and story point estimation
 - **Smart Code Reviews:** Multi-type reviews (code, tests, architecture) combining project guidelines with best-practice skills
 - **Test-First Development:** Separate test-engineer agent writes integration tests from user requirements, not implementation
-- **AI Session Context Management:** Auto-generates token-optimized project documentation for instant AI productivity
+- **README Generation:** Creates and updates human-readable project documentation
 - **Technology Advisors:** Language-specific recommendations for JVM, JavaScript, and Python ecosystems
 - **Git Intelligence:** Analyzes changes and creates meaningful atomic commits following project conventions
 - **Architecture Decision Records:** ADR creation and management with standard templates
@@ -141,18 +141,9 @@ Claude:
   - Follows project conventions (Conventional Commits, etc.)
 ```
 
-#### Context Management
+#### Documentation
 
 ```bash
-# Inspect project comprehensively (loads existing or creates new agentic.md)
-/agenticaiplugin:inspect
-
-# Create/update AI-optimized context file (incremental update)
-/agenticaiplugin:inspect --update
-
-# Create/update both agentic.md and README.md
-/agenticaiplugin:create-docs
-
 # Create/update human-readable README
 /agenticaiplugin:create-readme
 
@@ -163,7 +154,7 @@ Claude:
 /agenticaiplugin:config
 ```
 
-The context creator analyzes your project structure, key files, recent commits, and patterns to generate documentation that helps AI agents (agentic.md) or human developers (README.md) get productive immediately.
+The context creator analyzes your project structure, key files, recent commits, and patterns to generate README documentation that helps developers get productive immediately.
 
 ### Manual Commands
 
@@ -253,7 +244,7 @@ agenticaiplugin/
 ├── agents/                   # Specialized sub-agents
 │   ├── test-engineer.md      # Integration test creation
 │   ├── project-initializer.md # Project setup
-│   └── context-creator.md    # Documentation generation
+│   └── context-creator.md    # README generation
 ├── rules-templates/          # Plugin rule templates
 │   ├── agenticaiplugin-core.md
 │   ├── agenticaiplugin-code-review.md
@@ -278,11 +269,9 @@ agenticaiplugin/
 │   ├── # Slash command skills (user-invocable):
 │   ├── init/                 # Project initialization
 │   ├── update-plugin/        # Update plugin rules
-│   ├── inspect/              # Comprehensive project analysis
 │   ├── gitme/                # Smart Git commits
 │   ├── code-review/          # Manual code review
 │   ├── test/                 # Test creation
-│   ├── create-docs/          # Full documentation generation
 │   ├── create-readme/        # README generation
 │   ├── create-cr/            # Context to document transfer
 │   ├── config/               # Plugin configuration

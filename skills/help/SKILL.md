@@ -32,9 +32,7 @@ Zeige dem Benutzer folgende Übersicht:
 ### Dokumentation
 | Command | Beschreibung |
 |---------|--------------|
-| **inspect** | Analysiert ein Projekt umfassend und erstellt/lädt `agentic.md`. Mit `--update`: aktualisiert eine existierende agentic.md inkrementell |
 | **create-readme** | Erstellt/aktualisiert `README.md` - klassische Projektdokumentation für Menschen |
-| **create-docs** | Erstellt beide Dokumente (agentic.md + README.md) in einem Durchgang |
 
 ### Entwicklung
 | Command | Beschreibung |
@@ -97,7 +95,7 @@ Agents sind isolierte Kontexte für spezifische Aufgaben.
 | Agent | Aufgabe |
 |-------|---------|
 | **code-review** | Multi-Specialist Code-Reviews (10 fokussierte Spezialisten, kein separater Agent mehr) |
-| **context-creator** | Erstellt agentic.md und README.md |
+| **context-creator** | Erstellt README.md |
 | **project-initializer** | Richtet Projekte für das Plugin ein |
 | **test-engineer** | Schreibt Integration-/System-/E2E-Tests basierend auf Akzeptanzkriterien |
 

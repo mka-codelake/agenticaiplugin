@@ -26,7 +26,7 @@ The context-creator agent will:
 2. **Analyze Project:**
    - Scan directory structure
    - Identify technology stack (pom.xml, package.json, etc.)
-   - Read key files (CLAUDE.md, agentic.md, configs)
+   - Read key files (CLAUDE.md, configs)
    - Extract features and usage patterns
    - Check recent git activity
 
@@ -73,6 +73,4 @@ Task(
 
 ## Related
 
-- **/agenticaiplugin:inspect** - Load existing agentic.md or create it; use `--update` to incrementally update
-- **/agenticaiplugin:create-docs** - Create both agentic.md and README.md
 - **CLAUDE.md** - Project-specific instructions

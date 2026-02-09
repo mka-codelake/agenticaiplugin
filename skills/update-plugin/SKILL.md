@@ -37,7 +37,10 @@ Invokes the `project-initializer` agent in update mode which:
    - Updates outdated rules
    - Creates missing rules
 
-4. **Summary:**
+4. **Cleanup:**
+   - Removes deprecated `agentic.md` file if present in project root
+
+5. **Summary:**
    - Reports what was migrated/updated
    - Shows rule versions
 

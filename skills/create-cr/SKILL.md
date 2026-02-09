@@ -226,4 +226,4 @@ If any of this information exists only in the current session context and not in
 ## Related
 
 - **/agenticaiplugin:init** - Initialize project structure (creates claudedocs/)
-- **/agenticaiplugin:create-docs** - Create project documentation
+- **/agenticaiplugin:create-readme** - Create project documentation
