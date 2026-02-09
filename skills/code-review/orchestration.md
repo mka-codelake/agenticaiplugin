@@ -95,10 +95,24 @@ Wait for completion. Capture full results.
 
 Spawn ALL applicable Phase 2 specialists in a single message using multiple Task tool calls. This runs them concurrently for faster total review time.
 
+**Model selection per specialist:**
+
+| Specialist | Model | Rationale |
+|------------|-------|-----------|
+| 02 Security & Data Safety | **sonnet** | Data flows span multiple files; false negatives costly |
+| 03 Architecture & Layers | **sonnet** | Multi-file reasoning for layer violations and dependency direction |
+| 04 Design Patterns | **haiku** | GoF detection is rule-based, typically single-class |
+| 05 SOLID & Code Smells | **haiku** | Single-class analysis with well-defined rules |
+| 06 Code Quality | **haiku** | Local checks with clear criteria |
+| 07 Dead Code & Duplication | **haiku** | Pattern-matching task |
+| 08 Cross-Cutting Concerns | **sonnet** | Logging/error-handling consistency is inherently cross-file |
+| 09 Test Quality | **haiku** | Scoped to test files |
+| 10 Test Completeness | **haiku** | Structured cross-referencing |
+
 **Spawn each via Task tool:**
 ```
 subagent_type: general-purpose
-model: haiku
+model: sonnet   # or haiku — see table above
 ```
 
 **Note on inter-specialist communication:** Phase 2 specialists run in parallel and independently. They do not communicate with each other during execution. Cross-specialist context comes from:
@@ -414,7 +428,7 @@ Confirm: `Report saved: claudedocs/reports/dependency-audit-{date}.md`
 
 ## Token/Cost Optimization
 
-- **Model choice:** Specialists use `haiku` (fast, cheap, sufficient for focused rule checking)
+- **Differentiated model choice:** Specialists requiring multi-file reasoning (02 Security, 03 Architecture, 08 Cross-Cutting) use `sonnet`; rule-based specialists (04-07, 09-10) use `haiku`. This balances depth for complex analysis with cost efficiency for focused rule checking.
 - **Selective activation:** Only applicable specialists are spawned
 - **Parallel execution:** Phase 2 specialists run concurrently
 - **Focused context:** Each specialist reads only ~150-250 lines of rules (vs. ~3,200 lines in single-agent approach)

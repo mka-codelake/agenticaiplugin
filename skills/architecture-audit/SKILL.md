@@ -37,14 +37,15 @@ Report is saved as `claudedocs/architecture-audit-YYYY-MM-DD.md`.
 4. Identify build tools and test frameworks
 
 ### Step 3: Phase 1 — Pattern Recognition (Sequential)
-Spawn Analyzer 01 via Task tool (`general-purpose`, `model: haiku`).
+Spawn Analyzer 01 via Task tool (`general-purpose`, `model: sonnet`).
 Provides: Project Structure Summary + Tech Stack Profile.
 Returns: Detected pattern, confidence level, expected architecture rules.
 
 **Must complete before Phase 2** — all Phase 2 analyzers need the detected pattern.
 
 ### Step 4: Phase 2 — Parallel Analyzers
-Spawn Analyzers 02-07 in **one message** (6 parallel Task calls, `general-purpose`, `model: haiku`).
+Spawn Analyzers 02-07 in **one message** (6 parallel Task calls, `general-purpose`).
+Model per analyzer: `sonnet` for multi-file reasoning (02, 03, 05, 06), `haiku` for rule-based (04, 07).
 Each receives: Project Structure Summary + Tech Stack Profile + Phase 1 results.
 
 ### Step 5: Consolidation & Rating
