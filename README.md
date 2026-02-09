@@ -161,10 +161,11 @@ The context creator analyzes your project structure, key files, recent commits, 
 While most features activate automatically, you can also invoke them manually:
 
 ```bash
-# Code review - three modes:
+# Code review - four modes:
 /agenticaiplugin:code-review                              # Git diff (default) - review all changed files
 /agenticaiplugin:code-review src/main/java/UserService.java  # Single file review
 /agenticaiplugin:code-review --complete                   # Complete project review
+/agenticaiplugin:code-review --renovate                   # Dependency audit
 
 # Create tests for a specific story or epic
 /agenticaiplugin:test STORY-042
@@ -172,9 +173,6 @@ While most features activate automatically, you can also invoke them manually:
 
 # Smart Git commits
 /agenticaiplugin:gitme
-
-# Dependency audit report
-/agenticaiplugin:renovate
 
 # Plugin help
 /agenticaiplugin:help
@@ -276,8 +274,7 @@ agenticaiplugin/
 │   ├── create-cr/            # Context to document transfer
 │   ├── config/               # Plugin configuration
 │   ├── help/                 # Plugin help
-│   ├── promote-perms/        # Permissions promotion
-│   └── renovate/             # Dependency audit
+│   └── promote-perms/        # Permissions promotion
 ├── docs/
 │   ├── plugin-howto.md       # Plugin development reference
 │   └── rules-howto.md        # Claude Code Rules documentation
@@ -307,12 +304,13 @@ The code review system uses a team-based architecture with 10 focused specialist
 | 9 | Test Quality | AAA structure, naming, placement, coverage |
 | 10 | Test Completeness & Infra | Integration tests, E2E coverage, architecture tests |
 
-**Three review modes:**
+**Four review modes:**
 | Mode | Command | Use Case |
 |------|---------|----------|
 | Git Diff (Default) | `/agenticaiplugin:code-review` | PR/branch reviews - reviews all changed files |
 | Single File | `/agenticaiplugin:code-review <file>` | Targeted review of specific file |
 | Complete Project | `/agenticaiplugin:code-review --complete` | Full codebase audit |
+| Dependency Audit | `/agenticaiplugin:code-review --renovate` | Full dependency audit with deprecation check |
 
 **Key features:**
 - Specialists research current standards (WebSearch/Context7) before reviewing
@@ -377,17 +375,19 @@ ADRs stored in `claudedocs/architecture/` following naming convention `ADR-001-d
 
 ### Dependency Audit
 
-Generate comprehensive dependency audit reports:
+Generate comprehensive dependency audit reports via the code-review command:
 
 ```bash
-/agenticaiplugin:renovate
+/agenticaiplugin:code-review --renovate                    # Full audit all stacks
+/agenticaiplugin:code-review --renovate --stack jvm        # JVM only
+/agenticaiplugin:code-review --renovate --quick            # Version check only
+/agenticaiplugin:code-review --renovate --save             # Save report to claudedocs/reports/
 ```
 
 Analyzes project dependencies and creates detailed audit reports including:
-- Security vulnerabilities
-- Outdated versions
-- License compliance
-- Dependency health metrics
+- Outdated versions (verified against live registries)
+- Deprecated libraries with recommended replacements
+- Modern alternatives for legacy dependencies
 
 ## Best Practices
 

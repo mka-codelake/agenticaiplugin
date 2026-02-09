@@ -10,7 +10,7 @@ Specialists only collect findings — they never fix code.
 ## Usage
 
 ```
-/agenticaiplugin:code-review [<file>|--complete]
+/agenticaiplugin:code-review [<file>|--complete|--renovate]
 ```
 
 | Mode | Command | Description |
@@ -18,6 +18,7 @@ Specialists only collect findings — they never fix code.
 | **Git Diff** (Default) | `/agenticaiplugin:code-review` | Review changed files vs. main branch |
 | **Single File** | `/agenticaiplugin:code-review <file>` | Review a specific file |
 | **Complete Project** | `/agenticaiplugin:code-review --complete` | Review all source files |
+| **Dependency Audit** | `/agenticaiplugin:code-review --renovate [--stack jvm\|js\|python] [--quick] [--save]` | Full dependency audit |
 
 ## Execution Flow
 
@@ -40,7 +41,9 @@ Specialists only collect findings — they never fix code.
 
 **--complete:** Find all source files (exclude node_modules, target, build, .git, dist, venv, __pycache__).
 
-### Steps 2-7: Orchestration
+**--renovate:** See "Dependency Audit Flow" section in `orchestration.md`. Runs only Specialist 1 in expanded mode against ALL project dependencies.
+
+### Steps 2-7: Orchestration (Git Diff / Single File / --complete only)
 
 Read `orchestration.md` for the full orchestration playbook:
 - **Step 2:** Categorize files (source, test, config, docs) and analyze change patterns
@@ -59,7 +62,8 @@ skills/code-review/
 ├── shared/
 │   ├── issue-classification.md ← Severity definitions (Critical/Warning/Suggestion)
 │   ├── best-practices.md       ← Review quality guidelines
-│   └── specialist-output-format.md ← Standard output format for specialists
+│   ├── specialist-output-format.md ← Standard output format for specialists
+│   └── known-deprecations.md   ← Registry APIs, deprecation list, audit report format
 └── specialists/                ← 10 focused review rule sets
     ├── 01-dependencies-versions.md    (Phase 1 — always)
     ├── 02-security-data-safety.md     (Phase 2 — source files)

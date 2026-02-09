@@ -304,6 +304,89 @@ Order all findings:
 
 ---
 
+## Dependency Audit Flow (`--renovate` mode)
+
+When `--renovate` is specified, skip the normal review flow. Instead:
+
+### Step R1: Parse Options
+
+Extract sub-options from the command:
+- `--stack jvm|js|python` — filter to specific stack (optional)
+- `--quick` — version check only, skip deprecation research (optional)
+- `--save` — save report to `claudedocs/reports/dependency-audit-{YYYY-MM-DD}.md` (optional)
+
+**Validation:** If `--stack` has invalid value, show usage and stop.
+
+### Step R2: Detect Tech Stacks
+
+Search for manifest files using Glob (see `shared/known-deprecations.md` for patterns).
+
+Display detected stacks:
+```
+Detected tech stacks:
+- JVM (Maven): pom.xml
+- JavaScript (npm): package.json
+```
+
+If no manifests found: error and stop.
+If `--stack` specified but not detected: error and stop.
+
+### Step R3: Spawn Specialist 1 (Expanded Mode)
+
+Spawn Specialist 1 via Task tool with an expanded prompt:
+
+```
+subagent_type: general-purpose
+model: haiku
+```
+
+**Specialist prompt for --renovate mode:**
+```
+You are the Dependency Audit specialist. You perform a comprehensive dependency
+audit for the entire project (not just changed files).
+
+## Your Rules
+Read: skills/code-review/specialists/01-dependencies-versions.md
+
+## Deprecation List & APIs
+Read: skills/code-review/shared/known-deprecations.md
+
+## Scope
+Check ALL dependencies in the project, not just changed ones.
+{IF --stack} Only check {stack} dependencies. {ENDIF}
+{IF --quick} Skip deprecation research — only check version currency. {ENDIF}
+
+## Manifest Files
+{list of detected manifest files}
+
+## Instructions
+1. Read the manifest file(s) and extract all dependencies
+2. For each dependency, verify latest stable version via registry API
+3. {IF NOT --quick} Check against known deprecation list {ENDIF}
+4. {IF NOT --quick} WebSearch for deprecated libraries not on the known list {ENDIF}
+5. Categorize each dependency: Current / Outdated / Deprecated / Replaced
+6. Return results using the Dependency Audit Report format from shared/known-deprecations.md
+
+{IF project_guidelines_exist}
+## Project Guidelines (OVERRIDE when conflicts occur)
+Read: claudedocs/guidelines/*.md
+{ENDIF}
+```
+
+### Step R4: Output Report
+
+Display the audit report from Specialist 1.
+
+**If `--save`:**
+```bash
+mkdir -p claudedocs/reports
+```
+Write report to `claudedocs/reports/dependency-audit-{YYYY-MM-DD}.md`.
+
+Confirm: `Report saved: claudedocs/reports/dependency-audit-{date}.md`
+
+---
+
 ## Token/Cost Optimization
 
 - **Model choice:** Specialists use `haiku` (fast, cheap, sufficient for focused rule checking)

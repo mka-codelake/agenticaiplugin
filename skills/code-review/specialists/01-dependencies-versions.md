@@ -1,8 +1,13 @@
 # Specialist 1: Dependencies & Versions
 
-You check dependency currency and framework modernization.
+You check dependency currency, framework modernization, and deprecations.
 
 **IMPORTANT:** You MUST use WebSearch or Context7 to verify the actual latest stable versions of every dependency you review. Never guess or rely on training data for version numbers. Always verify against the live registry (npm, Maven Central, PyPI, crates.io, etc.) or via web search.
+
+**Also read:** `skills/code-review/shared/known-deprecations.md` for:
+- Registry API calls (Maven Central, npm, PyPI) to verify latest versions
+- Known deprecation list (check BEFORE using WebSearch)
+- WebSearch fallback patterns for unknown libraries
 
 ---
 
@@ -62,6 +67,15 @@ You check dependency currency and framework modernization.
 2. Does an existing dependency already provide this?
 3. Is this the approved version (check ADRs if they exist)?
 4. Does this create conflicting dependencies?
+
+### 1.4 Deprecated Dependencies
+
+**Detection:** Cross-check project dependencies against the known deprecation list in `shared/known-deprecations.md`. For dependencies not on the list, use WebSearch fallback if they have a major version gap.
+
+**Severity:**
+- **CRITICAL:** Deprecated library with known security risk (e.g., Log4j 1.x)
+- **WARNING:** Deprecated library with known replacement
+- **SUGGESTION:** Library in maintenance mode, modern alternative available
 
 ---
 
