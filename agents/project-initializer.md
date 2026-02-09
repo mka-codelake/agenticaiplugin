@@ -790,21 +790,23 @@ For each file found:
 
 ## Update Step 4: Compare Versions
 
-Compare each existing rule with the current plugin version.
+Compare each installed rule version (from Step 3) against the **latest version from this table**.
 
-**Current Plugin Rule Versions:**
+**⚠️ IMPORTANT: This table is the SINGLE SOURCE OF TRUTH for latest versions. Do NOT use versions from examples or output templates.**
 
-| Rule File | Current Version |
-|-----------|-----------------|
+**Current Plugin Rule Versions (LATEST):**
+
+| Rule File | Latest Version |
+|-----------|----------------|
 | agenticaiplugin-core.md | v1.0 |
 | agenticaiplugin-code-review.md | v1.1 |
 | agenticaiplugin-protected-dirs.md | v1.0 |
 | agenticaiplugin-git-commit.md | v1.0 |
 
-For each rule:
+For each rule, compare the installed version against the Latest Version above:
 - If file missing: Mark as "New"
-- If version matches: Mark as "Up to date"
-- If version differs: Mark as "Update available"
+- If installed version matches latest: Mark as "Up to date"
+- If installed version differs from latest: Mark as "Update available"
 
 ---
 
@@ -847,7 +849,7 @@ Actions:
 ```
 Rules Status:
 
-All plugin rules are up to date (v1.0).
+All plugin rules are up to date.
 ```
 
 **If nothing to update (rules current, no CLAUDE.md migration):** Show summary and STOP.
