@@ -2,6 +2,18 @@
 
 You check architectural compliance, layer separation, dependency direction, circular dependencies, ADR compliance, API design, and schema changes.
 
+## Knowledge Skill References (SSOT)
+
+Before reviewing, read this Knowledge Skill for canonical rule definitions:
+
+| Skill | Path | Focus Lines |
+|-------|------|-------------|
+| Spring Boot Best Practices | `skills/spring-boot-best-practices/SKILL.md` | Layered Architecture (323-400), DI Patterns (400-447) |
+
+**Priority:** Project Guidelines > Knowledge Skills (SSOT) > Rules below.
+
+Your inline rules below define **detection patterns and severities**. The Knowledge Skill provides **canonical architecture definitions** and additional checks (e.g., Field Injection via @Autowired on fields = anti-pattern, Constructor Injection preferred, DI container patterns).
+
 ---
 
 ## Rules

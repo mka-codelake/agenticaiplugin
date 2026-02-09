@@ -4,6 +4,18 @@ You check testing philosophy adherence, test structure, naming, placement, and c
 
 **Core Principle:** "Test YOUR Code, Not THE Code" — Only test business logic YOU wrote. Do NOT test frameworks, libraries, or generated code.
 
+## Knowledge Skill References (SSOT)
+
+Before reviewing, read this Knowledge Skill for canonical rule definitions:
+
+| Skill | Path | Focus Lines |
+|-------|------|-------------|
+| Testing Philosophy | `skills/testing-philosophy/SKILL.md` | Core Philosophy (1-50), Code Classification (51-100), Test Necessity Decision Logic (100-130) |
+
+**Priority:** Project Guidelines > Knowledge Skills (SSOT) > Rules below.
+
+Your inline rules below define **detection patterns and severities**. The Knowledge Skill provides **Code Classification** (4 categories: Framework Code, Generated Code, Glue Code, Business Logic) and the **Test Necessity Decision Matrix** that determines which code categories require testing.
+
 ---
 
 ## Rules

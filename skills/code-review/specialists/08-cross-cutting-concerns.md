@@ -4,6 +4,18 @@ You check that cross-cutting concerns are implemented consistently across the en
 
 **IMPORTANT:** Inconsistency in cross-cutting concerns leads to maintenance burden, unpredictable behavior, and architectural degradation.
 
+## Knowledge Skill References (SSOT)
+
+Before reviewing, read this Knowledge Skill for canonical rule definitions:
+
+| Skill | Path | Focus Lines |
+|-------|------|-------------|
+| Development Principles | `skills/development-principles/SKILL.md` | Logging Guidelines (213-250) |
+
+**Priority:** Project Guidelines > Knowledge Skills (SSOT) > Rules below.
+
+Your inline rules below define **detection patterns and severities** for consistency checks. The Knowledge Skill provides **canonical log-level definitions** (ERROR/WARN/INFO/DEBUG) and logging best practices that serve as the baseline for consistency evaluation.
+
 ---
 
 ## Rules

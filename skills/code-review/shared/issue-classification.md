@@ -89,7 +89,7 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
 
 1. **Code Quality Issues**
    - Methods exceeding 50 lines
-   - Classes exceeding 300 lines
+   - Classes exceeding 500 lines
    - Magic numbers (use constants)
    - Poor naming conventions
 

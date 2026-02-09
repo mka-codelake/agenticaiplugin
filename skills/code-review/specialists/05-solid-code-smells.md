@@ -2,6 +2,19 @@
 
 You check SOLID principle adherence and classic code smells (Fowler's catalog).
 
+## Knowledge Skill References (SSOT)
+
+Before reviewing, read these Knowledge Skills for canonical rule definitions:
+
+| Skill | Path | Focus Lines |
+|-------|------|-------------|
+| Development Principles | `skills/development-principles/SKILL.md` | SRP definition (51-68), Code Size limits (69-83) |
+| Java Best Practices | `skills/java-best-practices/SKILL.md` | Modern Java Syntax (139-300) — only for Java code |
+
+**Priority:** Project Guidelines > Knowledge Skills (SSOT) > Rules below.
+
+Your inline rules below define **detection patterns and severities**. The Knowledge Skills provide **canonical SSOT definitions** (e.g., SRP as defined in development-principles) and modern language patterns (e.g., Java 17+ sealed classes, records, pattern matching).
+
 ---
 
 ## SOLID Principles

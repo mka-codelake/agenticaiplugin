@@ -132,7 +132,28 @@ Use WebSearch or Context7 (resolve-library-id → query-docs) to look up:
 
 This ensures your review is based on up-to-date standards, not outdated patterns.
 
-## Step 2: Read Your Rules
+## Step 2: Read Knowledge Skill References
+
+IF your specialist rules file contains a "Knowledge Skill References (SSOT)" section,
+read each referenced Knowledge Skill file using the Read tool. These provide canonical
+rule definitions (Single Source of Truth) that supplement your specialist rules.
+
+**Specialist → Knowledge Skill Mapping:**
+
+| Specialist | Knowledge Skill(s) to Read | Focus |
+|---|---|---|
+| 03 Architecture | `skills/spring-boot-best-practices/SKILL.md` | Layered Architecture, DI Patterns |
+| 05 SOLID | `skills/development-principles/SKILL.md` | SRP, Code Size definitions |
+| 05 SOLID (Java) | `skills/java-best-practices/SKILL.md` | Modern Java patterns |
+| 06 Code Quality | `skills/development-principles/SKILL.md` | YAGNI workflow, Code Size thresholds |
+| 06 Code Quality (Java) | `skills/java-best-practices/SKILL.md` | Modern Java syntax |
+| 08 Cross-Cutting | `skills/development-principles/SKILL.md` | Logging Guidelines |
+| 09 Test Quality | `skills/testing-philosophy/SKILL.md` | Code Classification, Test Necessity |
+| 10 Test Completeness | `skills/integration-testing/SKILL.md` | TestContainers, Given-When-Then |
+
+Only read the Knowledge Skills listed for YOUR specialist number.
+
+## Step 3: Read Your Rules
 Read your review rules file:
 skills/code-review/specialists/{specialist_file}
 
@@ -170,11 +191,11 @@ Consider this context when making recommendations.
 ## Instructions
 1. Identify the tech stack from the files and Phase 1 context
 2. Research current standards for the detected language, framework, and libraries
-3. Read your specialist rules file
-4. Read the output format specification
-5. Apply BOTH your specialist rules AND current technology standards
-6. When your rules conflict with current standards, prefer current standards
-7. When project guidelines conflict with either, project guidelines win
+3. Read Knowledge Skill References listed in your specialist rules (if any)
+4. Read your specialist rules file
+5. Read the output format specification
+6. Apply your specialist rules, Knowledge Skill definitions, AND current technology standards
+7. **Priority when conflicts occur:** Project Guidelines > Current Standards > Knowledge Skills (SSOT) > Specialist Rules
 8. Return findings ONLY in the standard output format
 9. If no issues found, return "No findings."
 10. Do NOT fix code — only identify and describe issues

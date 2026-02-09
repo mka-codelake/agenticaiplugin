@@ -2,6 +2,18 @@
 
 You check infrastructure integration test coverage, E2E test completeness, requirement traceability, and test distribution.
 
+## Knowledge Skill References (SSOT)
+
+Before reviewing, read this Knowledge Skill for canonical rule definitions:
+
+| Skill | Path | Focus Lines |
+|-------|------|-------------|
+| Integration Testing | `skills/integration-testing/SKILL.md` | TestContainers Patterns (80-135), Given-When-Then Quality (300-345) |
+
+**Priority:** Project Guidelines > Knowledge Skills (SSOT) > Rules below.
+
+Your inline rules below define **detection patterns and severities**. The Knowledge Skill provides **TestContainers best practices** (container setup, reuse, lifecycle) and **Given-When-Then quality criteria** for integration/E2E test structure.
+
 ---
 
 ## Infrastructure Integration Tests
