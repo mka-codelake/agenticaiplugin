@@ -40,11 +40,6 @@ Zeige dem Benutzer folgende Übersicht:
 | **gitme** | Intelligente Git-Commits: Analysiert alle Änderungen, gruppiert sie logisch und erstellt aussagekräftige Commit-Messages. Kann mehrere Commits erstellen wenn sinnvoll |
 | **code-review** | Führt ein intelligentes Code-Review durch. Vier Modi: ohne Parameter = Git Diff (Standard), mit Datei = Einzeldatei, `--complete` = ganzes Projekt, `--renovate` = Dependency-Audit (Optionen: `--stack jvm/js/python`, `--quick`, `--save`) |
 
-### Change Management
-| Command | Beschreibung |
-|---------|--------------|
-| **create-cr** `[datei]` | Erstellt ein Change Request Dokument aus dem aktuellen Session-Kontext. Wichtig: Sichert Planungswissen bevor eine neue Session gestartet wird. Mit Dateiname: Aktualisiert existierendes CR |
-
 ### System
 | Command | Beschreibung |
 |---------|--------------|

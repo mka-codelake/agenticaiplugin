@@ -131,9 +131,6 @@ Claude:
 # Create/update human-readable README
 /agenticaiplugin:create-readme
 
-# Transfer context to structured document
-/agenticaiplugin:create-cr
-
 # View/edit plugin configuration
 /agenticaiplugin:config
 ```
@@ -249,7 +246,6 @@ agenticaiplugin/
 │   ├── gitme/                # Smart Git commits
 │   ├── code-review/          # Manual code review
 │   ├── create-readme/        # README generation
-│   ├── create-cr/            # Context to document transfer
 │   ├── config/               # Plugin configuration
 │   ├── help/                 # Plugin help
 │   └── promote-perms/        # Permissions promotion
