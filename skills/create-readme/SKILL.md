@@ -17,7 +17,7 @@ No parameters required.
 
 ## What It Does
 
-The context-creator agent will:
+The `agenticaiplugin:context-creator` agent will:
 
 1. **Detect Mode:**
    - If `README.md` doesn't exist → CREATE mode (full analysis)
@@ -61,7 +61,7 @@ Key findings:
 
 ## Execution
 
-Invoke the context-creator agent:
+Invoke the `agenticaiplugin:context-creator` agent:
 
 ```
 Task(

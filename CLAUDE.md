@@ -226,6 +226,17 @@ skills/agile-workflow/templates/
 ❌ Don't include example projects in plugin (mechanism only, not content)
 ❌ Don't put priority rules in README (put in agent description)
 ❌ Don't duplicate information across skills (use cross-references)
+❌ Don't reference agents without plugin prefix in invocation contexts (see below)
+
+### Agent References: Always Use Fully Qualified Names
+
+When a skill or rule **instructs to invoke/call/spawn an agent**, always use the fully qualified name with plugin prefix:
+
+- ✅ `agenticaiplugin:project-initializer` — in invocation/instruction context
+- ✅ `agenticaiplugin:context-creator` — in invocation/instruction context
+- ❌ `project-initializer` — will fail, Claude Code can't resolve the agent type
+
+**Exception:** Pure descriptive/documentation contexts (like tables listing available agents) may use the short name since no invocation happens there.
 
 ---
 

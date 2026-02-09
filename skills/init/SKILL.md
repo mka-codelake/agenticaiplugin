@@ -19,7 +19,7 @@ No parameters required.
 
 Creates plugin rules in `.claude/rules/` and recommended directory structure for using AgenticAI Plugin features.
 
-Invokes the `project-initializer` agent which guides you through:
+Invokes the `agenticaiplugin:project-initializer` agent which guides you through:
 
 1. **Status Check:**
    - Check for existing `.claude/rules/` directory

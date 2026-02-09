@@ -19,7 +19,7 @@ No parameters required.
 
 Updates an existing AgenticAI Plugin installation. Handles both modern (rules-based) and legacy (CLAUDE.md-based) installations.
 
-Invokes the `project-initializer` agent in update mode which:
+Invokes the `agenticaiplugin:project-initializer` agent in update mode which:
 
 1. **Cleanup (ALWAYS runs first):**
    - Removes deprecated `agentic.md` file if present in project root
