@@ -14,7 +14,7 @@ Specialists only collect findings — they never fix code.
 
 | Mode | Command | Description |
 |------|---------|-------------|
-| **Git Diff** (Default) | `/agenticaiplugin:code-review` | Review changed files vs. main branch |
+| **Git Diff** (Default) | `/agenticaiplugin:code-review` | Review uncommitted changes |
 | **Single File** | `/agenticaiplugin:code-review <file>` | Review a specific file |
 | **Complete Project** | `/agenticaiplugin:code-review --complete` | Review all source files |
 | **Dependency Audit** | `/agenticaiplugin:code-review --renovate [--stack jvm\|js\|python] [--quick] [--save]` | Full dependency audit |
@@ -39,34 +39,15 @@ Specialists only collect findings — they never fix code.
 ### Step 1: Determine Mode & Get Files
 
 **Git Diff (no parameter):**
-1. Detect default branch:
+1. Get changed files:
    ```bash
-   # 1. Check if origin remote exists
-   if ! git remote | grep -q '^origin$'; then
-     echo "ERROR: No 'origin' remote found. Git Diff mode requires a remote."
-     exit 1
-   fi
-
-   # 2. Detect default branch
-   default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
-   if [ -z "$default_branch" ]; then
-     if git show-ref --verify --quiet refs/remotes/origin/main; then default_branch="main"
-     elif git show-ref --verify --quiet refs/remotes/origin/master; then default_branch="master"
-     else
-       default_branch=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | sed 's/.*: //')
-     fi
-   fi
-
-   # 3. Validate
-   if [ -z "$default_branch" ] || ! git show-ref --verify --quiet "refs/remotes/origin/$default_branch"; then
-     echo "ERROR: Cannot detect default branch on origin. Available remote branches:"
-     git branch -r --list 'origin/*' | head -10
-     exit 1
-   fi
+   git diff --name-only HEAD
+   git diff --name-only --staged
+   git ls-files --others --exclude-standard
    ```
-2. Get changed files: `git diff --name-only origin/${default_branch}...HEAD`
-3. **WAIT for step 2 to complete.** If no changes found or the command fails: display error and STOP.
-4. **Only after step 2 succeeds:** Get full diff: `git diff origin/${default_branch}...HEAD`
+   Combine all three lists (deduplicated) into the file list.
+2. **WAIT for step 1 to complete.** If no changes found: display "No uncommitted changes detected" and STOP.
+3. **Only after step 1 succeeds:** Get combined diff: `git diff HEAD` (includes both staged and unstaged changes)
 
 **Single File:** Validate file exists. If not found: error and STOP.
 

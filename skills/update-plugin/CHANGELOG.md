@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.8.4
+
+- **Refactor: Code review default mode reviews local changes.** Git Diff mode (no parameter) now reviews uncommitted local changes (`git diff HEAD` + untracked files) instead of comparing against `origin/main`. Works in repos without a remote. Removed all remote branch detection code.
+
 ## 0.8.3
 
 - **Fix: Robust default branch detection in code-review.** Git Diff mode now checks for `origin` remote existence, falls back to `git remote show origin` for non-standard branch names (e.g., `develop`, `trunk`), and shows a clear error with available branches if detection fails. Also enforces sequential execution of git diff steps to prevent parallel failures.
