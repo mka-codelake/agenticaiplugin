@@ -43,6 +43,7 @@ Invokes the `project-initializer` agent in update mode which:
 5. **Summary:**
    - Reports what was migrated/updated
    - Shows rule versions
+   - Displays "What's New" changelog delta between installed and current version
 
 ## Example
 
