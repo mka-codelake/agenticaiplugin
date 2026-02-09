@@ -21,6 +21,19 @@ Analyzers only describe and assess — they never fix code.
 
 Report is saved as `claudedocs/architecture-audit-YYYY-MM-DD.md`.
 
+## Argument Handling
+
+**Check BEFORE executing any steps:**
+
+1. **`--help` passed** → Display the Usage section above verbatim, then STOP.
+2. **Unrecognized flags or invalid arguments** → Display the Usage section above verbatim, then STOP.
+
+**Valid arguments:**
+- No argument → Full project audit
+- `--scope <path>` → path must be provided and must exist
+
+**Invalid examples:** `--scope` without a path, unknown flags like `--foo`.
+
 ## Execution Flow
 
 ### Step 1: Project Discovery (You)

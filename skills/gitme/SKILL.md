@@ -15,6 +15,13 @@ Commit all uncommitted changes using intelligent grouping and meaningful commit 
 
 No parameters required.
 
+## Argument Handling
+
+**Check BEFORE executing any steps:**
+
+1. **`--help` passed** → Display the Usage section above verbatim, then STOP.
+2. **Any other argument passed** → Display the Usage section above verbatim, then STOP. This command takes no parameters.
+
 ## What It Does
 
 Invokes the `agenticaiplugin:git-smart-commit` skill to:

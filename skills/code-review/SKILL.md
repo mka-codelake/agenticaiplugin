@@ -19,6 +19,21 @@ Specialists only collect findings — they never fix code.
 | **Complete Project** | `/agenticaiplugin:code-review --complete` | Review all source files |
 | **Dependency Audit** | `/agenticaiplugin:code-review --renovate [--stack jvm\|js\|python] [--quick] [--save]` | Full dependency audit |
 
+## Argument Handling
+
+**Check BEFORE executing any steps:**
+
+1. **`--help` passed** → Display the Usage section above verbatim, then STOP.
+2. **Unrecognized flags or invalid arguments** → Display the Usage section above verbatim, then STOP.
+
+**Valid arguments:**
+- No argument → Git Diff mode
+- `<file>` → path to an existing file (validate it exists)
+- `--complete` → full project review
+- `--renovate` → dependency audit, with optional: `--stack jvm|js|python`, `--quick`, `--save`
+
+**Invalid examples:** `--foo`, unknown flags, `--complete --renovate` (mutually exclusive), `--complete <file>` (mutually exclusive).
+
 ## Execution Flow
 
 ### Step 1: Determine Mode & Get Files

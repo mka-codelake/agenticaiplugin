@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.8.2
+
+- **`--help` and input validation for all commands.** All 8 command skills now handle `--help` (displays usage info) and reject invalid arguments with usage guidance. Standardized `## Argument Handling` section added to each SKILL.md.
+
 ## 0.8.1
 
 - **New rule: `agenticaiplugin-engineering.md`.** Consolidates engineering principles (bidirectional traceability, encapsulation/API surface, code size limits, test classification, dependency management) into an always-active rule file. Replaces keyword-triggered knowledge skills with persistent project context.

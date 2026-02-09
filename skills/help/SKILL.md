@@ -13,6 +13,15 @@ Zeigt eine Übersicht über alle verfügbaren Commands, Skills und Agents.
 /agenticaiplugin:help
 ```
 
+No parameters required.
+
+## Argument Handling
+
+**Check BEFORE executing any steps:**
+
+1. **`--help` passed** → Display the Usage section above verbatim, then STOP.
+2. **Any other argument passed** → Display the Usage section above verbatim, then STOP. This command takes no parameters.
+
 ## Instructions
 
 Zeige dem Benutzer folgende Übersicht:

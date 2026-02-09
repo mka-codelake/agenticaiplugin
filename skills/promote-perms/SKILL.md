@@ -15,6 +15,13 @@ Promotes workspace-specific permissions to user level, so they apply across all 
 
 No parameters required.
 
+## Argument Handling
+
+**Check BEFORE executing any steps:**
+
+1. **`--help` passed** → Display the Usage section above verbatim, then STOP.
+2. **Any other argument passed** → Display the Usage section above verbatim, then STOP. This command takes no parameters.
+
 ## What It Does
 
 1. **Read Both Settings Files:**
