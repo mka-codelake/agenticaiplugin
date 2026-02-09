@@ -123,7 +123,7 @@ User: "Implement STORY-042"
 Claude: Developer implements features until integration tests pass
 
 User: "Review my implementation"
-Claude: code-reviewer agent checks against project guidelines
+Claude: multi-specialist code review checks against project guidelines
 ```
 
 The test-engineer works in isolated context - it sees user requirements but not implementation details, ensuring true black-box testing.
@@ -251,7 +251,6 @@ agenticaiplugin/
 ├── .claude-plugin/
 │   └── plugin.json           # Plugin metadata
 ├── agents/                   # Specialized sub-agents
-│   ├── code-reviewer.md      # Code quality analysis
 │   ├── test-engineer.md      # Integration test creation
 │   ├── project-initializer.md # Project setup
 │   └── context-creator.md    # Documentation generation
@@ -264,7 +263,7 @@ agenticaiplugin/
 │   ├── # Auto-activated knowledge skills:
 │   ├── agile-workflow/       # Epic/Story/Sprint management
 │   ├── git-smart-commit/     # Intelligent commits
-│   ├── code-reviewer/        # Review criteria
+│   ├── code-review/          # Multi-specialist code review (orchestrator + 10 specialists)
 │   ├── development-principles/ # YAGNI, KISS, traceability
 │   ├── testing-philosophy/   # Testing approach
 │   ├── java-best-practices/  # Java patterns
@@ -299,14 +298,25 @@ agenticaiplugin/
 
 ## Advanced Features
 
-### Code Review Agent
+### Multi-Specialist Code Review
 
-The code-reviewer agent performs comprehensive analysis combining multiple knowledge sources:
+The code review system uses a team-based architecture with 10 focused specialist agents orchestrated by a "Chief Architect" lead:
 
-1. **Project Guidelines** (`claudedocs/guidelines/*.md`) - Highest priority
-2. **Development Skills** - Language-specific best practices
-3. **Testing Philosophy** - Test quality standards
-4. **Architecture Patterns** - Structural guidelines
+**Phase 1 (Sequential):** Dependencies & Versions specialist runs first, providing version context for Phase 2.
+
+**Phase 2 (Parallel):** All applicable specialists run concurrently:
+| # | Specialist | Focus |
+|---|-----------|-------|
+| 1 | Dependencies & Versions | Outdated deps, CVEs, framework modernization |
+| 2 | Security & Data Safety | Credentials, injection, XSS, data loss |
+| 3 | Architecture & Layers | Pattern violations, port/adapter, circular deps |
+| 4 | Design Patterns (GoF) | Pattern trigger matrix, consistency |
+| 5 | SOLID & Code Smells | OCP/LSP/ISP/DIP, God Class, Feature Envy |
+| 6 | Code Quality & Correctness | YAGNI, SRP, logic errors, API documentation |
+| 7 | Dead Code & Duplication | DRY violations, unused code, magic numbers |
+| 8 | Cross-Cutting Concerns | Error handling, logging, transactions, caching |
+| 9 | Test Quality | AAA structure, naming, placement, coverage |
+| 10 | Test Completeness & Infra | Integration tests, E2E coverage, architecture tests |
 
 **Three review modes:**
 | Mode | Command | Use Case |
@@ -315,36 +325,12 @@ The code-reviewer agent performs comprehensive analysis combining multiple knowl
 | Single File | `/agenticaiplugin:code-review <file>` | Targeted review of specific file |
 | Complete Project | `/agenticaiplugin:code-review --complete` | Full codebase audit |
 
-**Review types (auto-detected):**
-- **Code reviews** - Security, YAGNI, code duplication (DRY), unused/dead code, deprecated API calls, unused packages, code quality
-- **Test reviews** - Testing philosophy compliance, coverage gaps
-- **Architecture reviews** - Pattern recognition (Layered, Hexagonal, Clean Architecture), layer violations
-
-**Architecture pattern recognition:**
-- Identifies project architecture pattern (Layered, Hexagonal, Clean, Microservices, Modular Monolith)
-- Reports if no clear pattern is detected (recommendation to document architecture)
-- Pattern-specific violation checks (e.g., Domain→Infrastructure dependencies in Hexagonal)
-
-**Code duplication detection:**
-- Actively searches for duplicated code blocks
-- Large blocks (10+ lines) duplicated 3+ times → CRITICAL
-- Medium blocks duplicated → WARNING
-- Always suggests refactoring approaches
-
-**Unused & dead code detection:**
-- Identifies unreferenced methods, classes, and fields
-- Detects code that cannot be reached or executed
-- Suggests cleanup opportunities to reduce maintenance burden
-- Severity based on scope (public vs private, age of code)
-
-**Deprecated API and unused packages detection:**
-- Flags deprecated API calls with replacement suggestions
-- Identifies imported but unused packages
-- Helps maintain modern, clean codebases
-
-**Ensemble reviews:** Multiple reviewer personas (security, performance, maintainability) analyze code in parallel, then synthesize findings into a comprehensive report.
-
-Reviews produce structured reports with critical issues, warnings, and suggestions, each linked back to specific rules.
+**Key features:**
+- Specialists research current standards (WebSearch/Context7) before reviewing
+- Each specialist reads only its focused rules (~100-200 lines vs ~3,200 in old approach)
+- Findings are deduplicated, sorted by severity, and consolidated into a single report
+- Specialists only identify issues — they never fix code or modify files
+- Project guidelines (`claudedocs/guidelines/*.md`) always override skill rules
 
 ### Test Engineer Agent
 

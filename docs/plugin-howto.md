@@ -130,7 +130,7 @@ Specify which agent type executes the skill:
 ---
 name: code-check
 description: Quick code validation
-agent: code-reviewer
+agent: test-engineer
 ---
 ```
 
@@ -229,9 +229,9 @@ Specialized AI assistants for discrete workflows with isolated context. Think: "
 Single markdown file per agent in `agents/` directory:
 ```
 agents/
-├── code-reviewer.md
-├── dependency-analyzer.md
-└── sprint-planner.md
+├── test-engineer.md
+├── context-creator.md
+└── project-initializer.md
 ```
 
 ### Agent File Format
@@ -280,10 +280,10 @@ Agents can automatically load specific skills when they start using the `skills:
 **Syntax:**
 ```yaml
 ---
-name: code-reviewer
-tools: Read, Grep, Bash
+name: test-engineer
+tools: Read, Write, Edit, Grep, Bash
 model: sonnet
-skills: development-principles, code-reviewer, java-best-practices
+skills: integration-testing, testing-philosophy, java-best-practices
 ---
 ```
 
@@ -717,48 +717,25 @@ Choose haiku for straightforward workflows to reduce cost/latency.
 
 Features that are available but not prominently advertised. For power users who know to look for them.
 
-### Ensemble Code-Review
+### Multi-Specialist Code Review
 
-Multiple code-reviewer instances run in parallel, leveraging LLM non-determinism for broader coverage.
-
-**Activation:**
-```bash
-/agenticaiplugin:config
-```
-
-This interactive command allows configuration of plugin settings including ensemble mode.
-
-**Configuration file:** `claudedocs/config.yaml`
-```yaml
-# AgenticAI Plugin Configuration
-code-review:
-  ensemble-count: 3  # Number of parallel reviewers (default: 1)
-```
+The code review system uses a team-based architecture with 10 focused specialist agents. A "Chief Architect" orchestrator (`skills/code-review/SKILL.md`) spawns specialists via the Task tool.
 
 **How it works:**
-1. Main agent reads config before code review
-2. If ensemble-count > 1: Starts N reviewers in parallel
-3. Waits for all to complete
-4. Aggregates results with hybrid deduplication:
-   - Exact matches (same file:line) → merged, shows confidence (N/M reviewers)
-   - Semantically similar findings → grouped as "potentially related"
-   - Unique findings → kept (the value of ensemble mode)
+1. Orchestrator detects changes (git diff, single file, or complete project)
+2. Phase 1: Dependencies & Versions specialist runs first (provides version context)
+3. Phase 2: All applicable specialists run in parallel (spawned as `general-purpose` sub-agents with `model: haiku`)
+4. Orchestrator consolidates, deduplicates, and sorts findings into a single report
 
-**Output format (ensemble mode):**
-```
-## Code Review Findings (Ensemble: 3 reviewers)
+**10 Specialists:** Dependencies & Versions, Security & Data Safety, Architecture & Layers, Design Patterns (GoF), SOLID & Code Smells, Code Quality & Correctness, Dead Code & Duplication, Cross-Cutting Concerns, Test Quality, Test Completeness & Infra
 
-### High Confidence (found by 2+ reviewers)
-- [Critical] UserService.java:42 - SQL injection risk (3/3 reviewers)
+**Key design decisions:**
+- Specialists read only their focused rules (~100-200 lines) for thorough coverage
+- Each specialist researches current tech stack standards via WebSearch/Context7 before reviewing
+- Specialists only identify issues — they never fix code or modify files
+- Phase 1 results are passed to Phase 2 specialists for version-aware reviews
 
-### Additional Findings (unique perspectives)
-- [Warning] PaymentService.java:156 - Method too long (Reviewer 2)
-```
-
-**Trade-offs:**
-- Higher coverage vs. higher token cost
-- Recommended for critical changes or complex implementations
-- Default (1 reviewer) sufficient for most cases
+See `skills/code-review/orchestration.md` for the full orchestration playbook
 
 ## Summary Checklist
 
