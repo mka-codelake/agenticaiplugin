@@ -348,8 +348,14 @@ audit for the entire project (not just changed files).
 ## Your Rules
 Read: skills/code-review/specialists/01-dependencies-versions.md
 
-## Deprecation List & APIs
+## Registry APIs & Manifest Detection
 Read: skills/code-review/shared/known-deprecations.md
+
+## Severity Definitions
+Read: skills/code-review/shared/issue-classification.md
+
+## Output Format
+Read: skills/code-review/shared/specialist-output-format.md
 
 ## Scope
 Check ALL dependencies in the project, not just changed ones.
@@ -362,10 +368,8 @@ Check ALL dependencies in the project, not just changed ones.
 ## Instructions
 1. Read the manifest file(s) and extract all dependencies
 2. For each dependency, verify latest stable version via registry API
-3. {IF NOT --quick} Check against known deprecation list {ENDIF}
-4. {IF NOT --quick} WebSearch for deprecated libraries not on the known list {ENDIF}
-5. Categorize each dependency: Current / Outdated / Deprecated / Replaced
-6. Return results using the Dependency Audit Report format from shared/known-deprecations.md
+3. {IF NOT --quick} Use WebSearch to check for deprecated/EOL libraries {ENDIF}
+4. Return findings using the standard output format (Critical/Warning/Suggestion)
 
 {IF project_guidelines_exist}
 ## Project Guidelines (OVERRIDE when conflicts occur)

@@ -63,7 +63,7 @@ skills/code-review/
 │   ├── issue-classification.md ← Severity definitions (Critical/Warning/Suggestion)
 │   ├── best-practices.md       ← Review quality guidelines
 │   ├── specialist-output-format.md ← Standard output format for specialists
-│   └── known-deprecations.md   ← Registry APIs, deprecation list, audit report format
+│   └── known-deprecations.md   ← Registry APIs, manifest detection, WebSearch patterns
 └── specialists/                ← 10 focused review rule sets
     ├── 01-dependencies-versions.md    (Phase 1 — always)
     ├── 02-security-data-safety.md     (Phase 2 — source files)

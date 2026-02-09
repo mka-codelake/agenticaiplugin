@@ -6,8 +6,8 @@ You check dependency currency, framework modernization, and deprecations.
 
 **Also read:** `skills/code-review/shared/known-deprecations.md` for:
 - Registry API calls (Maven Central, npm, PyPI) to verify latest versions
-- Known deprecation list (check BEFORE using WebSearch)
-- WebSearch fallback patterns for unknown libraries
+- Manifest detection patterns
+- WebSearch patterns for deprecation checks
 
 ---
 
@@ -70,10 +70,10 @@ You check dependency currency, framework modernization, and deprecations.
 
 ### 1.4 Deprecated Dependencies
 
-**Detection:** Cross-check project dependencies against the known deprecation list in `shared/known-deprecations.md`. For dependencies not on the list, use WebSearch fallback if they have a major version gap.
+**Detection:** Use WebSearch or Context7 to check if project dependencies are deprecated or end-of-life. Focus on dependencies with major version gaps or that are known to have replacements.
 
 **Severity:**
-- **CRITICAL:** Deprecated library with known security risk (e.g., Log4j 1.x)
+- **CRITICAL:** Deprecated library with known security risk or CVE
 - **WARNING:** Deprecated library with known replacement
 - **SUGGESTION:** Library in maintenance mode, modern alternative available
 
