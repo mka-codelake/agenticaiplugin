@@ -262,3 +262,5 @@ After all specialists complete, consolidate per orchestration.md:
 - **Phase 1 → Phase 2** sequencing ensures version context is available
 - **Parallel Phase 2** execution minimizes total review time
 - If a specialist fails, the review continues with remaining results
+- **Every specialist researches current standards** for the detected tech stack (language, framework, libraries) via WebSearch/Context7 BEFORE reviewing. This ensures reviews reflect up-to-date best practices, not outdated patterns.
+- **Specialists only collect findings** — they never fix code, generate patches, or modify files
