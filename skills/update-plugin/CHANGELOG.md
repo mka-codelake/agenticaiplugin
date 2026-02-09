@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.8.3
+
+- **Fix: Robust default branch detection in code-review.** Git Diff mode now checks for `origin` remote existence, falls back to `git remote show origin` for non-standard branch names (e.g., `develop`, `trunk`), and shows a clear error with available branches if detection fails. Also enforces sequential execution of git diff steps to prevent parallel failures.
+
 ## 0.8.2
 
 - **`--help` and input validation for all commands.** All 8 command skills now handle `--help` (displays usage info) and reject invalid arguments with usage guidance. Standardized `## Argument Handling` section added to each SKILL.md.

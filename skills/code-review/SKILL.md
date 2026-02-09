@@ -41,15 +41,32 @@ Specialists only collect findings — they never fix code.
 **Git Diff (no parameter):**
 1. Detect default branch:
    ```bash
+   # 1. Check if origin remote exists
+   if ! git remote | grep -q '^origin$'; then
+     echo "ERROR: No 'origin' remote found. Git Diff mode requires a remote."
+     exit 1
+   fi
+
+   # 2. Detect default branch
    default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
    if [ -z "$default_branch" ]; then
      if git show-ref --verify --quiet refs/remotes/origin/main; then default_branch="main"
-     elif git show-ref --verify --quiet refs/remotes/origin/master; then default_branch="master"; fi
+     elif git show-ref --verify --quiet refs/remotes/origin/master; then default_branch="master"
+     else
+       default_branch=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | sed 's/.*: //')
+     fi
+   fi
+
+   # 3. Validate
+   if [ -z "$default_branch" ] || ! git show-ref --verify --quiet "refs/remotes/origin/$default_branch"; then
+     echo "ERROR: Cannot detect default branch on origin. Available remote branches:"
+     git branch -r --list 'origin/*' | head -10
+     exit 1
    fi
    ```
 2. Get changed files: `git diff --name-only origin/${default_branch}...HEAD`
-3. If no changes: display "No changes detected" and STOP
-4. Get diff: `git diff origin/${default_branch}...HEAD`
+3. **WAIT for step 2 to complete.** If no changes found or the command fails: display error and STOP.
+4. **Only after step 2 succeeds:** Get full diff: `git diff origin/${default_branch}...HEAD`
 
 **Single File:** Validate file exists. If not found: error and STOP.
 
