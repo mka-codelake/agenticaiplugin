@@ -100,6 +100,21 @@ Verify test pyramid compliance:
 
 ---
 
+## Architecture Tests
+
+### 10.8 Architecture Test Coverage
+
+Verify that architectural rules are enforced by automated tests:
+
+- **WARNING:** No architecture test framework detected (ArchUnit, dependency-cruiser, import-linter, etc.)
+- **WARNING:** Architecture tests exist but don't cover all documented architectural rules
+- **WARNING:** Architecture documentation describes rules that have no corresponding test
+- **SUGGESTION:** Consider adding architecture tests for new architectural patterns introduced
+
+**Cross-reference with Specialist 3 (Architecture & Layers):** If Specialist 3 identifies architectural rules or patterns, verify here that corresponding architecture tests exist to enforce them.
+
+---
+
 ## Examples
 
 **Missing infrastructure test:**
@@ -135,4 +150,13 @@ Verify test pyramid compliance:
 - [UserRepositoryIT.java] Tests database operations but no requirement link
 **Rule:** Test Completeness → Traceability
 **Fix:** Add requirement reference: // EPIC-005: Database Integration
+```
+
+**Missing architecture tests:**
+```markdown
+**WARNING:** No architecture tests found
+- Architecture documentation describes hexagonal pattern with layer rules
+- No ArchUnit or equivalent tests enforce these rules
+**Rule:** Test Completeness → Architecture Test Coverage
+**Fix:** Add architecture tests covering: layer dependencies, no circular deps, naming conventions.
 ```

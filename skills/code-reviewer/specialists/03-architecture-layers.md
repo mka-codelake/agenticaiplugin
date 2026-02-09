@@ -29,14 +29,25 @@ If no clear pattern is recognizable, include an INFO note (not a blocker).
 
 **Detection:** Check imports. Controller should only import Service. Service imports Repository. Repository imports Entity.
 
-### 3.3 Hexagonal Architecture Compliance
+### 3.3 Hexagonal / Port & Adapter Compliance
 
 When hexagonal/ports-and-adapters pattern is detected:
 
 - **CRITICAL:** Domain depends on infrastructure (dependency inversion violated)
 - **CRITICAL:** Adapter directly accesses another adapter (should go through domain)
+- **CRITICAL:** Business service directly calls infrastructure technology (e.g., RedisTemplate, JdbcTemplate, HttpClient, S3Client) instead of going through a port/adapter
 - **WARNING:** Port interface defined in adapter instead of domain
 - **WARNING:** Domain entity contains framework annotations (@Entity, @JsonProperty)
+
+**Technical Integration Decoupling Rule:**
+Business logic in the service layer MUST access external systems exclusively through ports (interfaces) implemented by adapters. Direct usage of technology-specific clients/templates in business services is a CRITICAL violation.
+
+```
+GOOD: OrderService → OrderRepository (port/interface) → JpaOrderRepository (adapter)
+GOOD: CacheService → CachePort (interface) → RedisCacheAdapter (adapter)
+BAD:  OrderService → RedisTemplate (direct infrastructure access)
+BAD:  PaymentService → RestTemplate.getForObject(...) (direct HTTP call)
+```
 
 ### 3.4 Dependency Direction
 
@@ -76,6 +87,47 @@ When REST is the project standard:
 - **WARNING:** Existing dependency already provides same functionality
 - **WARNING:** Dependency creates conflicts
 
+### 3.10 Architecture Documentation
+
+**IMPORTANT:** Every project should have documented architecture describing design decisions, structure, and patterns.
+
+- **WARNING:** No architecture documentation found (check `claudedocs/architecture/`, `docs/architecture/`, `docs/adr/`, `ARCHITECTURE.md`, or equivalent)
+- **WARNING:** Architecture documentation exists but code structure does not match documented architecture
+- **WARNING:** Architecture documentation is outdated (references components/patterns no longer in use)
+- **SUGGESTION:** Architecture documentation lacks diagrams or is hard to follow
+
+**What architecture documentation should cover:**
+- Architectural pattern(s) used and why (layered, hexagonal, clean, etc.)
+- Layer/module structure with responsibilities
+- Dependency rules between layers/modules
+- Integration points and how they are abstracted
+- Key design decisions (or reference to ADRs)
+
+### 3.11 Architecture Tests
+
+**IMPORTANT:** Architectural rules should be enforced by automated tests, not just documentation.
+
+- **WARNING:** No architecture tests found (e.g., ArchUnit for Java, dependency-cruiser for JS/TS, import-linter for Python, go-cleanarch for Go)
+- **WARNING:** Architecture tests exist but don't cover documented architectural rules
+- **WARNING:** Architecture tests exist but are incomplete (e.g., test layer dependencies but not circular dependency rules)
+- **SUGGESTION:** Consider adding architecture tests for newly introduced architectural rules
+
+**Common architecture test frameworks:**
+
+| Language | Framework |
+|----------|-----------|
+| Java/Kotlin | ArchUnit |
+| JavaScript/TypeScript | dependency-cruiser, eslint-plugin-boundaries |
+| Python | import-linter, pytestarch |
+| Go | go-cleanarch |
+| .NET | NetArchTest |
+
+**What architecture tests should verify:**
+- Layer dependency rules (no reverse dependencies)
+- No circular dependencies between packages/modules
+- Naming conventions per layer (e.g., `*Controller` only in controller package)
+- Infrastructure access only through adapters/ports (if hexagonal)
+
 ---
 
 ## Examples
@@ -112,4 +164,30 @@ When REST is the project standard:
 - [UserController.java:15] Changed response structure from User to UserResponse
 **Rule:** Architecture → API Versioning
 **Fix:** Introduce /v2/users/{id} endpoint, keep /v1 unchanged.
+```
+
+**Direct infrastructure access:**
+```markdown
+**CRITICAL:** Business service directly accesses infrastructure
+- [OrderService.java:35] Calls redisTemplate.opsForValue().set() directly
+**Rule:** Architecture → Port & Adapter Decoupling
+**Fix:** Create CachePort interface, implement RedisCacheAdapter, inject port in OrderService.
+```
+
+**Missing architecture documentation:**
+```markdown
+**WARNING:** No architecture documentation found
+- Searched: claudedocs/architecture/, docs/architecture/, ARCHITECTURE.md
+- Project uses hexagonal pattern (detected) but architecture is undocumented
+**Rule:** Architecture → Architecture Documentation
+**Fix:** Document architecture pattern, layer responsibilities, and dependency rules.
+```
+
+**Missing architecture tests:**
+```markdown
+**WARNING:** No architecture tests found
+- Project uses layered architecture but no automated enforcement
+- No ArchUnit, dependency-cruiser, or equivalent tests detected
+**Rule:** Architecture → Architecture Tests
+**Fix:** Add ArchUnit tests verifying layer dependencies and naming conventions.
 ```

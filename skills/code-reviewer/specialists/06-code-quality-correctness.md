@@ -60,7 +60,58 @@ When reviewing modifications to existing code, check for unintended changes:
 
 - **WARNING:** Magic numbers without named constants
 - **WARNING:** Poor naming (unclear variable/method names)
-- **SUGGESTION:** Missing documentation for public APIs
+- **SUGGESTION:** Prefer extracting complex code into methods with descriptive names over adding comments
+
+### 6.8 Public API Documentation
+
+**IMPORTANT:** All public-facing code must be documented. Documentation explains the WHY and WHAT, never the HOW (the code shows the HOW).
+
+#### Public Methods/Functions (WARNING)
+
+Every public method/function that is callable from outside the class/module MUST have documentation:
+
+| Language | Documentation Format |
+|----------|---------------------|
+| Java | JavaDoc (`/** ... */`) |
+| Python | Docstring (`"""..."""`) |
+| JavaScript/TypeScript | JSDoc (`/** ... */`) |
+| Go | Doc comments (`// FunctionName ...`) |
+| Rust | Doc comments (`/// ...`) |
+| Kotlin | KDoc (`/** ... */`) |
+
+- **WARNING:** Public method without documentation
+- **WARNING:** Documentation describes HOW instead of WHY
+- **WARNING:** Documentation is outdated / doesn't match current behavior
+- **SUGGESTION:** Missing `@param`, `@return`, `@throws` tags for complex signatures
+
+**What documentation MUST explain:**
+- WHY this method exists (purpose, motivation)
+- WHAT it does from the caller's perspective (contract)
+- Pre-conditions, post-conditions, side effects
+- NOT the implementation details (the code explains itself)
+
+#### Private/Internal Methods
+
+- **SUGGESTION:** Complex private method (>10 lines with non-obvious logic) without a brief explanatory comment
+- Private methods with self-explanatory names do NOT need documentation
+- **Preferred approach:** Extract complex logic into well-named methods (Clean Code) rather than adding comments
+
+#### API Documentation (REST/GraphQL/gRPC)
+
+- **WARNING:** REST API endpoints without API documentation framework (e.g., Swagger/OpenAPI for Spring Boot, FastAPI auto-docs for Python, swagger-jsdoc for Node.js)
+- **WARNING:** API documentation exists but is outdated (endpoints/parameters don't match code)
+- **WARNING:** API endpoint without description, parameter documentation, or response schema
+- **SUGGESTION:** Missing error response documentation (4xx/5xx schemas)
+
+**Detection by framework:**
+
+| Framework | Expected Documentation |
+|-----------|----------------------|
+| Spring Boot | Swagger/SpringDoc OpenAPI annotations (`@Operation`, `@ApiResponse`) |
+| FastAPI (Python) | Built-in OpenAPI (docstrings + type hints) |
+| Express/NestJS | swagger-jsdoc or @nestjs/swagger |
+| Go (gin/echo) | swaggo/swag annotations |
+| ASP.NET | Swashbuckle / XML comments |
 
 ---
 
@@ -98,4 +149,30 @@ When reviewing modifications to existing code, check for unintended changes:
 - [UserService.java:42] processUser() has 67 lines (limit: 50)
 **Rule:** Code Quality → Code Size
 **Fix:** Extract validation to validateUser(), calculation to calculateDiscount().
+```
+
+**Missing public API documentation:**
+```markdown
+**WARNING:** Public method without documentation
+- [OrderService.java:25] processOrder(Order) has no JavaDoc
+- [OrderService.java:45] cancelOrder(Long) has no JavaDoc
+**Rule:** Code Quality → Public API Documentation
+**Fix:** Add JavaDoc explaining WHY these methods exist and their contract (pre/post-conditions).
+```
+
+**Documentation describes HOW instead of WHY:**
+```markdown
+**WARNING:** Documentation describes implementation, not purpose
+- [UserService.java:15] JavaDoc says "iterates through users and checks email"
+**Rule:** Code Quality → Documentation explains WHY, not HOW
+**Fix:** Describe purpose: "Finds the user matching the given email for authentication"
+```
+
+**Missing API documentation framework:**
+```markdown
+**WARNING:** REST API without documentation framework
+- [UserController.java] 5 REST endpoints without Swagger/OpenAPI annotations
+- Project uses Spring Boot — SpringDoc OpenAPI should be configured
+**Rule:** Code Quality → API Documentation
+**Fix:** Add springdoc-openapi dependency and @Operation annotations to endpoints.
 ```

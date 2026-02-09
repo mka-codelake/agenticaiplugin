@@ -81,5 +81,7 @@ None
 - Be precise with line numbers — verify they are correct
 - Cite the specific rule from your specialist rules file
 - Keep descriptions concise (one sentence)
-- Fix directions should be actionable but brief
+- Fix directions should be actionable but brief (describe WHAT to fix, not HOW)
 - When in doubt about severity, check issue-classification.md definitions
+- **NEVER generate code changes** — you report findings only, the user decides what to fix
+- **NEVER modify files** — your output is a findings report, nothing else

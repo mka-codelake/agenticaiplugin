@@ -2,6 +2,16 @@
 
 Detailed orchestration logic for the multi-specialist code review architecture. Referenced by SKILL.md during review execution.
 
+## Fundamental Principle: Findings Only
+
+**CRITICAL:** Specialists ONLY identify and report issues. They do NOT:
+- Fix code
+- Generate code changes
+- Apply patches
+- Modify files
+
+Specialists produce a structured findings report. The user decides what to fix.
+
 ---
 
 ## Specialist Activation Matrix
@@ -48,7 +58,12 @@ IF ONLY docs/config changed:
 
 ### Phase 1: Dependencies & Versions (Sequential)
 
-Specialist 1 runs first because version findings provide context for Phase 2 specialists (e.g., if a dependency is severely outdated, pattern recommendations may differ).
+Specialist 1 runs first because version findings provide critical context for Phase 2 specialists.
+
+**Why Phase 1 runs first:**
+- If a framework is severely outdated, Phase 2 specialists need to know (e.g., deprecated patterns may be expected in older framework versions)
+- If dependencies have known CVEs, security specialist should consider this
+- If framework version was recently upgraded, code quality specialist should watch for legacy patterns
 
 **Spawn via Task tool:**
 ```
@@ -56,7 +71,25 @@ subagent_type: general-purpose
 model: haiku
 ```
 
-Wait for completion. Capture results.
+Wait for completion. Capture full results.
+
+### Phase 1 → Phase 2 Context Sharing
+
+**CRITICAL:** Phase 1 results MUST be included in every Phase 2 specialist's prompt. This ensures specialists have version context for their reviews.
+
+**Include in Phase 2 prompts:**
+- Framework name and version (e.g., "Spring Boot 3.2.1")
+- Outdated dependencies found (name, current version, latest version)
+- Known CVEs or security issues in dependencies
+- Framework modernization findings (deprecated APIs still in use)
+- Any dependency conflicts detected
+
+**How context affects Phase 2 specialists:**
+- **Security (2):** Known CVEs in dependencies = heightened scrutiny for related code
+- **Architecture (3):** Outdated framework version may mean legacy patterns are expected, not violations
+- **Design Patterns (4):** Modern framework version means modern patterns should be used
+- **Code Quality (6):** Deprecated API usage should be flagged if modern alternative exists
+- **Cross-Cutting (8):** Framework version determines which cross-cutting approaches are current
 
 ### Phase 2: All Applicable Specialists (Parallel)
 
@@ -67,6 +100,10 @@ Spawn ALL applicable Phase 2 specialists in a single message using multiple Task
 subagent_type: general-purpose
 model: haiku
 ```
+
+**Note on inter-specialist communication:** Phase 2 specialists run in parallel and independently. They do not communicate with each other during execution. Cross-specialist context comes from:
+1. Phase 1 results (shared with all)
+2. The orchestrator's consolidation step (deduplication, cross-referencing)
 
 ---
 
@@ -119,6 +156,8 @@ Consider this context when making recommendations.
 4. Return findings ONLY in the standard output format
 5. If no issues found, return "No findings."
 6. Do NOT fix code — only identify and describe issues
+7. Do NOT generate code changes or patches
+8. Do NOT modify any files
 ```
 
 ---
