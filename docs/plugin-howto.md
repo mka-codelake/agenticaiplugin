@@ -285,7 +285,7 @@ Agents can automatically load specific skills when they start using the `skills:
 
 **Use cases:**
 - **Core skills:** Always-needed knowledge (e.g., `development-principles` for code reviewers)
-- **Domain skills:** Specialized knowledge (e.g., `integration-testing` for test writers)
+- **Domain skills:** Specialized knowledge (e.g., `testing-philosophy` for test writers)
 - **Language skills:** Tech-specific patterns when agent is language-specific
 
 **Best practices:**
@@ -567,11 +567,11 @@ Claude Code automatically discovers:
 ### Auto-Activation in Skills
 ```markdown
 ---
-name: java-best-practices
-description: Java best practices. Auto-activates when writing Java code.
+name: development-principles
+description: Development principles (YAGNI, KISS, SRP). Auto-activates when writing code.
 ---
 
-**This skill activates automatically when user mentions: java, .java files, javac, Java code.**
+**This skill activates automatically when user mentions: YAGNI, KISS, SRP, code quality, refactoring.**
 ```
 
 ### Agent Priority Rules

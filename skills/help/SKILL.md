@@ -59,22 +59,13 @@ Skills sind Wissensmodule, die Claude automatisch lädt wenn bestimmte Schlüsse
 ### Code-Qualität
 - **code-review** - Multi-Specialist Code-Reviews (10 fokussierte Spezialisten)
 - **testing-philosophy** - "Test YOUR Code, Not THE Code"
-- **integration-testing** - TestContainers, @SpringBootTest, Async-Testing
 
 ### Architektur
-- **architecture-decisions** - ADR (Architecture Decision Records) erstellen
 - **architecture-audit** - Architektur-Audit mit 7 Analyzern und A-E Bewertung (Command: `/agenticaiplugin:architecture-audit`)
-- **dependency-analysis** - Story-Abhängigkeiten analysieren
 
 ### Technologie-Beratung (recherchiert aktuelle Versionen)
 - **technology-advisor-jvm** - Maven/Gradle Dependencies
 - **technology-advisor-javascript** - npm/yarn Packages
-- **technology-advisor-python** - pip/poetry Packages
-
-### Sprach-spezifisch
-- **java-best-practices** - Java 17+/21+/25+ Konventionen
-- **maven-best-practices** - Maven-Builds und pom.xml
-- **spring-boot-best-practices** - Spring Boot Patterns
 
 ---
 

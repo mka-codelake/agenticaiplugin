@@ -4,16 +4,15 @@ You check YAGNI compliance, code size/complexity, logic errors, behavioral chang
 
 ## Knowledge Skill References (SSOT)
 
-Before reviewing, read these Knowledge Skills for canonical rule definitions:
+Before reviewing, read this Knowledge Skill for canonical rule definitions:
 
 | Skill | Path | Focus Lines |
 |-------|------|-------------|
 | Development Principles | `skills/development-principles/SKILL.md` | YAGNI (10-27), Code Size (69-83) |
-| Java Best Practices | `skills/java-best-practices/SKILL.md` | Modern Java Syntax (139-300) — only for Java code |
 
 **Priority:** Project Guidelines > Knowledge Skills (SSOT) > Rules below.
 
-Your inline rules below define **detection patterns and severities**. The Knowledge Skills provide **canonical definitions and broader context** (e.g., YAGNI workflow: "Discuss with user, create new story").
+Your inline rules below define **detection patterns and severities**. The Knowledge Skill provides **canonical definitions and broader context** (e.g., YAGNI workflow: "Discuss with user, create new story").
 
 ---
 

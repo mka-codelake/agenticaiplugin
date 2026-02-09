@@ -25,9 +25,9 @@ The plugin architecture separates concerns intelligently: test engineers write i
 - **Intelligent Agile Workflow:** Epic/Story/Sprint management with templates, acceptance criteria generation, and story point estimation
 - **Smart Code Reviews:** Multi-type reviews (code, tests, architecture) combining project guidelines with best-practice skills
 - **README Generation:** Creates and updates human-readable project documentation
-- **Technology Advisors:** Language-specific recommendations for JVM, JavaScript, and Python ecosystems
+- **Technology Advisors:** Language-specific recommendations for JVM and JavaScript ecosystems
 - **Git Intelligence:** Analyzes changes and creates meaningful atomic commits following project conventions
-- **Architecture Decision Records:** ADR creation and management with standard templates
+- **Architecture Decision Records:** ADR management with standard templates
 - **Progressive Disclosure:** Skills load essential information by default, detailed references on demand
 - **Modular Rules System:** Flexible plugin rules that can be selectively installed and updated
 
@@ -210,7 +210,7 @@ Create `.md` files in `claudedocs/testspecs/` for integration test scenarios:
 - Username is "john"
 ```
 
-The integration-testing skill uses these specifications when creating TestContainer-based integration tests.
+These specifications are used when creating TestContainer-based integration tests.
 
 ## Project Structure
 
@@ -233,16 +233,9 @@ agenticaiplugin/
 │   ├── code-review/          # Multi-specialist code review (orchestrator + 10 specialists)
 │   ├── development-principles/ # YAGNI, KISS, traceability
 │   ├── testing-philosophy/   # Testing approach
-│   ├── java-best-practices/  # Java patterns
-│   ├── spring-boot-best-practices/
-│   ├── integration-testing/  # TestContainers, Awaitility
-│   ├── maven-best-practices/
-│   ├── dependency-analysis/  # Story dependencies
-│   ├── architecture-decisions/ # ADR management
 │   ├── architecture-audit/    # Architecture audit (7 analyzers, A-E ratings)
 │   ├── technology-advisor-jvm/
 │   ├── technology-advisor-javascript/
-│   ├── technology-advisor-python/
 │   ├── # Slash command skills (user-invocable):
 │   ├── init/                 # Project initialization
 │   ├── update-plugin/        # Update plugin rules
@@ -318,7 +311,6 @@ Language-specific library and framework recommendations:
 
 - **JVM:** Spring ecosystem, testing tools, utilities
 - **JavaScript:** React/Vue/Node.js ecosystems
-- **Python:** Django/Flask, data science, testing
 
 Advisors consider project context, existing dependencies, and best practices when suggesting technologies.
 
@@ -344,18 +336,6 @@ Comprehensive architecture assessment with 7 focused analyzers:
 | 7 | Structural Visibility | Discoverability, entry points, documentation |
 
 Each dimension receives an A-E rating. The overall rating is a weighted average (Pattern Recognition and Dependency Direction weighted 2x). Reports are saved to `claudedocs/architecture-audit-YYYY-MM-DD.md`.
-
-### Architecture Decision Records
-
-Create and manage ADRs with standard templates:
-
-- Context and problem statement
-- Decision drivers
-- Options considered
-- Decision outcome
-- Consequences (positive and negative)
-
-ADRs stored in `claudedocs/architecture/` following naming convention `ADR-001-description.md`.
 
 ### Dependency Audit
 

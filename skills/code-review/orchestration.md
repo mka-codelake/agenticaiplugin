@@ -156,14 +156,10 @@ rule definitions (Single Source of Truth) that supplement your specialist rules.
 
 | Specialist | Knowledge Skill(s) to Read | Focus |
 |---|---|---|
-| 03 Architecture | `skills/spring-boot-best-practices/SKILL.md` | Layered Architecture, DI Patterns |
 | 05 SOLID | `skills/development-principles/SKILL.md` | SRP, Code Size definitions |
-| 05 SOLID (Java) | `skills/java-best-practices/SKILL.md` | Modern Java patterns |
 | 06 Code Quality | `skills/development-principles/SKILL.md` | YAGNI workflow, Code Size thresholds |
-| 06 Code Quality (Java) | `skills/java-best-practices/SKILL.md` | Modern Java syntax |
 | 08 Cross-Cutting | `skills/development-principles/SKILL.md` | Logging Guidelines |
 | 09 Test Quality | `skills/testing-philosophy/SKILL.md` | Code Classification, Test Necessity |
-| 10 Test Completeness | `skills/integration-testing/SKILL.md` | TestContainers, Given-When-Then |
 
 Only read the Knowledge Skills listed for YOUR specialist number.
 
