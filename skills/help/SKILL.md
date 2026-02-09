@@ -70,7 +70,7 @@ Skills sind Wissensmodule, die Claude automatisch lädt wenn bestimmte Schlüsse
 - **agile-workflow** - Epics, Stories, Sprints mit Templates
 
 ### Code-Qualität
-- **code-reviewer** - Kriterien für Code-Reviews
+- **code-review** - Multi-Specialist Code-Reviews (10 fokussierte Spezialisten)
 - **testing-philosophy** - "Test YOUR Code, Not THE Code"
 - **integration-testing** - TestContainers, @SpringBootTest, Async-Testing
 
@@ -96,7 +96,7 @@ Agents sind isolierte Kontexte für spezifische Aufgaben.
 
 | Agent | Aufgabe |
 |-------|---------|
-| **code-reviewer** | Führt mehrstufige Code-Reviews durch (Code/Tests/Architektur) |
+| **code-review** | Multi-Specialist Code-Reviews (10 fokussierte Spezialisten, kein separater Agent mehr) |
 | **context-creator** | Erstellt agentic.md und README.md |
 | **project-initializer** | Richtet Projekte für das Plugin ein |
 | **test-engineer** | Schreibt Integration-/System-/E2E-Tests basierend auf Akzeptanzkriterien |

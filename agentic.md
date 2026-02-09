@@ -14,7 +14,7 @@ A **Claude Code Plugin** that enhances development workflows through agents, ski
 
 | Directory | Contents | Purpose |
 |-----------|----------|---------|
-| `agents/` | 4 agents | code-reviewer, test-engineer, project-initializer, context-creator |
+| `agents/` | 3 agents | test-engineer, project-initializer, context-creator |
 | `skills/` | 27 skills | 14 auto-activated knowledge + 13 slash commands (migrated from commands/) |
 | `rules-templates/` | 4 templates | Plugin rules copied to user projects |
 | `docs/` | plugin-howto.md | Primary development reference |
@@ -87,7 +87,7 @@ User's `claudedocs/guidelines/*.md` files ALWAYS override plugin skill guideline
 | Development instructions | CLAUDE.md |
 | Installation guide | README.md |
 | Agile workflow templates | skills/agile-workflow/templates/ |
-| Code review criteria | skills/code-reviewer/SKILL.md |
+| Code review (multi-specialist) | skills/code-review/SKILL.md |
 | Spring Boot patterns | skills/spring-boot-best-practices/SKILL.md |
 | Java patterns | skills/java-best-practices/SKILL.md |
 | Integration testing | skills/integration-testing/SKILL.md |
@@ -99,10 +99,11 @@ User's `claudedocs/guidelines/*.md` files ALWAYS override plugin skill guideline
 
 | Agent | Purpose | Model | Key Tools |
 |-------|---------|-------|-----------|
-| **code-reviewer** | Multi-type code reviews (code/test/architecture) | Sonnet | Read, Glob, Grep, Bash |
 | **test-engineer** | Integration/System/E2E test creation (isolated context) | Sonnet | Read, Write, Edit, Grep, Bash |
 | **project-initializer** | Interactive project setup with claudedocs/ | Sonnet | Read, Write, Edit, Bash, AskUserQuestion |
 | **context-creator** | Creates/updates agentic.md and README.md | Sonnet | Read, Write, Edit, Glob, Grep, Bash |
+
+**Code Review:** No longer a single agent — now a multi-specialist skill (`/agenticaiplugin:code-review`) that orchestrates 10 focused review specialists via Task tool.
 
 **Test-Engineer Isolation:** Deliberately works without implementation details - tests user requirements, not implementation.
 

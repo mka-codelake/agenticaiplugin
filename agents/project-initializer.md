@@ -128,34 +128,26 @@ Before starting the review, check if `claudedocs/config.yaml` exists:
 - If file exists: Read `code-review.ensemble-count` setting (determines parallel reviewers)
 - If file does NOT exist: Use default ensemble-count = 1 (single reviewer)
 
-### 2. Invoke the code-reviewer Agent(s)
+### 2. Run Multi-Specialist Code Review
 
-The reviewer(s) will automatically:
+Use the code-review skill which orchestrates 10 focused specialist agents:
 
+```
+/agenticaiplugin:code-review
+```
+
+The orchestrator will automatically:
 - Detect changes via git diff
-- Decide which review types to perform (code/test/architecture)
-- Load only relevant review criteria
-- Apply project guidelines with priority
+- Categorize files and select applicable specialists
+- Run Phase 1 (Dependencies & Versions) sequentially
+- Run Phase 2 (all applicable specialists) in parallel
+- Consolidate, deduplicate, and sort findings
 
-**If ensemble-count = 1 (default):**
-
-Use single Task call:
-
-```
-Task(
-  subagent_type: "code-reviewer",
-  description: "Review implementation",
-  prompt: "Review changes for [Story Description]. Context: [Brief description]"
-)
-```
-
-**If ensemble-count > 1 (ensemble mode):**
-
-Start N parallel reviewers using run_in_background, then aggregate results with hybrid deduplication (exact matches by File:LineNumber, semantic similarity for related issues).
+See `skills/code-review/orchestration.md` for the full orchestration playbook.
 
 ### 3. Process the Finding Report
 
-After receiving the report from the code-reviewer agent:
+After receiving the consolidated report from the specialists:
 
 1. **Analyze findings in context** - Understand each issue and evaluate validity
 2. **Make decisions:**
@@ -204,7 +196,7 @@ Ready for commit/next steps.
 2. **Context matters:** You can override findings if contextually justified
 3. **Always explain skips:** If you skip a Critical/Warning, briefly say why
 4. **Silent to user:** Don't mention "starting code review" - just do it before reporting completion
-5. **Project guidelines win:** The code-reviewer knows this, trust its priority logic
+5. **Project guidelines win:** The review specialists know this, trust their priority logic
 
 ## Manual Review
 

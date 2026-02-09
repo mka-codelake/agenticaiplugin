@@ -134,15 +134,15 @@ This ensures your review is based on up-to-date standards, not outdated patterns
 
 ## Step 2: Read Your Rules
 Read your review rules file:
-skills/code-reviewer/specialists/{specialist_file}
+skills/code-review/specialists/{specialist_file}
 
 ## Output Format
 Follow the output format defined in:
-skills/code-reviewer/shared/specialist-output-format.md
+skills/code-review/shared/specialist-output-format.md
 
 ## Severity Definitions
 Use the severity classification from:
-skills/code-reviewer/shared/issue-classification.md
+skills/code-review/shared/issue-classification.md
 (Focus on: {relevant_severity_sections})
 
 {IF project_guidelines_exist}
