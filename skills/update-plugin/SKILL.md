@@ -106,4 +106,3 @@ Also run when migrating from old plugin version that used monolithic CLAUDE.md.
 ## Related
 
 - **/agenticaiplugin:init** - Initial project setup (fresh installation)
-- **/agenticaiplugin:config** - View/edit plugin configuration

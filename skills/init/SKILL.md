@@ -111,5 +111,4 @@ These rules are auto-loaded by Claude Code when working in your project.
 ## Related
 
 - **/agenticaiplugin:update-plugin** - Update rules to latest version
-- **/agenticaiplugin:config** - Configure plugin settings
 - **/agenticaiplugin:code-review** - Review code quality

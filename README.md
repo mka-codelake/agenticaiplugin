@@ -131,8 +131,6 @@ Claude:
 # Create/update human-readable README
 /agenticaiplugin:create-readme
 
-# View/edit plugin configuration
-/agenticaiplugin:config
 ```
 
 The context creator analyzes your project structure, key files, recent commits, and patterns to generate README documentation that helps developers get productive immediately.
@@ -246,7 +244,6 @@ agenticaiplugin/
 │   ├── gitme/                # Smart Git commits
 │   ├── code-review/          # Manual code review
 │   ├── create-readme/        # README generation
-│   ├── config/               # Plugin configuration
 │   ├── help/                 # Plugin help
 │   └── promote-perms/        # Permissions promotion
 ├── docs/

@@ -209,4 +209,3 @@ The `:*` suffix means "any arguments following".
 ## Related
 
 - **/agenticaiplugin:init** - Initialize project structure
-- **/agenticaiplugin:config** - Configure plugin settings

@@ -35,14 +35,7 @@ Do NOT trigger if:
 
 ## Code Review Process
 
-### 1. Check Configuration (optional)
-
-Before starting the review, check if `claudedocs/config.yaml` exists:
-
-- If file exists: Read `code-review.ensemble-count` setting (determines parallel reviewers)
-- If file does NOT exist: Use default ensemble-count = 1 (single reviewer)
-
-### 2. Run Multi-Specialist Code Review
+### 1. Run Multi-Specialist Code Review
 
 Use the code-review skill which orchestrates 10 focused specialist agents:
 
@@ -59,7 +52,7 @@ The orchestrator will automatically:
 
 See `skills/code-review/orchestration.md` for the full orchestration playbook.
 
-### 3. Process the Finding Report
+### 2. Process the Finding Report
 
 After receiving the consolidated report from the specialists:
 
@@ -70,7 +63,7 @@ After receiving the consolidated report from the specialists:
    - **Suggestions:** Use judgment - fix if it improves code quality
 3. **You have final authority** - If a finding doesn't make sense in context, you can skip it with justification
 
-### 4. Apply Fixes
+### 3. Apply Fixes
 
 For findings you decide to address:
 
@@ -78,7 +71,7 @@ For findings you decide to address:
 - Use Edit tool for modifications
 - Ensure tests still pass after fixes
 
-### 5. Complete Review Cycle
+### 4. Complete Review Cycle
 
 **ONE review round only** (not iterative):
 
@@ -86,7 +79,7 @@ For findings you decide to address:
 - Do NOT trigger another review automatically
 - Report to user with summary
 
-### 6. Report to User
+### 5. Report to User
 
 Only after code review is complete, inform the user:
 

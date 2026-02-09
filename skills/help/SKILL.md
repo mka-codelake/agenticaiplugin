@@ -27,7 +27,6 @@ Zeige dem Benutzer folgende Übersicht:
 | Command | Beschreibung |
 |---------|--------------|
 | **init** | Initialisiert ein Projekt interaktiv. Erstellt CLAUDE.md mit projektspezifischen Anweisungen und die claudedocs/-Verzeichnisstruktur (guidelines/, testspecs/, etc.) |
-| **config** | Konfiguriert Plugin-Einstellungen wie die Anzahl der Reviewer beim Ensemble-Code-Review |
 
 ### Dokumentation
 | Command | Beschreibung |
