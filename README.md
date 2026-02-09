@@ -146,6 +146,10 @@ While most features activate automatically, you can also invoke them manually:
 /agenticaiplugin:code-review --complete                   # Complete project review
 /agenticaiplugin:code-review --renovate                   # Dependency audit
 
+# Architecture audit:
+/agenticaiplugin:architecture-audit                       # Full project audit
+/agenticaiplugin:architecture-audit --scope src/backend   # Scoped audit (monorepos)
+
 # Smart Git commits
 /agenticaiplugin:gitme
 
@@ -235,6 +239,7 @@ agenticaiplugin/
 │   ├── maven-best-practices/
 │   ├── dependency-analysis/  # Story dependencies
 │   ├── architecture-decisions/ # ADR management
+│   ├── architecture-audit/    # Architecture audit (7 analyzers, A-E ratings)
 │   ├── technology-advisor-jvm/
 │   ├── technology-advisor-javascript/
 │   ├── technology-advisor-python/
@@ -243,6 +248,7 @@ agenticaiplugin/
 │   ├── update-plugin/        # Update plugin rules
 │   ├── gitme/                # Smart Git commits
 │   ├── code-review/          # Manual code review
+│   ├── architecture-audit/   # Architecture audit command
 │   ├── create-readme/        # README generation
 │   ├── help/                 # Plugin help
 │   └── promote-perms/        # Permissions promotion
@@ -315,6 +321,29 @@ Language-specific library and framework recommendations:
 - **Python:** Django/Flask, data science, testing
 
 Advisors consider project context, existing dependencies, and best practices when suggesting technologies.
+
+### Architecture Audit
+
+Comprehensive architecture assessment with 7 focused analyzers:
+
+```bash
+/agenticaiplugin:architecture-audit                       # Full project audit
+/agenticaiplugin:architecture-audit --scope src/backend   # Scoped to subdirectory
+```
+
+**Phase 1 (Sequential):** Pattern Recognition — identifies the architecture pattern (Layered, Hexagonal, Clean, Microservices, etc.)
+
+**Phase 2 (Parallel):** 6 dimension analyzers run concurrently:
+| # | Analyzer | Focus |
+|---|---------|-------|
+| 2 | Component Boundaries | Module structure, shared modules, public API surface |
+| 3 | Dependency Direction | Import flow, circular deps, reverse dependencies |
+| 4 | Naming Consistency | Suffixes, verbs, domain terminology, file naming |
+| 5 | API/Interface Boundaries | Contracts, access modifiers, boundary bypasses |
+| 6 | Instantiation & Wiring | DI consistency, testability, configuration |
+| 7 | Structural Visibility | Discoverability, entry points, documentation |
+
+Each dimension receives an A-E rating. The overall rating is a weighted average (Pattern Recognition and Dependency Direction weighted 2x). Reports are saved to `claudedocs/architecture-audit-YYYY-MM-DD.md`.
 
 ### Architecture Decision Records
 
