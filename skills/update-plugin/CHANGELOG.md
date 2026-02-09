@@ -5,6 +5,12 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.5.2
+
+- **Tiered code review:** Automatic Quick Review for small changes (≤50 lines, ≤3 files), Full Review for substantial changes
+- **Agent name prefix fix:** Skills now use fully qualified `agenticaiplugin:` prefix for agent invocations
+- **Version comparison fix:** Update workflow now correctly detects rule version updates
+
 ## 0.5.1
 
 - **What's New display:** Update workflow now shows changelog delta between old and new version
