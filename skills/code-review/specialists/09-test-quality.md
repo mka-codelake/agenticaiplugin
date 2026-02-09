@@ -8,13 +8,11 @@ You check testing philosophy adherence, test structure, naming, placement, and c
 
 Before reviewing, read this Knowledge Skill for canonical rule definitions:
 
-| Skill | Path | Focus Lines |
-|-------|------|-------------|
-| Testing Philosophy | `skills/testing-philosophy/SKILL.md` | Core Philosophy (1-50), Code Classification (51-100), Test Necessity Decision Logic (100-130) |
+| Skill | Path | Focus |
+|-------|------|-------|
+| Testing Philosophy | `skills/testing-philosophy/SKILL.md` | Code Classification, "No test" documentation convention |
 
 **Priority:** Project Guidelines > Knowledge Skills (SSOT) > Rules below.
-
-Your inline rules below define **detection patterns and severities**. The Knowledge Skill provides **Code Classification** (4 categories: Framework Code, Generated Code, Glue Code, Business Logic) and the **Test Necessity Decision Matrix** that determines which code categories require testing.
 
 ---
 

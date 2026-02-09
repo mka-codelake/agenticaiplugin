@@ -156,10 +156,9 @@ rule definitions (Single Source of Truth) that supplement your specialist rules.
 
 | Specialist | Knowledge Skill(s) to Read | Focus |
 |---|---|---|
-| 05 SOLID | `skills/development-principles/SKILL.md` | SRP, Code Size definitions |
-| 06 Code Quality | `skills/development-principles/SKILL.md` | YAGNI workflow, Code Size thresholds |
-| 08 Cross-Cutting | `skills/development-principles/SKILL.md` | Logging Guidelines |
-| 09 Test Quality | `skills/testing-philosophy/SKILL.md` | Code Classification, Test Necessity |
+| 05 SOLID | `skills/development-principles/SKILL.md` | Code Size limits |
+| 06 Code Quality | `skills/development-principles/SKILL.md` | Code Size limits |
+| 09 Test Quality | `skills/testing-philosophy/SKILL.md` | Code Classification, "No test" convention |
 
 Only read the Knowledge Skills listed for YOUR specialist number.
 

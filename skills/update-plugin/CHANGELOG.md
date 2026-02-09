@@ -5,6 +5,12 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.8.0
+
+- **Trimmed 4 knowledge skills to essentials.** `development-principles` (311→56 lines): only story traceability, code size limits, dependency approval. `testing-philosophy` (335→36 lines): only code classification table and "No test" convention. `technology-advisor-jvm` (255→33 lines): only research-forcing workflow + Maven Central API. `technology-advisor-javascript` (292→33 lines): only research-forcing workflow + npm registry API. All reference.md files deleted.
+- **Removed `agile-workflow` skill.** Epic/Story/Sprint management (934 lines including templates) removed — standard agile knowledge covered by Claude's training.
+- **Updated code review SSOT references.** Specialist 08 (Cross-Cutting) no longer references development-principles. Orchestration mapping table updated.
+
 ## 0.7.0
 
 - **BREAKING: Removed 7 redundant knowledge skills.** Skills `architecture-decisions`, `dependency-analysis`, `integration-testing`, `java-best-practices`, `spring-boot-best-practices`, `maven-best-practices`, and `technology-advisor-python` have been removed. Their content (Java patterns, Spring Boot architecture, TestContainers, Maven, ADRs, Python libraries, story dependencies) is covered by Claude's training knowledge. Code review specialists updated to remove SSOT references to deleted skills. ~9,500 lines of shared-context token overhead eliminated.

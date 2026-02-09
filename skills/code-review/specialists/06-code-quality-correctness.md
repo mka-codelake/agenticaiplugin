@@ -6,13 +6,11 @@ You check YAGNI compliance, code size/complexity, logic errors, behavioral chang
 
 Before reviewing, read this Knowledge Skill for canonical rule definitions:
 
-| Skill | Path | Focus Lines |
-|-------|------|-------------|
-| Development Principles | `skills/development-principles/SKILL.md` | YAGNI (10-27), Code Size (69-83) |
+| Skill | Path | Focus |
+|-------|------|-------|
+| Development Principles | `skills/development-principles/SKILL.md` | Code Size limits |
 
 **Priority:** Project Guidelines > Knowledge Skills (SSOT) > Rules below.
-
-Your inline rules below define **detection patterns and severities**. The Knowledge Skill provides **canonical definitions and broader context** (e.g., YAGNI workflow: "Discuss with user, create new story").
 
 ---
 

@@ -52,13 +52,12 @@ Zeige dem Benutzer folgende Übersicht:
 Skills sind Wissensmodule, die Claude automatisch lädt wenn bestimmte Schlüsselwörter erkannt werden.
 
 ### Entwicklungsprinzipien
-- **development-principles** - YAGNI, KISS, SRP, Story-Traceability
+- **development-principles** - Story-Traceability (STORY-XXX), Code-Size-Limits, Dependency-Approval
 - **git-smart-commit** - Regeln für gute Commits
-- **agile-workflow** - Epics, Stories, Sprints mit Templates
 
 ### Code-Qualität
 - **code-review** - Multi-Specialist Code-Reviews (10 fokussierte Spezialisten)
-- **testing-philosophy** - "Test YOUR Code, Not THE Code"
+- **testing-philosophy** - Code-Klassifizierung, "No test"-Kommentar-Konvention
 
 ### Architektur
 - **architecture-audit** - Architektur-Audit mit 7 Analyzern und A-E Bewertung (Command: `/agenticaiplugin:architecture-audit`)

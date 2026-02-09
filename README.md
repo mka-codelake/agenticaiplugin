@@ -8,7 +8,7 @@ The AgenticAI Plugin brings production-ready development patterns and automation
 
 **What makes it different?**
 
-This plugin doesn't just provide commands - it enhances Claude's capabilities with specialized knowledge that activates automatically when you need it. Writing Java code? Best practices are immediately available. Creating tests? Testing philosophy kicks in. Planning a sprint? Agile workflow tools appear. Everything works together seamlessly.
+This plugin doesn't just provide commands - it enhances Claude's capabilities with specialized knowledge that activates automatically when you need it. Writing tests? Testing philosophy kicks in. Adding dependencies? Technology advisors ensure current versions. Everything works together seamlessly.
 
 The plugin architecture separates concerns intelligently: test engineers write integration tests without seeing implementation details (true TDD), and code reviewers combine project-specific guidelines with universal best practices.
 
@@ -22,12 +22,10 @@ The plugin architecture separates concerns intelligently: test engineers write i
 
 ## Features
 
-- **Intelligent Agile Workflow:** Epic/Story/Sprint management with templates, acceptance criteria generation, and story point estimation
 - **Smart Code Reviews:** Multi-type reviews (code, tests, architecture) combining project guidelines with best-practice skills
 - **README Generation:** Creates and updates human-readable project documentation
 - **Technology Advisors:** Language-specific recommendations for JVM and JavaScript ecosystems
 - **Git Intelligence:** Analyzes changes and creates meaningful atomic commits following project conventions
-- **Architecture Decision Records:** ADR management with standard templates
 - **Progressive Disclosure:** Skills load essential information by default, detailed references on demand
 - **Modular Rules System:** Flexible plugin rules that can be selectively installed and updated
 
@@ -96,21 +94,6 @@ This command creates:
 ```
 
 ### Common Workflows
-
-#### Agile Development
-
-```
-User: "Create an epic for user authentication"
-Claude: Creates structured epic with goal, scope, and out-of-scope
-
-User: "Slice this epic into stories"
-Claude: Generates user stories with acceptance criteria and story points
-
-User: "Plan a sprint with these stories"
-Claude: Creates sprint plan with capacity tracking and dependencies
-```
-
-Files are created in `claudedocs/epics/`, `stories/`, and `sprints/` following naming conventions.
 
 #### Smart Git Commits
 
@@ -228,11 +211,10 @@ agenticaiplugin/
 │   └── agenticaiplugin-git-commit.md
 ├── skills/                   # All skills (knowledge + commands)
 │   ├── # Auto-activated knowledge skills:
-│   ├── agile-workflow/       # Epic/Story/Sprint management
 │   ├── git-smart-commit/     # Intelligent commits
 │   ├── code-review/          # Multi-specialist code review (orchestrator + 10 specialists)
-│   ├── development-principles/ # YAGNI, KISS, traceability
-│   ├── testing-philosophy/   # Testing approach
+│   ├── development-principles/ # Story traceability, code size limits
+│   ├── testing-philosophy/   # Code classification, test documentation
 │   ├── architecture-audit/    # Architecture audit (7 analyzers, A-E ratings)
 │   ├── technology-advisor-jvm/
 │   ├── technology-advisor-javascript/
@@ -289,30 +271,14 @@ The code review system uses a team-based architecture with 10 focused specialist
 - Specialists only identify issues — they never fix code or modify files
 - Project guidelines (`claudedocs/guidelines/*.md`) always override skill rules
 
-### Agile Workflow Skill
-
-Complete epic/story/sprint management with:
-
-- **Epic Creation:** Goal, scope, out-of-scope definitions
-- **Story Slicing:** INVEST criteria validation
-- **Acceptance Criteria:** Template-based generation
-- **Story Points:** Fibonacci sequence (1, 2, 3, 5, 8, 13)
-- **Sprint Planning:** Capacity management and dependency tracking
-- **Jinja2 Templates:** Consistent document generation
-
-**File naming convention:**
-- `EPIC-001-user-authentication.md`
-- `STORY-042-login-validation.md`
-- `SPRINT-01.md`
-
 ### Technology Advisors
 
-Language-specific library and framework recommendations:
+Enforce current-version research before adding dependencies:
 
-- **JVM:** Spring ecosystem, testing tools, utilities
-- **JavaScript:** React/Vue/Node.js ecosystems
+- **JVM:** WebSearch + Maven Central API verification for Maven/Gradle projects
+- **JavaScript:** WebSearch + npm Registry API verification for npm/yarn/pnpm projects
 
-Advisors consider project context, existing dependencies, and best practices when suggesting technologies.
+Advisors ensure you never get outdated library versions from training data.
 
 ### Architecture Audit
 

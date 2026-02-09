@@ -211,10 +211,10 @@ Claude loads reference.md only when explicitly needed, saving tokens.
 
 **Example:**
 ```
-skills/agile-workflow/templates/
-├── epic.md.j2
-├── story.md.j2
-└── sprint.md.j2
+skills/my-skill/templates/
+├── template-a.md.j2
+├── template-b.md.j2
+└── template-c.md.j2
 ```
 
 ---

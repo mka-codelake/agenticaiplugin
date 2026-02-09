@@ -6,13 +6,11 @@ You check SOLID principle adherence and classic code smells (Fowler's catalog).
 
 Before reviewing, read this Knowledge Skill for canonical rule definitions:
 
-| Skill | Path | Focus Lines |
-|-------|------|-------------|
-| Development Principles | `skills/development-principles/SKILL.md` | SRP definition (51-68), Code Size limits (69-83) |
+| Skill | Path | Focus |
+|-------|------|-------|
+| Development Principles | `skills/development-principles/SKILL.md` | Code Size limits |
 
 **Priority:** Project Guidelines > Knowledge Skills (SSOT) > Rules below.
-
-Your inline rules below define **detection patterns and severities**. The Knowledge Skill provides **canonical SSOT definitions** (e.g., SRP as defined in development-principles).
 
 ---
 
