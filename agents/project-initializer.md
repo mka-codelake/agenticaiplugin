@@ -197,11 +197,11 @@ Happy coding with AgenticAI!
 
 Use this workflow when mode = UPDATE (update existing installation).
 
-## ⚠️ MANDATORY PRE-STEP: Deprecated File Cleanup (ALWAYS EXECUTE FIRST)
+## ⚠️ MANDATORY PRE-STEP: Deprecated Cleanup & Directory Setup (ALWAYS EXECUTE FIRST)
 
 **This step is NOT optional. Execute it BEFORE anything else, even if all rules are up to date.**
 
-Search for and remove deprecated files that are no longer part of the plugin:
+### A) Deprecated File Cleanup: agentic.md
 
 ```bash
 ls agentic.md 2>/dev/null
@@ -212,13 +212,47 @@ ls agentic.md 2>/dev/null
 rm agentic.md
 ```
 
-Report:
-```
-Deprecated File Cleanup:
-  ✓ Removed deprecated agentic.md (no longer used by plugin)
+### B) Deprecated Directory Cleanup: claudedocs/testspecs/
+
+```bash
+ls -d claudedocs/testspecs 2>/dev/null
 ```
 
-**If agentic.md does NOT exist:** Report: `No deprecated files found.`
+**If claudedocs/testspecs/ EXISTS:**
+- Check if empty: `ls claudedocs/testspecs/ 2>/dev/null`
+- **If empty →** Remove it: `rmdir claudedocs/testspecs`
+- **If NOT empty →** Do NOT delete. Show WARNING:
+  ```
+  ⚠ WARNING: claudedocs/testspecs/ still contains files.
+    This directory is deprecated (replaced by claudedocs/adrs/).
+    Please migrate or remove files manually, then delete the directory.
+  ```
+
+### C) Directory Setup: claudedocs/adrs/
+
+```bash
+ls -d claudedocs/adrs 2>/dev/null
+```
+
+**If claudedocs/adrs/ does NOT exist →** Create it:
+```bash
+mkdir -p claudedocs/adrs
+```
+
+### D) Report
+
+After all checks, produce a single aggregated report:
+
+```
+Deprecated Cleanup & Directory Setup:
+  ✓ Removed deprecated agentic.md          (only if removed)
+  ✓ Removed empty claudedocs/testspecs/    (only if removed)
+  ⚠ claudedocs/testspecs/ contains files   (only if non-empty)
+  ✓ Created claudedocs/adrs/               (only if newly created)
+  No deprecated items found.               (only if nothing to do)
+```
+
+Only show lines that apply. If nothing was found/changed, show the "No deprecated items found" line.
 
 **IMPORTANT:** This cleanup MUST run and MUST be reported to the user, regardless of whether rules need updating. Only after this step, proceed to Step 1.
 
@@ -452,7 +486,7 @@ Compare each installed rule version (from Step 3) against the **latest version f
 |-----------|----------------|
 | agenticaiplugin-core.md | v1.0 |
 | agenticaiplugin-code-review.md | v1.1 |
-| agenticaiplugin-protected-dirs.md | v1.0 |
+| agenticaiplugin-protected-dirs.md | v1.1 |
 | agenticaiplugin-git-commit.md | v1.0 |
 | agenticaiplugin-engineering.md | v1.0 |
 
