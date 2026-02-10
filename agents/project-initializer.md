@@ -297,16 +297,16 @@ If integration tests fail, fix the IMPLEMENTATION, never the tests. Tests repres
 **NEVER modify files in these directories:**
 
 ```
-claudedocs/testspecs/**
 claudedocs/guidelines/**
+claudedocs/adrs/**
 ```
 
 ### Rules for ALL Agents
 
 **FORBIDDEN:**
 
-- Modify any file in `claudedocs/testspecs/`
 - Modify any file in `claudedocs/guidelines/`
+- Modify any file in `claudedocs/adrs/`
 - Delete files from these directories
 - Rename or move files in these directories
 - Add files to these directories (user does this manually)
@@ -321,18 +321,17 @@ claudedocs/guidelines/**
 
 These directories contain **user-provided** configuration and requirements:
 
-1. **claudedocs/testspecs/**
-   - User-defined test scenarios
-   - Expected inputs/outputs
-   - Explicit test specifications
-   - **Used when writing integration tests**
-
-2. **claudedocs/guidelines/**
+1. **claudedocs/guidelines/**
    - Project-specific coding rules
    - Custom exception patterns
    - Logging standards
    - Architecture decisions
    - **Code-reviewer reads these to validate code**
+
+2. **claudedocs/adrs/**
+   - Architectural Decision Records
+   - Documented technology choices and rationale
+   - **Code-reviewer and architecture-audit read these for compliance**
 
 **These are user requirements, not code. Agents execute them, never modify them.**
 
@@ -358,7 +357,7 @@ Project guideline seems inefficient. Let me update the guideline file to match m
 When rules conflict:
 
 1. **Highest:** `claudedocs/guidelines/*.md` (Project-specific rules)
-2. **Medium:** `claudedocs/testspecs/*.md` (Test specifications)
+2. **High:** `claudedocs/adrs/*.md` (Architectural Decision Records)
 3. **Lowest:** Skill guidelines (Generic best practices)
 ```
 
@@ -489,7 +488,6 @@ Check the current setup status and display it visually:
 Check for these items:
 1. `.claude/rules/` directory (REQUIRED for plugin rules)
 2. `claudedocs/guidelines/` directory (RECOMMENDED - project-specific coding rules)
-3. `claudedocs/testspecs/` directory (RECOMMENDED - test specifications)
 
 Also check if any `agenticaiplugin-*.md` rules already exist in `.claude/rules/`.
 
@@ -500,7 +498,6 @@ AgenticAI Plugin - Project Setup
 Current Status:
 [checkmark] .claude/rules/ - Already exists (contains 2 plugin rules)
 [x] claudedocs/guidelines/ - Not found (recommended)
-[checkmark] claudedocs/testspecs/ - Already exists
 ```
 
 Use checkmark for existing items, x for missing items.
@@ -521,7 +518,6 @@ Setup will perform these actions:
   - agenticaiplugin-git-commit.md (Use git-smart-commit Skill)
   - agenticaiplugin-engineering.md (Engineering Principles)
 - Create claudedocs/guidelines/
-- Create claudedocs/testspecs/
 ```
 
 If rules already exist, show:
@@ -578,13 +574,12 @@ Report each created rule:
 For each missing directory from Step 1 status check, create it using:
 
 ```bash
-mkdir -p claudedocs/guidelines claudedocs/testspecs
+mkdir -p claudedocs/guidelines
 ```
 
 Report each created directory:
 ```
 [checkmark] Created claudedocs/guidelines/
-[checkmark] Created claudedocs/testspecs/
 ```
 
 Skip directories that already exist (don't report them).
@@ -611,8 +606,7 @@ Plugin Rules (in .claude/rules/):
 
 Next steps:
 1. Add project-specific coding rules to claudedocs/guidelines/
-2. Add test scenarios to claudedocs/testspecs/
-3. Start using plugin features:
+2. Start using plugin features:
    - /agenticaiplugin:code-review - Review code quality
    - /agenticaiplugin:gitme - Smart git commits
 

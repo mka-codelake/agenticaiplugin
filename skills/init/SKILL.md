@@ -31,7 +31,7 @@ Invokes the `agenticaiplugin:project-initializer` agent which guides you through
 1. **Status Check:**
    - Check for existing `.claude/rules/` directory
    - Check for existing plugin rules (`agenticaiplugin-*.md`)
-   - Check for `claudedocs/` directories
+   - Check for `claudedocs/guidelines/` directory
 
 2. **Confirmation:**
    - Show what will be created/modified
@@ -44,7 +44,6 @@ Invokes the `agenticaiplugin:project-initializer` agent which guides you through
      - `agenticaiplugin-code-review.md` - Automatic code reviews
      - `agenticaiplugin-protected-dirs.md` - Protected directories
    - Create `claudedocs/guidelines/` directory
-   - Create `claudedocs/testspecs/` directory
 
 4. **Summary:**
    - Report what was created
@@ -60,7 +59,6 @@ AgenticAI Plugin - Project Setup
 Current Status:
 [x] .claude/rules/ - Not found (required)
 [x] claudedocs/guidelines/ - Not found (recommended)
-[x] claudedocs/testspecs/ - Not found (recommended)
 
 Setup will perform these actions:
 - Create .claude/rules/ directory
@@ -69,7 +67,6 @@ Setup will perform these actions:
   - agenticaiplugin-code-review.md (Automatic Code Review)
   - agenticaiplugin-protected-dirs.md (Protected Directories)
 - Create claudedocs/guidelines/
-- Create claudedocs/testspecs/
 
 Proceed with AgenticAI Plugin setup?
 > Yes, set up now
@@ -78,7 +75,6 @@ Proceed with AgenticAI Plugin setup?
 [checkmark] Created .claude/rules/agenticaiplugin-code-review.md
 [checkmark] Created .claude/rules/agenticaiplugin-protected-dirs.md
 [checkmark] Created claudedocs/guidelines/
-[checkmark] Created claudedocs/testspecs/
 
 Setup complete! Your project is ready for AgenticAI Plugin.
 
@@ -88,8 +84,7 @@ Summary:
 
 Next steps:
 1. Add project-specific coding rules to claudedocs/guidelines/
-2. Add test scenarios to claudedocs/testspecs/
-3. Start using plugin features:
+2. Start using plugin features:
    - /agenticaiplugin:code-review - Review code quality
    - /agenticaiplugin:gitme - Smart git commits
 

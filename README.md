@@ -77,7 +77,6 @@ Initialize a new project with recommended directory structure:
 This command creates:
 - `.claude/rules/agenticaiplugin-*.md` - Plugin rules for Claude Code
 - `claudedocs/guidelines/` for project-specific code review rules
-- `claudedocs/testspecs/` for test scenarios
 
 **Plugin rules created:**
 | Rule | Purpose |
@@ -172,28 +171,15 @@ throw new UserNotFoundException(ErrorCode.USER_404, userId);
 throw new UserNotFoundException("User not found");
 ```
 
-### Test Specifications
+### Architectural Decision Records (ADRs)
 
-Create `.md` files in `claudedocs/testspecs/` for integration test scenarios:
+Create `.md` files in `claudedocs/adrs/` to document architectural decisions:
 
-**Example** (`claudedocs/testspecs/kafka-scenarios.md`):
+- `ADR-001-hexagonal-architecture.md` - Why hexagonal architecture was chosen
+- `ADR-002-event-sourcing.md` - Event sourcing for specific domains
+- `ADR-003-redis-caching.md` - Caching strategy decisions
 
-```markdown
-# Kafka Message Processing Test Scenarios
-
-## Scenario 1: CREATE Message
-
-**Input:**
-- Topic: user-events
-- Message: {"userId": 123, "action": "CREATE", "username": "john"}
-
-**Expected:**
-- User with ID 123 exists in database
-- User status is ACTIVE
-- Username is "john"
-```
-
-These specifications are used when creating TestContainer-based integration tests.
+ADRs are read by both the code review and architecture audit to check compliance with documented decisions.
 
 ## Project Structure
 
@@ -319,11 +305,10 @@ your-project/
 │       └── my-custom-rules.md    # Your own rules (optional)
 ├── claudedocs/
 │   ├── guidelines/           # Code review rules
-│   ├── testspecs/           # Test scenarios
+│   ├── adrs/                # Architectural Decision Records
 │   ├── epics/               # Epic documents
 │   ├── stories/             # User stories
-│   ├── sprints/             # Sprint plans
-│   └── architecture/        # ADRs
+│   └── sprints/             # Sprint plans
 ├── src/
 │   ├── main/java/
 │   └── test/java/

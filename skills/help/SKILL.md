@@ -35,7 +35,7 @@ Zeige dem Benutzer folgende Übersicht:
 ### Projekt-Setup
 | Command | Beschreibung |
 |---------|--------------|
-| **init** | Initialisiert ein Projekt interaktiv. Erstellt CLAUDE.md mit projektspezifischen Anweisungen und die claudedocs/-Verzeichnisstruktur (guidelines/, testspecs/, etc.) |
+| **init** | Initialisiert ein Projekt interaktiv. Erstellt Plugin-Regeln in .claude/rules/ und die claudedocs/guidelines/-Verzeichnisstruktur |
 
 ### Dokumentation
 | Command | Beschreibung |
