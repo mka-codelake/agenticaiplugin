@@ -88,6 +88,14 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 
 Changes are immediately available after marketplace update.
 
+### Checklist bei Änderungen
+
+Bei Feature-Änderungen, neuen Commands oder Verzeichnis-Änderungen prüfen:
+
+1. **Help-Skill** (`skills/help/SKILL.md`) — Ist die Übersicht noch aktuell?
+2. **CHANGELOG** (`skills/update-plugin/CHANGELOG.md`) — Eintrag hinzugefügt?
+3. **Per-Skill `--help`** — Usage-Abschnitt in betroffenen Skills aktuell?
+
 ### Testing
 
 - Test skills by triggering their auto-activation keywords
