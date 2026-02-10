@@ -488,6 +488,7 @@ Check the current setup status and display it visually:
 Check for these items:
 1. `.claude/rules/` directory (REQUIRED for plugin rules)
 2. `claudedocs/guidelines/` directory (RECOMMENDED - project-specific coding rules)
+3. `claudedocs/adrs/` directory (RECOMMENDED - architectural decision records)
 
 Also check if any `agenticaiplugin-*.md` rules already exist in `.claude/rules/`.
 
@@ -498,6 +499,7 @@ AgenticAI Plugin - Project Setup
 Current Status:
 [checkmark] .claude/rules/ - Already exists (contains 2 plugin rules)
 [x] claudedocs/guidelines/ - Not found (recommended)
+[x] claudedocs/adrs/ - Not found (recommended)
 ```
 
 Use checkmark for existing items, x for missing items.
@@ -518,6 +520,7 @@ Setup will perform these actions:
   - agenticaiplugin-git-commit.md (Use git-smart-commit Skill)
   - agenticaiplugin-engineering.md (Engineering Principles)
 - Create claudedocs/guidelines/
+- Create claudedocs/adrs/
 ```
 
 If rules already exist, show:
@@ -574,12 +577,13 @@ Report each created rule:
 For each missing directory from Step 1 status check, create it using:
 
 ```bash
-mkdir -p claudedocs/guidelines
+mkdir -p claudedocs/guidelines claudedocs/adrs
 ```
 
 Report each created directory:
 ```
 [checkmark] Created claudedocs/guidelines/
+[checkmark] Created claudedocs/adrs/
 ```
 
 Skip directories that already exist (don't report them).

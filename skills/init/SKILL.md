@@ -31,7 +31,7 @@ Invokes the `agenticaiplugin:project-initializer` agent which guides you through
 1. **Status Check:**
    - Check for existing `.claude/rules/` directory
    - Check for existing plugin rules (`agenticaiplugin-*.md`)
-   - Check for `claudedocs/guidelines/` directory
+   - Check for `claudedocs/guidelines/` and `claudedocs/adrs/` directories
 
 2. **Confirmation:**
    - Show what will be created/modified
@@ -44,6 +44,7 @@ Invokes the `agenticaiplugin:project-initializer` agent which guides you through
      - `agenticaiplugin-code-review.md` - Automatic code reviews
      - `agenticaiplugin-protected-dirs.md` - Protected directories
    - Create `claudedocs/guidelines/` directory
+   - Create `claudedocs/adrs/` directory
 
 4. **Summary:**
    - Report what was created
@@ -59,6 +60,7 @@ AgenticAI Plugin - Project Setup
 Current Status:
 [x] .claude/rules/ - Not found (required)
 [x] claudedocs/guidelines/ - Not found (recommended)
+[x] claudedocs/adrs/ - Not found (recommended)
 
 Setup will perform these actions:
 - Create .claude/rules/ directory
@@ -67,6 +69,7 @@ Setup will perform these actions:
   - agenticaiplugin-code-review.md (Automatic Code Review)
   - agenticaiplugin-protected-dirs.md (Protected Directories)
 - Create claudedocs/guidelines/
+- Create claudedocs/adrs/
 
 Proceed with AgenticAI Plugin setup?
 > Yes, set up now
@@ -75,6 +78,7 @@ Proceed with AgenticAI Plugin setup?
 [checkmark] Created .claude/rules/agenticaiplugin-code-review.md
 [checkmark] Created .claude/rules/agenticaiplugin-protected-dirs.md
 [checkmark] Created claudedocs/guidelines/
+[checkmark] Created claudedocs/adrs/
 
 Setup complete! Your project is ready for AgenticAI Plugin.
 
