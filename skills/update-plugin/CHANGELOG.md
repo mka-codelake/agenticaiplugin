@@ -5,6 +5,13 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.8.6
+
+- **Fix: Update handles deprecated testspecs directory.** Projects initialized before v0.8.5 with `claudedocs/testspecs/` now get it cleaned up (removed if empty, warning if contains files).
+- **Fix: Update creates claudedocs/adrs/ directory.** Existing installations now get the `claudedocs/adrs/` directory during update, matching the init flow.
+- **Fix: protected-dirs rule bumped to v1.1.** The testspecs-to-adrs content change in v0.8.5 was missing a version bump, causing updates to skip this rule.
+- **Fix: code-review rule template header aligned to v1.1.** Template header now matches the version table, preventing unnecessary rewrites on every update.
+
 ## 0.8.5
 
 - **ADRs in code review.** Code review specialists now receive Architecture Decision Records (`claudedocs/adrs/*.md`) as authoritative context. Priority chain updated: Project Guidelines > ADRs > Current Standards > Specialist Rules.
