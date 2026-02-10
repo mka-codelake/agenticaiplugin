@@ -26,7 +26,13 @@ No parameters required.
 
 Updates an existing AgenticAI Plugin installation. Handles both modern (rules-based) and legacy (CLAUDE.md-based) installations.
 
-Invokes the `agenticaiplugin:project-initializer` agent in update mode which:
+Invokes the `agenticaiplugin:project-initializer` agent in **update** mode.
+
+**IMPORTANT:** Pass the plugin root path so the agent can read rule templates.
+The plugin root is this skill's base directory, two levels up (i.e., `../../` from `skills/update-plugin/`).
+Include it in the agent prompt as `plugin_root: <absolute_path>`.
+
+The agent:
 
 1. **Cleanup (ALWAYS runs first):**
    - Removes deprecated `agentic.md` file if present in project root

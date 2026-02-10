@@ -24,8 +24,11 @@ No parameters required.
 
 ## Execution
 
-Invoke the `agenticaiplugin:project-initializer` agent. It handles the complete setup:
-status check, confirmation, rule creation, directory creation, and summary.
+Invoke the `agenticaiplugin:project-initializer` agent in **init** mode.
+
+**IMPORTANT:** Pass the plugin root path so the agent can read rule templates.
+The plugin root is this skill's base directory, two levels up (i.e., `../../` from `skills/init/`).
+Include it in the agent prompt as `plugin_root: <absolute_path>`.
 
 ## Related
 
