@@ -190,12 +190,6 @@ agenticaiplugin/
 ├── agents/                   # Specialized sub-agents
 │   ├── project-initializer.md # Project setup
 │   └── context-creator.md    # README generation
-├── rules-templates/          # Plugin rule templates
-│   ├── agenticaiplugin-core.md
-│   ├── agenticaiplugin-code-review.md
-│   ├── agenticaiplugin-protected-dirs.md
-│   ├── agenticaiplugin-git-commit.md
-│   └── agenticaiplugin-engineering.md
 ├── skills/                   # All skills (knowledge + commands)
 │   ├── # Auto-activated knowledge skills:
 │   ├── git-smart-commit/     # Intelligent commits
