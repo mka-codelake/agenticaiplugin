@@ -280,13 +280,19 @@ You clearly don't understand Spring Boot.
 ### Project Guidelines Override Skills
 
 **Always prioritize:**
-1. **Highest:** `claudedocs/guidelines/*.md` (project-specific)
-2. **Medium:** Story acceptance criteria
-3. **Lowest:** Skill guidelines (generic best practices)
+1. **Highest:** `claudedocs/guidelines/*.md` (project-specific rules)
+2. **High:** `claudedocs/adrs/*.md` (documented architecture decisions)
+3. **Medium:** Story acceptance criteria
+4. **Lowest:** Skill guidelines (generic best practices)
 
 **When conflict:**
 ```markdown
 **Note:** This violates generic best practice but follows project guideline (exception-handling.md). No issue.
+```
+
+**When ADR conflict:**
+```markdown
+**Note:** This contradicts ADR-003 (Event Sourcing for Orders). Flagged as WARNING.
 ```
 
 ### Cite Correctly
@@ -294,6 +300,11 @@ You clearly don't understand Spring Boot.
 **When project guideline exists:**
 ```markdown
 **Rule:** claudedocs/guidelines/exception-handling.md → ErrorCode First
+```
+
+**When ADR exists:**
+```markdown
+**Rule:** claudedocs/adrs/ADR-003-event-sourcing.md → Event Sourcing for Order Domain
 ```
 
 **When only skill guideline:**
