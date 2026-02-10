@@ -70,7 +70,9 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 |---------|-------------|
 | `/plugin marketplace update local-dev-marketplace` | Publish plugin changes to local marketplace |
 | `/agenticaiplugin:code-review` | Multi-specialist code review |
+| `/agenticaiplugin:architecture-audit` | Multi-analyzer architecture audit |
 | `/agenticaiplugin:init` | Set up plugin in a new project |
+| `/agenticaiplugin:update-plugin` | Update plugin rules in existing project |
 | `/agenticaiplugin:git-smart-commit` | Atomic commits with meaningful messages |
 
 ## Development Workflow
@@ -120,6 +122,7 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 - **Skills = shared context** — every SKILL.md is loaded into every session → token-expensive, keep them short. Agents have isolated context and can be more detailed.
 - **`rules-templates/` vs `.claude/rules/`** — `rules-templates/` contains the source templates. The `project-initializer` agent copies them to `.claude/rules/` in the target project. `.claude/` is gitignored in the plugin repo.
 - **Marketplace update required** — File changes in the plugin directory are NOT immediately active. Always run `/plugin marketplace update` after changes.
+- **Progressive disclosure** — Put details in `reference.md`, not `SKILL.md`. Claude loads reference.md only when explicitly needed, saving tokens.
 
 ---
 
@@ -130,16 +133,6 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 When the user requests a version bump:
 1. Update `version` in `.claude-plugin/plugin.json`
 2. Update `skills/update-plugin/CHANGELOG.md` — add a new `## X.Y.Z` section at the top with all changes since the previous version (use git log to identify changes)
-
----
-
-## Token Optimization
-
-1. **Skills:** Shared context - keep very concise
-2. **Agents:** Isolated context - can be more detailed
-3. **Progressive disclosure:** Use reference.md for details
-4. **Templates:** Externalize repetitive structures
-5. **Cross-references:** Link related skills instead of duplicating
 
 ---
 
