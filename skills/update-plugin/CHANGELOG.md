@@ -5,6 +5,13 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.8.5
+
+- **ADRs in code review.** Code review specialists now receive Architecture Decision Records (`claudedocs/adrs/*.md`) as authoritative context. Priority chain updated: Project Guidelines > ADRs > Current Standards > Specialist Rules.
+- **Removed testspecs directory.** `claudedocs/testspecs/` was created during init but never read by any skill. Replaced with `claudedocs/adrs/` in init, protected-dirs rule, and documentation.
+- **Externalized rule templates.** Rule templates moved from embedded in project-initializer agent (~440 lines) to separate files in `rules-templates/`. Agent reads them at runtime via plugin root path. Agent shrinks from 1075 to 643 lines.
+- **Trimmed init SKILL.md.** Removed redundant step descriptions, examples, and rules table that duplicated the agent. 121 → 37 lines.
+
 ## 0.8.4
 
 - **Refactor: Code review default mode reviews local changes.** Git Diff mode (no parameter) now reviews uncommitted local changes (`git diff HEAD` + untracked files) instead of comparing against `origin/main`. Works in repos without a remote. Removed all remote branch detection code.
