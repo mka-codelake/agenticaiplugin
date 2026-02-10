@@ -165,6 +165,13 @@ Read and apply project-specific guidelines from:
 claudedocs/guidelines/*.md
 {ENDIF}
 
+{IF adrs_exist}
+## Architectural Decision Records
+Read and respect documented architecture decisions from:
+claudedocs/adrs/*.md
+When reviewing, treat ADRs as authoritative context — flag code that contradicts documented decisions.
+{ENDIF}
+
 ## Files to Review
 {file_list_with_paths}
 
@@ -187,7 +194,7 @@ Consider this context when making recommendations.
 3. Read your specialist rules file
 4. Read the output format specification
 5. Apply your specialist rules AND current technology standards
-6. **Priority when conflicts occur:** Project Guidelines > Current Standards > Specialist Rules
+6. **Priority when conflicts occur:** Project Guidelines > ADRs > Current Standards > Specialist Rules
 7. Return findings ONLY in the standard output format
 8. If no issues found, return "No findings."
 9. Do NOT fix code — only identify and describe issues
