@@ -35,7 +35,7 @@ Zeige dem Benutzer folgende Übersicht:
 ### Projekt-Setup
 | Command | Beschreibung |
 |---------|--------------|
-| **init** | Initialisiert ein Projekt interaktiv. Erstellt Plugin-Regeln in .claude/rules/ und die claudedocs/guidelines/-Verzeichnisstruktur |
+| **init** | Initialisiert ein Projekt interaktiv. Erstellt Plugin-Regeln in .claude/rules/ und die claudedocs/-Verzeichnisstruktur (guidelines/, adrs/) |
 
 ### Dokumentation
 | Command | Beschreibung |
@@ -52,7 +52,22 @@ Zeige dem Benutzer folgende Übersicht:
 ### System
 | Command | Beschreibung |
 |---------|--------------|
+| **update-plugin** | Aktualisiert Plugin-Regeln in .claude/rules/ auf die neueste Version. Migriert automatisch von Legacy-Installationen |
 | **promote-perms** | Hebt Workspace-spezifische Permissions auf User-Level (global). Nützlich wenn man dieselben Permissions in allen Projekten haben möchte |
+| **help** | Zeigt diese Übersicht aller Commands, Skills, Agents und Plugin-Regeln |
+
+---
+
+## Projektstruktur (claudedocs/)
+
+Das Plugin nutzt ein `claudedocs/`-Verzeichnis für projektspezifische Konfiguration:
+
+| Verzeichnis | Zweck |
+|-------------|-------|
+| `claudedocs/guidelines/` | Eigene Coding-Regeln, die der Code-Review berücksichtigt (z.B. Exception-Handling, Logging-Standards) |
+| `claudedocs/adrs/` | Architecture Decision Records — dokumentierte Architektur-Entscheidungen, die Code-Review und Architecture-Audit als Kontext nutzen |
+
+Diese Verzeichnisse werden beim `/agenticaiplugin:init` angelegt. Du legst dort eigene `.md`-Dateien ab — das Plugin liest sie, ändert sie aber nie.
 
 ---
 
@@ -69,9 +84,6 @@ Skills sind Wissensmodule, die Claude automatisch lädt wenn bestimmte Schlüsse
 ### Architektur
 - **architecture-audit** - Architektur-Audit mit 7 Analyzern und A-E Bewertung (Command: `/agenticaiplugin:architecture-audit`)
 
-### Plugin-Regeln (immer aktiv)
-- **agenticaiplugin-engineering.md** - Engineering-Prinzipien: Story-Traceability, Code-Size-Limits, Test-Klassifizierung, Dependency-Management
-
 ---
 
 ## Agents (spezialisierte Sub-Agenten)
@@ -80,9 +92,22 @@ Agents sind isolierte Kontexte für spezifische Aufgaben.
 
 | Agent | Aufgabe |
 |-------|---------|
-| **code-review** | Multi-Specialist Code-Reviews (10 fokussierte Spezialisten, kein separater Agent mehr) |
 | **context-creator** | Erstellt README.md |
-| **project-initializer** | Richtet Projekte für das Plugin ein |
+| **project-initializer** | Richtet Projekte für das Plugin ein, führt Updates durch |
+
+---
+
+## Plugin-Regeln (immer aktiv nach /agenticaiplugin:init)
+
+Diese Regeln werden bei der Projektinitialisierung in `.claude/rules/` installiert und beeinflussen Claudes Verhalten dauerhaft:
+
+| Regel | Verhalten |
+|-------|-----------|
+| **Rückfragen statt Annahmen** | Claude fragt bei Unklarheiten nach, statt Annahmen zu treffen |
+| **Automatisches Code-Review** | Nach Abschluss einer Implementierung führt Claude automatisch ein Multi-Specialist Code-Review durch |
+| **Git-Commits über Skill** | `git commit` wird nie direkt ausgeführt — immer über `/agenticaiplugin:gitme` |
+| **Engineering-Prinzipien** | Story-Traceability, Code-Size-Limits, Test-Klassifizierung, Dependency-Management |
+| **Geschützte Verzeichnisse** | `claudedocs/guidelines/` und `claudedocs/adrs/` werden nur gelesen, nie verändert |
 
 ---
 
