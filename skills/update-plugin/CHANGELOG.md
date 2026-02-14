@@ -5,6 +5,12 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.8.7
+
+- **New skill: create-cli.** Designs CLI surface area (arguments, flags, subcommands, help text, output formats, exit codes). Produces a compact spec for implementation. Includes `cli-guidelines.md` reference.
+- **New skill: markdown-converter.** Converts files to Markdown via `uvx markitdown`. Supports PDF, Word, PowerPoint, Excel, HTML, CSV, JSON, XML, images, audio, ZIP, YouTube URLs, EPub.
+- **Docs: Command-style skill convention documented.** `docs/plugin-howto.md` now describes the `## Usage` + `## Argument Handling` pattern (standardized since v0.8.2) as a required pattern for new command-style skills.
+
 ## 0.8.6
 
 - **Fix: Update handles deprecated testspecs directory.** Projects initialized before v0.8.5 with `claudedocs/testspecs/` now get it cleaned up (removed if empty, warning if contains files).

@@ -74,6 +74,8 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:init` | Set up plugin in a new project |
 | `/agenticaiplugin:update-plugin` | Update plugin rules in existing project |
 | `/agenticaiplugin:git-smart-commit` | Atomic commits with meaningful messages |
+| `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
+| `/agenticaiplugin:markdown-converter` | Convert files to Markdown via markitdown |
 
 ## Development Workflow
 

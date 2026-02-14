@@ -48,6 +48,12 @@ Zeige dem Benutzer folgende Übersicht:
 | **gitme** | Intelligente Git-Commits: Analysiert alle Änderungen, gruppiert sie logisch und erstellt aussagekräftige Commit-Messages. Kann mehrere Commits erstellen wenn sinnvoll |
 | **code-review** | Führt ein intelligentes Code-Review durch. Vier Modi: ohne Parameter = Git Diff (Standard), mit Datei = Einzeldatei, `--complete` = ganzes Projekt, `--renovate` = Dependency-Audit (Optionen: `--stack jvm/js/python`, `--quick`, `--save`) |
 | **architecture-audit** | Umfassendes Architektur-Audit: Erkennt Patterns, bewertet 7 Dimensionen (Boundaries, Dependencies, Naming, APIs, Wiring, Visibility), erstellt bewerteten Report (A-E Skala). Optionen: `--scope <path>` für Teilbereiche |
+| **create-cli** | Designt CLI-Oberflächen: Argumente, Flags, Subcommands, Help-Text, Output-Formate, Exit-Codes, Prompts. Erstellt eine kompakte Spec zur Implementierung |
+
+### Tools
+| Command | Beschreibung |
+|---------|--------------|
+| **markdown-converter** | Konvertiert Dateien zu Markdown via `uvx markitdown`. Unterstützt PDF, Word, PowerPoint, Excel, HTML, CSV, JSON, XML, Bilder, Audio, ZIP, YouTube-URLs, EPub |
 
 ### System
 | Command | Beschreibung |
@@ -77,12 +83,16 @@ Skills sind Wissensmodule, die Claude automatisch lädt wenn bestimmte Schlüsse
 
 ### Entwicklung
 - **git-smart-commit** - Regeln für gute Commits
+- **create-cli** - CLI-Design: Argumente, Flags, Subcommands, Output-Formate, Exit-Codes (Command: `/agenticaiplugin:create-cli`)
 
 ### Code-Qualität
 - **code-review** - Multi-Specialist Code-Reviews (10 fokussierte Spezialisten)
 
 ### Architektur
 - **architecture-audit** - Architektur-Audit mit 7 Analyzern und A-E Bewertung (Command: `/agenticaiplugin:architecture-audit`)
+
+### Tools
+- **markdown-converter** - Datei-zu-Markdown-Konvertierung via markitdown (Command: `/agenticaiplugin:markdown-converter`)
 
 ---
 

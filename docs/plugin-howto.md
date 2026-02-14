@@ -564,6 +564,46 @@ Claude Code automatically discovers:
 
 ## Common Patterns
 
+### Command-Style Skills (Usage + Argument Handling)
+
+Every user-invocable skill that acts as a command MUST include two standardized sections:
+
+**`## Usage`** — Shows invocation syntax and modes:
+```markdown
+## Usage
+
+\```
+/agenticaiplugin:skill-name [<args>]
+\```
+
+| Mode | Command | Description |
+|------|---------|-------------|
+| **Default** | `/agenticaiplugin:skill-name` | What happens with no args |
+| **With Arg** | `/agenticaiplugin:skill-name <arg>` | What happens with args |
+```
+
+**`## Argument Handling`** — Guards execution with validation:
+```markdown
+## Argument Handling
+
+**Check BEFORE executing any steps:**
+
+1. **`--help` passed** → Display the Usage section above verbatim, then STOP.
+2. **No argument AND command requires parameters** → Display the Usage section above verbatim, then STOP.
+3. **Unrecognized flags or invalid arguments** → Display the Usage section above verbatim, then STOP.
+```
+
+**Two patterns depending on whether arguments are required:**
+
+| Scenario | No-arg behavior | Example |
+|----------|----------------|---------|
+| Command requires parameters | Show Usage, STOP | `markdown-converter` (needs `<file>`) |
+| Command works without parameters | Proceed with default behavior | `code-review` (defaults to Git Diff mode) |
+
+**Why:** Standardized since v0.8.2. Ensures consistent UX across all commands. Users always get usage guidance when invoking incorrectly.
+
+**Applies to:** All user-invocable skills that perform an action. Pure knowledge skills (auto-activated only, `user-invocable: false`) may skip this.
+
 ### Auto-Activation in Skills
 ```markdown
 ---
