@@ -5,6 +5,11 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.9.0
+
+- **aiknowledgedb Integration.** Knowledge skill (`/agenticaiplugin:knowledge`), rule template (`aiknowledgedb-knowledge-lookup.md`), and init/update tasks for automatic knowledge DB setup. Init checks for CLI availability and skips gracefully if not installed.
+- **Refactor: Coordinator architecture.** Project initializer refactored from 677-line monolith to slim coordinator (~200 lines) with 5 task files in `agents/project-initializer/`. Easier to maintain and extend.
+
 ## 0.8.7
 
 - **New skill: create-cli.** Designs CLI surface area (arguments, flags, subcommands, help text, output formats, exit codes). Produces a compact spec for implementation. Includes `cli-guidelines.md` reference.
