@@ -28,6 +28,7 @@ Specialists produce a structured findings report. The user decides what to fix.
 | 8 | Cross-Cutting Concerns | 2 | Source files modified |
 | 9 | Test Quality | 2 | Test files modified |
 | 10 | Test Completeness & Infra | 2 | Source files modified |
+| 11 | Documentation & Comments | 2 | Source files modified |
 
 ### Selection Logic
 
@@ -36,7 +37,7 @@ ALWAYS activate:
   → Specialist 1 (Dependencies & Versions)
 
 IF source_files_modified:
-  → Specialists 2, 4, 5, 6, 7, 8
+  → Specialists 2, 4, 5, 6, 7, 8, 11
 
 IF source_files_modified AND (layers_affected >= 3 OR new_dependencies):
   → Specialist 3 (Architecture)
@@ -90,6 +91,7 @@ Wait for completion. Capture full results.
 - **Design Patterns (4):** Modern framework version means modern patterns should be used
 - **Code Quality (6):** Deprecated API usage should be flagged if modern alternative exists
 - **Cross-Cutting (8):** Framework version determines which cross-cutting approaches are current
+- **Documentation (11):** Framework version determines expected documentation conventions
 
 ### Phase 2: All Applicable Specialists (Parallel)
 
@@ -108,6 +110,7 @@ Spawn ALL applicable Phase 2 specialists in a single message using multiple Task
 | 08 Cross-Cutting Concerns | **sonnet** | Logging/error-handling consistency is inherently cross-file |
 | 09 Test Quality | **haiku** | Scoped to test files |
 | 10 Test Completeness | **haiku** | Structured cross-referencing |
+| 11 Documentation & Comments | **haiku** | Local, rule-based checks on comments and documentation |
 
 **Spawn each via Task tool:**
 ```
@@ -248,7 +251,7 @@ Order all findings:
 | SUGGESTION | Config.java:12 | Consider @Value | Dependencies |
 
 **Summary:** 2 Critical, 2 Warnings, 1 Suggestion
-**Specialists activated:** 7/10
+**Specialists activated:** 7/11
 **Phase 1 duration:** ~30s | **Phase 2 duration:** ~45s (parallel)
 ```
 
@@ -258,7 +261,7 @@ Order all findings:
 ## Code Review Report
 
 **Files Reviewed:** {count}
-**Specialists Activated:** {activated_count}/10
+**Specialists Activated:** {activated_count}/11
 **Phase 1:** Dependencies & Versions
 **Phase 2:** {list of activated specialists}
 **Project Guidelines:** {found or "None"}
@@ -311,6 +314,7 @@ Order all findings:
 | Cross-Cutting Concerns | — | Complete (no findings) |
 | Test Quality | 1C, 1W | Complete |
 | Test Completeness | 2W | Complete |
+| Documentation & Comments | 1W, 2S | Complete |
 ```
 
 ---
@@ -413,7 +417,7 @@ Confirm: `Report saved: claudedocs/reports/dependency-audit-{date}.md`
 
 ## Token/Cost Optimization
 
-- **Differentiated model choice:** Specialists requiring multi-file reasoning (02 Security, 03 Architecture, 08 Cross-Cutting) use `sonnet`; rule-based specialists (04-07, 09-10) use `haiku`. This balances depth for complex analysis with cost efficiency for focused rule checking.
+- **Differentiated model choice:** Specialists requiring multi-file reasoning (02 Security, 03 Architecture, 08 Cross-Cutting) use `sonnet`; rule-based specialists (04-07, 09-11) use `haiku`. This balances depth for complex analysis with cost efficiency for focused rule checking.
 - **Selective activation:** Only applicable specialists are spawned
 - **Parallel execution:** Phase 2 specialists run concurrently
 - **Focused context:** Each specialist reads only ~150-250 lines of rules (vs. ~3,200 lines in single-agent approach)

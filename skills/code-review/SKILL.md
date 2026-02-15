@@ -2,7 +2,7 @@
 description: Run intelligent, multi-specialist code review. Analyzes changes, spawns focused review specialists (security, architecture, SOLID, code quality, tests, etc.), consolidates findings. Invoke via /agenticaiplugin:code-review.
 ---
 
-Multi-specialist code review. You are the **Chief Architect** orchestrating 10 focused review specialists.
+Multi-specialist code review. You are the **Chief Architect** orchestrating 11 focused review specialists.
 
 Specialists only collect findings — they never fix code.
 
@@ -76,7 +76,7 @@ skills/code-review/
 │   ├── best-practices.md       ← Review quality guidelines
 │   ├── specialist-output-format.md ← Standard output format for specialists
 │   └── known-deprecations.md   ← Registry APIs, manifest detection, WebSearch patterns
-└── specialists/                ← 10 focused review rule sets
+└── specialists/                ← 11 focused review rule sets
     ├── 01-dependencies-versions.md    (Phase 1 — always)
     ├── 02-security-data-safety.md     (Phase 2 — source files)
     ├── 03-architecture-layers.md      (Phase 2 — 3+ layers / new deps)
@@ -86,7 +86,8 @@ skills/code-review/
     ├── 07-dead-code-duplication.md    (Phase 2 — source files)
     ├── 08-cross-cutting-concerns.md   (Phase 2 — source files)
     ├── 09-test-quality.md             (Phase 2 — test files)
-    └── 10-test-completeness-infra.md  (Phase 2 — source files)
+    ├── 10-test-completeness-infra.md  (Phase 2 — source files)
+    └── 11-documentation-comments.md    (Phase 2 — source files)
 ```
 
 ## Key Principles

@@ -221,7 +221,7 @@ agenticaiplugin/
 
 ### Multi-Specialist Code Review
 
-The code review system uses a team-based architecture with 10 focused specialist agents orchestrated by a "Chief Architect" lead:
+The code review system uses a team-based architecture with 11 focused specialist agents orchestrated by a "Chief Architect" lead:
 
 **Phase 1 (Sequential):** Dependencies & Versions specialist runs first, providing version context for Phase 2.
 

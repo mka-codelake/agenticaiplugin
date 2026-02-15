@@ -738,7 +738,7 @@ Features that are available but not prominently advertised. For power users who 
 
 ### Multi-Specialist Code Review
 
-The code review system uses a team-based architecture with 10 focused specialist agents. A "Chief Architect" orchestrator (`skills/code-review/SKILL.md`) spawns specialists via the Task tool.
+The code review system uses a team-based architecture with 11 focused specialist agents. A "Chief Architect" orchestrator (`skills/code-review/SKILL.md`) spawns specialists via the Task tool.
 
 **How it works:**
 1. Orchestrator detects changes (git diff, single file, or complete project)

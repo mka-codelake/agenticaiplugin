@@ -284,6 +284,10 @@ Is a dependency 2+ major versions behind or has a known CVE?
     YES → CRITICAL
     NO  ↓
 
+Does it violate the English-only comment policy?
+    YES → CRITICAL
+    NO  ↓
+
 Does it violate SOLID principles, show code smells, or create inconsistent cross-cutting concerns?
     YES → WARNING
     NO  ↓
@@ -375,6 +379,16 @@ You can lower severity if:
 | Legacy framework pattern in use | WARNING | Framework modernization needed |
 | Inconsistent old/new framework patterns | WARNING | Partial migration |
 | Newer minor/patch version available | SUGGESTION | Routine update |
+| Non-English comment in code | CRITICAL | Comment language policy violation |
+| Public method without Javadoc/docstring | WARNING | Missing documentation |
+| Protected/package-private method without docs | WARNING | Missing documentation |
+| Documentation says HOW not WHY | WARNING | Documentation quality |
+| Complex private method without comment | WARNING | Documentation gap |
+| Commented-out code block | WARNING | Should be removed (VCS) |
+| TODO/FIXME without ticket reference | WARNING | Untracked technical debt |
+| Simple private method with verbose Javadoc | WARNING | Documentation noise |
+| Noise comment restating code | SUGGESTION | Unnecessary comment |
+| Missing @param/@return tags | SUGGESTION | Optional documentation detail |
 
 ### Test Review Findings
 
@@ -448,7 +462,7 @@ In the review report, group findings by:
 
 ## Remember
 
-- **CRITICAL** = Must fix (security, YAGNI, framework testing, layer violations, cross-cutting chaos, behavioral regressions, pattern inconsistency 3+ ways, missing critical infrastructure tests, severely outdated dependencies/CVEs)
+- **CRITICAL** = Must fix (security, YAGNI, framework testing, layer violations, cross-cutting chaos, behavioral regressions, pattern inconsistency 3+ ways, missing critical infrastructure tests, severely outdated dependencies/CVEs, non-English comments)
 - **WARNING** = Should fix (SOLID violations, code smells, cross-cutting inconsistency, cohesion/coupling, naming inconsistency, behavioral changes, infrastructure/E2E test gaps, test distribution issues, outdated dependencies, legacy framework patterns, code quality, coverage, architecture)
 - **SUGGESTION** = Can fix (optional patterns, primitive obsession, routine dependency updates, nice-to-haves, style preferences)
 

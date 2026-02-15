@@ -11,7 +11,7 @@
   To disable: Delete this file
 
   Changelog:
-  - v1.1: Multi-specialist orchestration with 10 focused review agents
+  - v1.1: Multi-specialist orchestration with 11 focused review agents
   - v1.0: Initial version
 -->
 
@@ -39,7 +39,7 @@ Do NOT trigger if:
 
 ### 1. Run Multi-Specialist Code Review
 
-Use the code-review skill which orchestrates 10 focused specialist agents:
+Use the code-review skill which orchestrates 11 focused specialist agents:
 
 ```
 /agenticaiplugin:code-review

@@ -86,7 +86,7 @@ Skills sind Wissensmodule, die Claude automatisch lädt wenn bestimmte Schlüsse
 - **create-cli** - CLI-Design: Argumente, Flags, Subcommands, Output-Formate, Exit-Codes (Command: `/agenticaiplugin:create-cli`)
 
 ### Code-Qualität
-- **code-review** - Multi-Specialist Code-Reviews (10 fokussierte Spezialisten)
+- **code-review** - Multi-Specialist Code-Reviews (11 fokussierte Spezialisten)
 
 ### Architektur
 - **architecture-audit** - Architektur-Audit mit 7 Analyzern und A-E Bewertung (Command: `/agenticaiplugin:architecture-audit`)

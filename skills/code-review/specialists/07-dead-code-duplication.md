@@ -18,10 +18,11 @@ You actively search for unused code, dead code, and code duplication (DRY violat
 | @Deprecated without usage | **WARNING** | Deprecated elements with zero callers |
 | Calls to @Deprecated code | **WARNING** | Code calling deprecated methods |
 | Unreachable code | **WARNING** | Code after return/throw/break |
-| Commented-out code | **WARNING** | Any commented-out code blocks |
 | Unused public methods | **SUGGESTION** | No visible callers (may use reflection) |
 | Unused imports | **SUGGESTION** | Import statements for unused types |
 | Unused variables/parameters | **SUGGESTION** | Declared but never read |
+
+**Note:** Commented-out code is reviewed by Specialist 11 (Documentation & Comments).
 
 **Special considerations:**
 - Public methods: May be called via reflection, frameworks, or external modules — use caution
@@ -46,11 +47,9 @@ Exception handlers that silently swallow errors: `except: pass`, `except Excepti
 
 **Exclude:** Handlers with logging, handlers that set error flags, intentional silencing with explaining comment.
 
-### 7.5 TODO/FIXME Markers (SUGGESTION)
+### 7.5 [Moved to Specialist 11]
 
-Report technical debt markers: `TODO:`, `FIXME:`, `XXX:`, `HACK:`.
-
-**Important:** Report only, do not auto-remove. These indicate technical debt to track.
+TODO/FIXME/HACK detection is handled by Specialist 11 (Documentation & Comments), Rule 11.6.
 
 ### 7.6 Requirements Traceability
 
@@ -99,13 +98,7 @@ Report technical debt markers: `TODO:`, `FIXME:`, `XXX:`, `HACK:`.
 **Fix:** Remove unused method or implement if required by story.
 ```
 
-**Commented-out code:**
-```markdown
-**WARNING:** Commented-out code should be removed
-- [PaymentService.java:8-13] Large block of commented-out code
-**Rule:** Dead Code → Commented-Out Code
-**Fix:** Remove commented code. Use version control to retrieve if needed.
-```
+**Commented-out code:** See Specialist 11 (Documentation & Comments), Rule 11.5.
 
 **Large duplication:**
 ```markdown

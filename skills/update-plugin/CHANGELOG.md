@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.9.3
+
+- **New specialist: Documentation & Comments (Specialist 11).** Checks comment language (English-only = CRITICAL), Javadoc/docstring completeness for public/protected/package-private methods, complexity-based private method documentation, commented-out code, TODO/FIXME/HACK hygiene (ticket references), noise comments, and API documentation frameworks. Extracted overlapping rules from Specialist 06 (Rule 6.7 Public API Documentation) and Specialist 07 (Rules 7.1 commented-out code, 7.5 TODO/FIXME). Cross-references added in Specialists 06 and 07.
+
 ## 0.9.2
 
 - **Fix: markdown-converter and create-cli frontmatter.** Removed explicit `name:` field that prevented auto-discovery with `agenticaiplugin:` prefix. Added `disable-model-invocation: true` to both skills. Updated `docs/plugin-howto.md` to document `name` as optional (default: directory name).
