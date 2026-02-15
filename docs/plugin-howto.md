@@ -56,7 +56,6 @@ skills/skill-name/
 ### SKILL.md Format
 ```markdown
 ---
-name: skill-identifier
 description: What it does and WHEN to auto-activate. Include trigger keywords.
 allowed-tools:       # OPTIONAL: Restrict tool access
   - Read
@@ -76,7 +75,7 @@ These fields apply to SKILL.md files in `skills/` and also to command files in `
 
 | Field | Required | Default | Notes |
 |-------|----------|---------|-------|
-| `name` | YES | - | Lowercase, hyphens only |
+| `name` | NO | directory name | Override only if needed |
 | `description` | YES | - | Include auto-activation conditions |
 | `allowed-tools` | NO | all | Tool restrictions (YAML list supported) |
 | `context` | NO | - | `fork` for isolated sub-agent context |

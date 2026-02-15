@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.9.2
+
+- **Fix: markdown-converter and create-cli frontmatter.** Removed explicit `name:` field that prevented auto-discovery with `agenticaiplugin:` prefix. Added `disable-model-invocation: true` to both skills. Updated `docs/plugin-howto.md` to document `name` as optional (default: directory name).
+
 ## 0.9.1
 
 - **Removed: aiknowledgedb integration.** Knowledge skill, rule template, and init/update tasks migrated to the aiknowledgedb project itself. Install Claude Code integration directly from aiknowledgedb: `cd aiknowledgedb && ./globals/install.sh`
