@@ -37,8 +37,9 @@ You check SOLID principle adherence and classic code smells (Fowler's catalog).
 ### 5.5 Dependency Inversion Principle (DIP)
 
 - **WARNING:** High-level module directly instantiates low-level classes (`new ConcreteImpl()`)
-- **WARNING:** Business logic directly references concrete infrastructure classes (database drivers, HTTP clients, file system)
 - **SUGGESTION:** Introduce interface between layers when concrete dependency causes tight coupling
+
+→ **Direct infrastructure access** (business service calling RedisTemplate, JdbcTemplate, HttpClient, etc.) **is covered by Specialist 3 (Architecture & Layers), Rule 3.3.** Do not duplicate here.
 
 ---
 

@@ -32,10 +32,21 @@ For each detected component, verify an integration test exists:
 - Tests actual integration boundary (connection, read/write, publish/consume)
 - Verifies data crosses the boundary correctly (format, encoding, schema)
 
-### 10.3 Integration Test Traceability
+### 10.3 Test Traceability (All Test Levels)
+
+Every test should reference its requirement (STORY-XXX, EPIC-YYY, AC-N). This applies to all test levels:
+
+| Test Level | Expected Reference | Example |
+|------------|-------------------|---------|
+| **Unit Test** | Story + AC | `// STORY-012 AC-1: Email validation per RFC 5322` |
+| **Integration Test** | Epic, Story, or Technical Story | `// EPIC-005: Database integration` |
+| **E2E Test** | Story + AC (full business flow) | `// STORY-042 AC-3: Order submission persists and sends confirmation` |
 
 - **WARNING:** Integration test without reference to requirement, epic, or technical story
+- **WARNING:** E2E test without story/requirement reference
+- **WARNING:** E2E test references a story but doesn't match acceptance criteria
 - **SUGGESTION:** Group integration tests by infrastructure component
+- **SUGGESTION:** Consider requirement coverage matrix
 
 ---
 
@@ -70,17 +81,11 @@ For each documented business case / acceptance criterion:
 - Validates business outcome, not just technical correctness
 - References the business requirement (STORY-XXX, AC-N)
 
-### 10.6 E2E Test Traceability
-
-- **WARNING:** E2E test without story/requirement reference
-- **WARNING:** E2E test references a story but doesn't match acceptance criteria
-- **SUGGESTION:** Consider requirement coverage matrix
-
 ---
 
 ## Test Distribution
 
-### 10.7 Smart Test Distribution
+### 10.6 Smart Test Distribution
 
 Verify test pyramid compliance:
 
@@ -100,7 +105,7 @@ Verify test pyramid compliance:
 
 ## Architecture Tests
 
-### 10.8 Architecture Test Coverage
+### 10.7 Architecture Test Coverage
 
 Verify that architectural rules are enforced by automated tests:
 

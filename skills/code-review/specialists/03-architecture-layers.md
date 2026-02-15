@@ -101,7 +101,7 @@ When REST is the project standard:
 
 ### 3.11 Architecture Tests
 
-→ **Covered by Specialist 10 (Test Completeness & Infrastructure), Rule 10.8.** Do not duplicate here.
+→ **Covered by Specialist 10 (Test Completeness & Infrastructure), Rule 10.7.** Do not duplicate here.
 
 ---
 
