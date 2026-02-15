@@ -109,7 +109,7 @@ Verify that architectural rules are enforced by automated tests:
 - **WARNING:** Architecture documentation describes rules that have no corresponding test
 - **SUGGESTION:** Consider adding architecture tests for new architectural patterns introduced
 
-**Cross-reference with Specialist 3 (Architecture & Layers):** If Specialist 3 identifies architectural rules or patterns, verify here that corresponding architecture tests exist to enforce them.
+**Note:** This is the sole owner of architecture test checks. Specialist 3 (Architecture & Layers) identifies architectural rules and patterns — verify here that corresponding architecture tests exist to enforce them.
 
 ---
 

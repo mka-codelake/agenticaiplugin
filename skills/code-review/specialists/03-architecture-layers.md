@@ -81,9 +81,7 @@ When REST is the project standard:
 
 ### 3.9 New Dependencies
 
-- **WARNING:** New dependency without clear justification
-- **WARNING:** Existing dependency already provides same functionality
-- **WARNING:** Dependency creates conflicts
+→ **Covered by Specialist 1 (Dependencies & Versions), Rule 1.3.** Do not duplicate here.
 
 ### 3.10 Architecture Documentation
 
@@ -103,28 +101,7 @@ When REST is the project standard:
 
 ### 3.11 Architecture Tests
 
-**IMPORTANT:** Architectural rules should be enforced by automated tests, not just documentation.
-
-- **WARNING:** No architecture tests found (e.g., ArchUnit for Java, dependency-cruiser for JS/TS, import-linter for Python, go-cleanarch for Go)
-- **WARNING:** Architecture tests exist but don't cover documented architectural rules
-- **WARNING:** Architecture tests exist but are incomplete (e.g., test layer dependencies but not circular dependency rules)
-- **SUGGESTION:** Consider adding architecture tests for newly introduced architectural rules
-
-**Common architecture test frameworks:**
-
-| Language | Framework |
-|----------|-----------|
-| Java/Kotlin | ArchUnit |
-| JavaScript/TypeScript | dependency-cruiser, eslint-plugin-boundaries |
-| Python | import-linter, pytestarch |
-| Go | go-cleanarch |
-| .NET | NetArchTest |
-
-**What architecture tests should verify:**
-- Layer dependency rules (no reverse dependencies)
-- No circular dependencies between packages/modules
-- Naming conventions per layer (e.g., `*Controller` only in controller package)
-- Infrastructure access only through adapters/ports (if hexagonal)
+→ **Covered by Specialist 10 (Test Completeness & Infrastructure), Rule 10.8.** Do not duplicate here.
 
 ---
 
@@ -181,11 +158,3 @@ When REST is the project standard:
 **Fix:** Document architecture pattern, layer responsibilities, and dependency rules.
 ```
 
-**Missing architecture tests:**
-```markdown
-**WARNING:** No architecture tests found
-- Project uses layered architecture but no automated enforcement
-- No ArchUnit, dependency-cruiser, or equivalent tests detected
-**Rule:** Architecture → Architecture Tests
-**Fix:** Add ArchUnit tests verifying layer dependencies and naming conventions.
-```
