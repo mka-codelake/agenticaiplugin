@@ -59,6 +59,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 
 - `.claude-plugin/plugin.json` — Plugin metadata (name, version, author)
 - `docs/plugin-howto.md` — Primary development reference (frontmatter, patterns, conventions)
+- `docs/rules-howto.md` — Rules template development reference
 - `skills/code-review/orchestration.md` — Multi-specialist review orchestration playbook
 - `skills/architecture-audit/orchestration.md` — Architecture audit orchestration playbook
 
@@ -74,8 +75,12 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:init` | Set up plugin in a new project |
 | `/agenticaiplugin:update-plugin` | Update plugin rules in existing project |
 | `/agenticaiplugin:git-smart-commit` | Atomic commits with meaningful messages |
+| `/agenticaiplugin:gitme` | Short alias for git-smart-commit |
 | `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
 | `/agenticaiplugin:markdown-converter` | Convert files to Markdown via markitdown |
+| `/agenticaiplugin:create-readme` | Create or update README.md |
+| `/agenticaiplugin:promote-perms` | Promote workspace permissions to user level |
+| `/agenticaiplugin:help` | Show overview of all plugin commands and skills |
 
 ## Development Workflow
 
@@ -90,13 +95,13 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 
 Changes are immediately available after marketplace update.
 
-### Checklist bei Änderungen
+### Change Checklist
 
-Bei Feature-Änderungen, neuen Commands oder Verzeichnis-Änderungen prüfen:
+When making feature changes, new commands, or directory changes, check:
 
-1. **Help-Skill** (`skills/help/SKILL.md`) — Ist die Übersicht noch aktuell?
-2. **CHANGELOG** (`skills/update-plugin/CHANGELOG.md`) — Eintrag hinzugefügt?
-3. **Per-Skill `--help`** — Usage-Abschnitt in betroffenen Skills aktuell?
+1. **Help-Skill** (`skills/help/SKILL.md`) — Is the overview still current?
+2. **CHANGELOG** (`skills/update-plugin/CHANGELOG.md`) — Entry added?
+3. **Per-Skill `--help`** — Usage section in affected skills up to date?
 
 ### Testing
 
