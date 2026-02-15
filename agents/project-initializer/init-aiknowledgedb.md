@@ -35,7 +35,8 @@ Check the current setup status in the target project:
 
 1. `.claude/rules/aiknowledgedb-knowledge-lookup.md` — Lookup rule
 2. `hooks/hooks.json` — PreCompact hook (check if file exists AND contains `aiknowledgedb`)
-3. `.claude/settings.local.json` — CLI permission (check if file exists AND contains `aiknowledgedb`)
+3. `hooks/hooks.json` — SessionStart hook (check if file contains `session-knowledge-extract`)
+4. `.claude/settings.local.json` — CLI permission (check if file exists AND contains `aiknowledgedb`)
 
 Display format:
 
@@ -43,6 +44,7 @@ Display format:
 aiknowledgedb Integration — Status:
   ✓ Lookup rule — Already installed          (or: ✗ Not installed)
   ✗ PreCompact hook — Not configured         (or: ✓ Already configured)
+  ✗ SessionStart hook — Not configured       (or: ✓ Already configured)
   ✓ CLI permission — Already configured      (or: ✗ Not configured)
 ```
 
@@ -56,6 +58,7 @@ Based on the status check, list the actions:
 aiknowledgedb setup will:
   - Install lookup rule (.claude/rules/aiknowledgedb-knowledge-lookup.md)
   - Configure PreCompact hook (hooks/hooks.json)
+  - Configure SessionStart hook (hooks/hooks.json)
   - Add CLI permission (.claude/settings.local.json)
 ```
 
@@ -86,7 +89,32 @@ Return to coordinator.
 
 Report: `✓ Installed .claude/rules/aiknowledgedb-knowledge-lookup.md`
 
-### 4.2 Configure PreCompact Hook
+### 4.2 Resolve aiknowledgedb Scripts Path
+
+The SessionStart hook needs the absolute path to `session-knowledge-extract.sh`. Resolve it from the CLI binary:
+
+```bash
+AIKNOWLEDGEDB_BIN=$(readlink -f "$(which aiknowledgedb)")
+# CLI is at <repo>/app/dist/cli.js → scripts at <repo>/scripts/
+AIKNOWLEDGEDB_SCRIPTS="$(dirname "$(dirname "$(dirname "$AIKNOWLEDGEDB_BIN")")")/scripts"
+```
+
+Verify the script exists:
+
+```bash
+ls "$AIKNOWLEDGEDB_SCRIPTS/session-knowledge-extract.sh"
+```
+
+**If not found:** Report warning and skip SessionStart hook:
+
+```
+⚠ session-knowledge-extract.sh not found at $AIKNOWLEDGEDB_SCRIPTS/
+  SessionStart hook will not be configured. Update aiknowledgedb to get this feature.
+```
+
+Store the resolved path for use in Step 4.3.
+
+### 4.3 Configure Hooks
 
 Check if `hooks/hooks.json` already exists:
 
@@ -99,6 +127,19 @@ mkdir -p hooks
 ```json
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "<AIKNOWLEDGEDB_SCRIPTS>/session-knowledge-extract.sh",
+            "async": true,
+            "timeout": 300
+          }
+        ]
+      }
+    ],
     "PreCompact": [
       {
         "matcher": "*",
@@ -115,29 +156,53 @@ mkdir -p hooks
 }
 ```
 
-Report: `✓ Created hooks/hooks.json with PreCompact hook`
+Replace `<AIKNOWLEDGEDB_SCRIPTS>` with the absolute path resolved in Step 4.2.
 
-**If it DOES exist:** Read the file and check if it already contains an `aiknowledgedb` reference.
+**If SessionStart script was not found in Step 4.2:** Omit the `SessionStart` section from the JSON.
 
-- **If it already contains `aiknowledgedb`:** Skip, report `✓ PreCompact hook already configured`
-- **If it does NOT contain `aiknowledgedb`:** The file has other hooks. Show a WARNING:
+Report: `✓ Created hooks/hooks.json with PreCompact + SessionStart hooks`
+
+**If it DOES exist:** Read the file and check for each hook:
+
+1. **PreCompact hook:** Check if file contains `aiknowledgedb`
+   - Present → `✓ PreCompact hook already configured`
+   - Missing → needs manual merge (see below)
+
+2. **SessionStart hook:** Check if file contains `session-knowledge-extract`
+   - Present → `✓ SessionStart hook already configured`
+   - Missing → needs manual merge (see below)
+
+**If manual merge is needed for either hook**, show a WARNING:
 
 ```
 hooks/hooks.json already exists with other hooks.
-Manual merge needed. Add this to the PreCompact hooks array:
+Manual merge needed. Add these to hooks/hooks.json:
 
+SessionStart hook (add to "SessionStart" array):
 {
-  "type": "agent",
-  "prompt": "Before context compaction, review the conversation...",
-  "timeout": 60
+  "matcher": "startup",
+  "hooks": [{
+    "type": "command",
+    "command": "<AIKNOWLEDGEDB_SCRIPTS>/session-knowledge-extract.sh",
+    "async": true,
+    "timeout": 300
+  }]
 }
 
-See the aiknowledgedb documentation for the full hook prompt.
+PreCompact hook (add to "PreCompact" array):
+{
+  "matcher": "*",
+  "hooks": [{
+    "type": "agent",
+    "prompt": "Before context compaction, review the conversation...",
+    "timeout": 60
+  }]
+}
 ```
 
 Report: `⚠ hooks/hooks.json — manual merge needed (see instructions above)`
 
-### 4.3 Configure CLI Permission
+### 4.4 Configure CLI Permission
 
 Check if `.claude/settings.local.json` already exists:
 
@@ -172,11 +237,13 @@ Report results back to coordinator:
 aiknowledgedb Integration:
   ✓ Lookup rule — Claude will check knowledge DB before external searches
   ✓ PreCompact hook — Insights auto-saved before context compaction
+  ✓ SessionStart hook — New sessions auto-analyzed for knowledge extraction
   ✓ CLI permission — aiknowledgedb CLI runs without confirmation
 
 Prerequisites:
   - Ollama running with nomic-embed-text model (for semantic search)
   - aiknowledgedb CLI in PATH
+  - claude CLI in PATH (for SessionStart hook)
 ```
 
 ---

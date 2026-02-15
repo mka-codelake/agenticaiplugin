@@ -41,14 +41,21 @@ Compare against the latest template version in `{plugin_root}/rules-templates/ai
 
 Even if the rule is current, verify hook and permission are properly configured:
 
-### 3.1 Hook Check
+### 3.1 PreCompact Hook Check
 
 Read `hooks/hooks.json` (if exists) and check for `aiknowledgedb` reference.
 
 - **Found:** `✓ PreCompact hook configured`
 - **Not found / file missing:** `⚠ PreCompact hook missing`
 
-### 3.2 Permission Check
+### 3.2 SessionStart Hook Check
+
+Read `hooks/hooks.json` (if exists) and check for `session-knowledge-extract` reference.
+
+- **Found:** `✓ SessionStart hook configured`
+- **Not found / file missing:** `⚠ SessionStart hook missing`
+
+### 3.3 Permission Check
 
 Read `.claude/settings.local.json` (if exists) and check for `Bash(aiknowledgedb:*)`.
 
@@ -64,7 +71,8 @@ Show what will be updated:
 ```
 aiknowledgedb Update Preview:
   Rule: v1.0 (up to date)                    (or: v0.9 → v1.0 (update available))
-  Hook: ✓ configured                         (or: ⚠ missing — will be added)
+  PreCompact hook: ✓ configured              (or: ⚠ missing — will be added)
+  SessionStart hook: ✓ configured            (or: ⚠ missing — will be added)
   Permission: ✓ configured                   (or: ⚠ missing — will be added)
 ```
 
@@ -85,16 +93,27 @@ aiknowledgedb: All components up to date.
 
 Report: `✓ Updated aiknowledgedb-knowledge-lookup.md`
 
-### 5.2 Repair Hook (if missing)
+### 5.2 Resolve aiknowledgedb Scripts Path (if SessionStart hook missing)
 
-Follow the same hook installation logic as in `init-aiknowledgedb.md` Step 4.2:
-- File missing → create with full hook config
-- File exists without aiknowledgedb → show manual merge warning
-- File exists with aiknowledgedb → skip
+Follow the path resolution logic from `init-aiknowledgedb.md` Step 4.2:
 
-### 5.3 Repair Permission (if missing)
+```bash
+AIKNOWLEDGEDB_BIN=$(readlink -f "$(which aiknowledgedb)")
+AIKNOWLEDGEDB_SCRIPTS="$(dirname "$(dirname "$(dirname "$AIKNOWLEDGEDB_BIN")")")/scripts"
+```
 
-Follow the same permission installation logic as in `init-aiknowledgedb.md` Step 4.3:
+If `session-knowledge-extract.sh` not found at that path, skip SessionStart hook repair.
+
+### 5.3 Repair Hooks (if missing)
+
+Follow the same hook installation logic as in `init-aiknowledgedb.md` Step 4.3:
+- File missing → create with full hook config (both PreCompact + SessionStart)
+- File exists without aiknowledgedb → show manual merge warning for missing hooks
+- File exists with aiknowledgedb → skip configured hooks, repair only missing ones
+
+### 5.4 Repair Permission (if missing)
+
+Follow the same permission installation logic as in `init-aiknowledgedb.md` Step 4.4:
 - File missing → create with permission
 - File exists without permission → add to allow array
 - File exists with permission → skip
@@ -108,6 +127,7 @@ Report results back to coordinator:
 ```
 aiknowledgedb Update:
   ✓ Rule updated (v0.9 → v1.0)              (or: ✓ Rule up to date)
-  ✓ Hook repaired                            (or: ✓ Hook OK)
+  ✓ PreCompact hook repaired                 (or: ✓ PreCompact hook OK)
+  ✓ SessionStart hook repaired               (or: ✓ SessionStart hook OK)
   ✓ Permission repaired                      (or: ✓ Permission OK)
 ```
