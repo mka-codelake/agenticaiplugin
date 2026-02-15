@@ -49,6 +49,7 @@ Zeige dem Benutzer folgende Übersicht:
 | **code-review** | Führt ein intelligentes Code-Review durch. Vier Modi: ohne Parameter = Git Diff (Standard), mit Datei = Einzeldatei, `--complete` = ganzes Projekt, `--renovate` = Dependency-Audit (Optionen: `--stack jvm/js/python`, `--quick`, `--save`) |
 | **architecture-audit** | Umfassendes Architektur-Audit: Erkennt Patterns, bewertet 7 Dimensionen (Boundaries, Dependencies, Naming, APIs, Wiring, Visibility), erstellt bewerteten Report (A-E Skala). Optionen: `--scope <path>` für Teilbereiche |
 | **create-cli** | Designt CLI-Oberflächen: Argumente, Flags, Subcommands, Help-Text, Output-Formate, Exit-Codes, Prompts. Erstellt eine kompakte Spec zur Implementierung |
+| **knowledge** | Search, store, list knowledge entries in der lokalen Knowledge DB. Benötigt `aiknowledgedb` CLI (`npm install -g aiknowledgedb`) |
 
 ### Tools
 | Command | Beschreibung |
@@ -91,6 +92,9 @@ Skills sind Wissensmodule, die Claude automatisch lädt wenn bestimmte Schlüsse
 ### Architektur
 - **architecture-audit** - Architektur-Audit mit 7 Analyzern und A-E Bewertung (Command: `/agenticaiplugin:architecture-audit`)
 
+### Wissensmanagement
+- **knowledge** - Search, store, list Knowledge-Einträge (Command: `/agenticaiplugin:knowledge`)
+
 ### Tools
 - **markdown-converter** - Datei-zu-Markdown-Konvertierung via markitdown (Command: `/agenticaiplugin:markdown-converter`)
 
@@ -118,6 +122,7 @@ Diese Regeln werden bei der Projektinitialisierung in `.claude/rules/` installie
 | **Git-Commits über Skill** | `git commit` wird nie direkt ausgeführt — immer über `/agenticaiplugin:gitme` |
 | **Engineering-Prinzipien** | Story-Traceability, Code-Size-Limits, Test-Klassifizierung, Dependency-Management |
 | **Geschützte Verzeichnisse** | `claudedocs/guidelines/` und `claudedocs/adrs/` werden nur gelesen, nie verändert |
+| **Knowledge DB Lookup** | Claude prüft die Knowledge DB bevor externe Suchen gestartet werden (optional, benötigt `aiknowledgedb` CLI) |
 
 ---
 
