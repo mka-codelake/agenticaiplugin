@@ -231,7 +231,6 @@ Compare each installed rule version (from Step 3) against the **latest version f
 | agenticaiplugin-protected-dirs.md | v1.1 |
 | agenticaiplugin-git-commit.md | v1.0 |
 | agenticaiplugin-engineering.md | v1.0 |
-| aiknowledgedb-knowledge-lookup.md | v1.0 |
 
 For each rule, compare the installed version against the Latest Version above:
 - If file missing: Mark as "New"

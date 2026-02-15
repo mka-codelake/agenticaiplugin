@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.9.1
+
+- **Removed: aiknowledgedb integration.** Knowledge skill, rule template, and init/update tasks migrated to the aiknowledgedb project itself. Install Claude Code integration directly from aiknowledgedb: `cd aiknowledgedb && ./globals/install.sh`
+
 ## 0.9.0
 
 - **aiknowledgedb Integration.** Knowledge skill (`/agenticaiplugin:knowledge`), rule template (`aiknowledgedb-knowledge-lookup.md`), and init/update tasks for automatic knowledge DB setup. Init checks for CLI availability and skips gracefully if not installed.

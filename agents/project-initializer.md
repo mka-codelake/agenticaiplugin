@@ -35,7 +35,6 @@ The invoking skill provides the `plugin_root` path so you can read them.
 | `rules-templates/agenticaiplugin-protected-dirs.md` | `.claude/rules/agenticaiplugin-protected-dirs.md` |
 | `rules-templates/agenticaiplugin-git-commit.md` | `.claude/rules/agenticaiplugin-git-commit.md` |
 | `rules-templates/agenticaiplugin-engineering.md` | `.claude/rules/agenticaiplugin-engineering.md` |
-| `rules-templates/aiknowledgedb-knowledge-lookup.md` | `.claude/rules/aiknowledgedb-knowledge-lookup.md` |
 
 **To create/update a rule:** Read the template file from `{plugin_root}/rules-templates/`, then Write its content to `.claude/rules/` in the user's project.
 
@@ -60,9 +59,6 @@ Check for these items:
 1. `.claude/rules/` directory and existing `agenticaiplugin-*.md` rules
 2. `claudedocs/guidelines/` directory
 3. `claudedocs/adrs/` directory
-4. `.claude/rules/aiknowledgedb-knowledge-lookup.md` — aiknowledgedb rule
-5. `hooks/hooks.json` with `aiknowledgedb` reference
-6. `.claude/settings.local.json` with `aiknowledgedb` permission
 
 Display format:
 ```
@@ -73,15 +69,11 @@ Current Status:
     ✓ .claude/rules/ - Already exists (contains 2 plugin rules)   (or: ✗ Not found)
     ✗ claudedocs/guidelines/ - Not found                          (or: ✓ Already exists)
     ✗ claudedocs/adrs/ - Not found                                (or: ✓ Already exists)
-  aiknowledgedb:
-    ✗ Lookup rule - Not installed                                 (or: ✓ Already installed)
-    ✗ PreCompact hook - Not configured                            (or: ✓ Already configured)
-    ✗ CLI permission - Not configured                             (or: ✓ Already configured)
 ```
 
 ## Init Step 2: Show What Will Be Done
 
-Based on status, list planned actions for both AgenticAI and aiknowledgedb components.
+Based on status, list planned actions.
 
 ## Init Step 3: Ask for Confirmation
 
@@ -97,15 +89,9 @@ Read and execute: `{plugin_root}/agents/project-initializer/init-agenticai.md`
 
 This installs the 5 AgenticAI rules and creates claudedocs directories.
 
-## Init Step 5: Execute aiknowledgedb Setup
+## Init Step 5: Final Summary
 
-Read and execute: `{plugin_root}/agents/project-initializer/init-aiknowledgedb.md`
-
-This checks for the CLI, installs rule/hook/permission if CLI is available, or skips gracefully.
-
-## Init Step 6: Final Summary
-
-Display a completion message combining results from both tasks:
+Display a completion message:
 
 ```
 Setup complete! Your project is ready for AgenticAI Plugin.
@@ -121,18 +107,11 @@ AgenticAI:
     - agenticaiplugin-git-commit.md - Use git-smart-commit skill
     - agenticaiplugin-engineering.md - Engineering principles
 
-aiknowledgedb:
-  ✓ Lookup rule installed
-  ✓ PreCompact hook configured
-  ✓ CLI permission added
-  (or: ⚠ Skipped — CLI not found. Install with: npm install -g aiknowledgedb)
-
 Next steps:
 1. Add project-specific coding rules to claudedocs/guidelines/
 2. Start using plugin features:
    - /agenticaiplugin:code-review - Review code quality
    - /agenticaiplugin:gitme - Smart git commits
-   - /agenticaiplugin:knowledge - Search/store knowledge entries
 
 To update rules after plugin updates:
    /agenticaiplugin:update-plugin
@@ -160,13 +139,7 @@ Read and execute: `{plugin_root}/agents/project-initializer/update-agenticai.md`
 
 This handles installation detection, CLAUDE.md migration, version comparison, and rule updates.
 
-## Update Step 3: aiknowledgedb Update
-
-Read and execute: `{plugin_root}/agents/project-initializer/update-aiknowledgedb.md`
-
-This checks if aiknowledgedb is installed, compares versions, and repairs missing components.
-
-## Update Step 4: Aggregated Summary
+## Update Step 3: Aggregated Summary
 
 Combine results from all update tasks into a single summary:
 
@@ -178,9 +151,6 @@ Deprecated Cleanup:
 
 AgenticAI Rules:
   [results from agenticai update task]
-
-aiknowledgedb:
-  [results from aiknowledgedb update task]
 ```
 
 Include the "What's New" changelog delta from the AgenticAI update task (if applicable).
@@ -209,5 +179,5 @@ Include the "What's New" changelog delta from the AgenticAI update task (if appl
 - Errors in one task do not block other tasks
 
 **Overwriting Rules:**
-- Plugin rules (agenticaiplugin-*.md, aiknowledgedb-*.md) can be safely overwritten
+- Plugin rules (agenticaiplugin-*.md) can be safely overwritten
 - User's own rules (without plugin prefixes) are NEVER touched
