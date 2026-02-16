@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.9.4
+
+- **Upgraded model selection for code review specialists.** Three-tier model assignment: Security (#02) and Architecture (#03) upgraded from `sonnet` to `opus` for nuanced multi-file analysis where false negatives are costly. SOLID & Code Smells (#05) upgraded from `haiku` to `sonnet` for better SRP/LSP violation detection. All other specialists unchanged.
+
 ## 0.9.3
 
 - **New specialist: Documentation & Comments (Specialist 11).** Checks comment language (English-only = CRITICAL), Javadoc/docstring completeness for public/protected/package-private methods, complexity-based private method documentation, commented-out code, TODO/FIXME/HACK hygiene (ticket references), noise comments, and API documentation frameworks. Extracted overlapping rules from Specialist 06 (Rule 6.7 Public API Documentation) and Specialist 07 (Rules 7.1 commented-out code, 7.5 TODO/FIXME). Cross-references added in Specialists 06 and 07.

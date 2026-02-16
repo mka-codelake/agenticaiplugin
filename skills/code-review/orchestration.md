@@ -101,10 +101,10 @@ Spawn ALL applicable Phase 2 specialists in a single message using multiple Task
 
 | Specialist | Model | Rationale |
 |------------|-------|-----------|
-| 02 Security & Data Safety | **sonnet** | Data flows span multiple files; false negatives costly |
-| 03 Architecture & Layers | **sonnet** | Multi-file reasoning for layer violations and dependency direction |
+| 02 Security & Data Safety | **opus** | Subtle data-flow chains span multiple files/hops; false negatives costly; nuanced taint analysis |
+| 03 Architecture & Layers | **opus** | Layer violations are often subtle (leaking infra into domain); requires understanding intent behind code organization |
 | 04 Design Patterns | **haiku** | GoF detection is rule-based, typically single-class |
-| 05 SOLID & Code Smells | **haiku** | Single-class analysis with well-defined rules |
+| 05 SOLID & Code Smells | **sonnet** | SRP and LSP violations are nuanced; requires understanding class responsibilities beyond syntax |
 | 06 Code Quality | **haiku** | Local checks with clear criteria |
 | 07 Dead Code & Duplication | **haiku** | Pattern-matching task |
 | 08 Cross-Cutting Concerns | **sonnet** | Logging/error-handling consistency is inherently cross-file |
@@ -115,7 +115,7 @@ Spawn ALL applicable Phase 2 specialists in a single message using multiple Task
 **Spawn each via Task tool:**
 ```
 subagent_type: general-purpose
-model: sonnet   # or haiku — see table above
+model: opus   # or sonnet or haiku — see table above
 ```
 
 **Note on inter-specialist communication:** Phase 2 specialists run in parallel and independently. They do not communicate with each other during execution. Cross-specialist context comes from:
@@ -417,7 +417,7 @@ Confirm: `Report saved: claudedocs/reports/dependency-audit-{date}.md`
 
 ## Token/Cost Optimization
 
-- **Differentiated model choice:** Specialists requiring multi-file reasoning (02 Security, 03 Architecture, 08 Cross-Cutting) use `sonnet`; rule-based specialists (04-07, 09-11) use `haiku`. This balances depth for complex analysis with cost efficiency for focused rule checking.
+- **Three-tier model choice:** Specialists requiring nuanced, subtle analysis (02 Security, 03 Architecture) use `opus`; specialists needing semantic cross-file understanding (05 SOLID, 08 Cross-Cutting) use `sonnet`; rule-based specialists (01, 04, 06-07, 09-11) use `haiku`. This ensures maximum recall for the most critical/subtle reviews while keeping costs efficient for focused rule checking.
 - **Selective activation:** Only applicable specialists are spawned
 - **Parallel execution:** Phase 2 specialists run concurrently
 - **Focused context:** Each specialist reads only ~150-250 lines of rules (vs. ~3,200 lines in single-agent approach)
