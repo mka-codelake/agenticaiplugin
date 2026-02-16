@@ -317,6 +317,18 @@ Order all findings:
 | Documentation & Comments | 1W, 2S | Complete |
 ```
 
+### Step 7: Save Report
+
+```bash
+mkdir -p claudedocs
+```
+
+Write the full report (from Step 6) to: `claudedocs/code-review-result.md`
+
+Confirm to user: `Report saved: claudedocs/code-review-result.md`
+
+**Note:** This overwrites any previous review result. The file always contains the latest review.
+
 ---
 
 ## Failure Handling

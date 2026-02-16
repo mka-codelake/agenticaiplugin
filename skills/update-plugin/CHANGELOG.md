@@ -8,6 +8,7 @@ The agent parses this to show the delta between installed and current version.
 ## 0.9.4
 
 - **Upgraded model selection for code review specialists.** Three-tier model assignment: Security (#02) and Architecture (#03) upgraded from `sonnet` to `opus` for nuanced multi-file analysis where false negatives are costly. SOLID & Code Smells (#05) upgraded from `haiku` to `sonnet` for better SRP/LSP violation detection. All other specialists unchanged.
+- **Code review report persisted to file.** The consolidated review report is now always saved to `claudedocs/code-review-result.md` (overwritten each run). Mirrors the architecture-audit pattern. Prepares for follow-up features that consume the report file.
 
 ## 0.9.3
 

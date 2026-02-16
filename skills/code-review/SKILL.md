@@ -63,7 +63,7 @@ Read `orchestration.md` for the full orchestration playbook:
 - **Step 4:** Execute Phase 1 — Dependencies & Versions (sequential)
 - **Step 5:** Execute Phase 2 — All applicable specialists (parallel, in ONE message)
 - **Step 6:** Consolidate, deduplicate, and sort findings
-- **Step 7:** Output summary table + full report
+- **Step 7:** Output summary table + full report, save to `claudedocs/code-review-result.md`
 
 ## Skill Contents
 
@@ -98,3 +98,4 @@ skills/code-review/
 - **Parallel Phase 2** execution minimizes total review time
 - If a specialist fails, the review continues with remaining results
 - After review: display findings, do NOT auto-fix, let user decide
+- Review report is always saved to `claudedocs/code-review-result.md` (overwritten each run)
