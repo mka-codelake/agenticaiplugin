@@ -5,6 +5,12 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.10.2
+
+- **QA skill: Stricter structure validation for pre-existing files.** Compatibility check now validates table column structure (6 columns for requirements, 7 for test cases) instead of relying on ID format patterns. Removed the `(or contains inline tables)` loophole that let any file with markdown tables pass as compatible. Added explicit examples of incompatible files to prevent lenient interpretation by the agent.
+- **QA skill: Mandatory catalog + group file output.** Post-processing instructions for Phase 2 and Phase 3 now include a MANDATORY header and a self-check step. Root catalogs must be pure indexes (no detail rows). The `requirements/` and `test-cases/` directories with group files are always created — not conditional on file size.
+- **QA skill: Preserve existing IDs during migration.** ID conventions updated to accept component-specific ID formats (DB-01, ST-ERR-02, TC-CLI-01) alongside the default REQ-NNN / TC-NNN. Migration option explicitly preserves original IDs instead of renumbering, avoiding breakage of code-side references. New rule: "Never rename" existing IDs to a different format.
+
 ## 0.10.1
 
 - **QA skill: Phase Delegation architecture.** Each of the 4 QA phases now runs in its own Phase Agent (`general-purpose`, `sonnet`) instead of accumulating all convergence rounds in the orchestrator's context. 3-level hierarchy: Orchestrator (Opus) → Phase Agent (Sonnet, convergence loop + file I/O) → Round Agent (Explore, Opus, codebase analysis). Phase Agents read reference.md for instructions, manage rounds internally, write output files, and return only a 5-line `PHASE_SUMMARY`. Orchestrator context stays ~200 lines instead of ~3,350+. Round prompts and analysis quality unchanged. Step 5 (Write Documents) removed — each Phase Agent writes its own output. No user-facing changes (same CLI options, same output files).
