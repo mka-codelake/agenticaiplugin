@@ -235,8 +235,6 @@ The orchestrator spawns a `general-purpose` (`sonnet`) Phase Agent with this pro
 > - All files in `{skill_dir}/shared/`
 > - `{skill_dir}/templates/system-view.md.j2`
 >
-> **Scope:** {scope or "entire project"}
->
 > **Execute the convergence loop** as described in Section 3:
 > 1. Spawn `Explore` (`opus`) rounds using the Round prompts from Section 4
 > 2. Stop when CONVERGED or after 5 rounds
@@ -244,7 +242,7 @@ The orchestrator spawns a `general-purpose` (`sonnet`) Phase Agent with this pro
 > 4. Write result to `claudedocs/system-view.md`
 > 5. Return your PHASE_SUMMARY (format in Section 3)
 
-Replace `{skill_dir}` with the absolute path to this skill's directory. Replace `{scope}` with the `--scope` value or "entire project".
+Replace `{skill_dir}` with the absolute path to this skill's directory.
 
 ### Round 1 Prompt (Explore Agent)
 
@@ -321,7 +319,6 @@ The orchestrator spawns a `general-purpose` (`sonnet`) Phase Agent with this pro
 > - Run mode: {first-run | subsequent-run}
 > - If subsequent-run: also read `claudedocs/requirements.md` and all files in `claudedocs/requirements/`
 > - If --force-rebuild: mark all existing entries RETIRED before analysis
-> - Scope: {scope or "entire project"}
 >
 > **Execute:**
 > 1. Follow Preparation steps in Section 5
@@ -329,7 +326,7 @@ The orchestrator spawns a `general-purpose` (`sonnet`) Phase Agent with this pro
 > 3. Follow Post-Processing steps in Section 5
 > 4. Return your PHASE_SUMMARY (format in Section 3) — include stats: requirements, new, groups
 
-Replace `{skill_dir}`, `{run_mode}`, `{scope}` with actual values.
+Replace `{skill_dir}` and `{run_mode}` with actual values.
 
 ### Preparation (Phase Agent)
 
@@ -431,7 +428,6 @@ The orchestrator spawns a `general-purpose` (`sonnet`) Phase Agent with this pro
 > - Run mode: {first-run | subsequent-run}
 > - If subsequent-run: also read `claudedocs/test-cases.md` and all files in `claudedocs/test-cases/`
 > - If --force-rebuild: mark all existing entries RETIRED before analysis
-> - Scope: {scope or "entire project"}
 >
 > **Execute:**
 > 1. Follow Preparation steps in Section 6
@@ -439,7 +435,7 @@ The orchestrator spawns a `general-purpose` (`sonnet`) Phase Agent with this pro
 > 3. Follow Post-Processing steps in Section 6 (includes updating requirements group files with TC cross-references)
 > 4. Return your PHASE_SUMMARY (format in Section 3) — include stats: test_cases, new, covered, uncovered, groups
 
-Replace `{skill_dir}`, `{run_mode}`, `{scope}` with actual values.
+Replace `{skill_dir}` and `{run_mode}` with actual values.
 
 ### Preparation (Phase Agent)
 

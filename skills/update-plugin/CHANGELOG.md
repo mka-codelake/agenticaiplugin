@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.10.3
+
+- **QA skill: Removed `--phase` and `--scope` options.** Both flags added complexity without sufficient value. `--phase <1-4>` (run single phase) and `--scope <path>` (restrict to subdirectory) are no longer accepted. The skill now always runs all 4 phases on the entire project. `--force-rebuild` remains unchanged.
+
 ## 0.10.2
 
 - **QA skill: Stricter structure validation for pre-existing files.** Compatibility check now validates table column structure (6 columns for requirements, 7 for test cases) instead of relying on ID format patterns. Removed the `(or contains inline tables)` loophole that let any file with markdown tables pass as compatible. Added explicit examples of incompatible files to prevent lenient interpretation by the agent.

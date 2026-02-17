@@ -18,11 +18,7 @@ Quality Assurance — manages bidirectional traceability across the Quality Squa
 | Mode | Command | Description |
 |------|---------|-------------|
 | **Full Project** (Default) | `/agenticaiplugin:qa` | Run all 4 phases on entire project |
-| **Single Phase** | `/agenticaiplugin:qa --phase 2` | Run only the specified phase (1–4) |
-| **Scoped** | `/agenticaiplugin:qa --scope src/api` | Restrict analysis to a subdirectory |
 | **Force Rebuild** | `/agenticaiplugin:qa --force-rebuild` | Retire existing artifacts, rebuild from scratch |
-
-Options can be combined: `/agenticaiplugin:qa --phase 2 --scope src/api`
 
 ## Argument Handling
 
@@ -30,8 +26,6 @@ Options can be combined: `/agenticaiplugin:qa --phase 2 --scope src/api`
 
 1. **`--help` passed** → Display the Usage section above verbatim, then STOP.
 2. **Unrecognized flags or invalid arguments** → Display the Usage section above verbatim, then STOP.
-3. **`--phase` without a number or number outside 1–4** → Display the Usage section above verbatim, then STOP.
-4. **`--scope` without a path or path does not exist** → Display the Usage section above verbatim, then STOP.
 
 ## Phase Delegation
 
@@ -50,7 +44,6 @@ Each phase is delegated to an independent Phase Agent (`general-purpose`, `sonne
    - If structure is incompatible: ask user via `AskUserQuestion` (migrate / overwrite / abort)
    - Each file is evaluated independently
 4. If `--force-rebuild`: mark all existing entries RETIRED before proceeding
-5. If `--scope`: validate path exists, restrict analysis scope
 
 ### Step 1: System Discovery (Phase 1)
 
@@ -58,7 +51,6 @@ Spawn Phase Agent (`general-purpose`, `sonnet`). Construct the prompt from `refe
 
 Pass to the agent:
 - `{skill_dir}`: absolute path to this skill's directory
-- `{scope}`: `--scope` value or "entire project"
 
 Expect back: `PHASE_SUMMARY` with `output_files` and stats (`components`, `interfaces`).
 
@@ -70,7 +62,6 @@ Pass to the agent:
 - `{skill_dir}`: absolute path to this skill's directory
 - `{run_mode}`: first-run or subsequent-run (detected in Step 0)
 - `{force_rebuild}`: whether `--force-rebuild` was specified
-- `{scope}`: `--scope` value or "entire project"
 
 Expect back: `PHASE_SUMMARY` with stats (`requirements`, `new`, `groups`).
 
@@ -82,7 +73,6 @@ Pass to the agent:
 - `{skill_dir}`: absolute path to this skill's directory
 - `{run_mode}`: first-run or subsequent-run (detected in Step 0)
 - `{force_rebuild}`: whether `--force-rebuild` was specified
-- `{scope}`: `--scope` value or "entire project"
 
 Expect back: `PHASE_SUMMARY` with stats (`test_cases`, `new`, `covered`, `uncovered`, `groups`).
 

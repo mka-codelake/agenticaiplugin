@@ -48,7 +48,7 @@ Zeige dem Benutzer folgende Übersicht:
 | **gitme** | Intelligente Git-Commits: Analysiert alle Änderungen, gruppiert sie logisch und erstellt aussagekräftige Commit-Messages. Kann mehrere Commits erstellen wenn sinnvoll |
 | **code-review** | Führt ein intelligentes Code-Review durch. Vier Modi: ohne Parameter = Git Diff (Standard), mit Datei = Einzeldatei, `--complete` = ganzes Projekt, `--renovate` = Dependency-Audit (Optionen: `--stack jvm/js/python`, `--quick`, `--save`) |
 | **architecture-audit** | Umfassendes Architektur-Audit: Erkennt Patterns, bewertet 7 Dimensionen (Boundaries, Dependencies, Naming, APIs, Wiring, Visibility), erstellt bewerteten Report (A-E Skala). Optionen: `--scope <path>` für Teilbereiche |
-| **qa** | Quality Assurance: Verwaltet bidirektionale Traceability zwischen Requirements, Code, Test Cases und Tests ("Quality Square"). Analysiert Code, extrahiert Requirements, leitet Test Cases ab, erstellt Gap-Analyse. Optionen: `--phase <1-4>`, `--scope <path>`, `--force-rebuild` |
+| **qa** | Quality Assurance: Verwaltet bidirektionale Traceability zwischen Requirements, Code, Test Cases und Tests ("Quality Square"). Analysiert Code, extrahiert Requirements, leitet Test Cases ab, erstellt Gap-Analyse. Option: `--force-rebuild` |
 | **create-cli** | Designt CLI-Oberflächen: Argumente, Flags, Subcommands, Help-Text, Output-Formate, Exit-Codes, Prompts. Erstellt eine kompakte Spec zur Implementierung |
 
 ### Tools
