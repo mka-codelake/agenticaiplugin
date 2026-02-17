@@ -33,85 +33,81 @@ Options can be combined: `/agenticaiplugin:qa --phase 2 --scope src/api`
 3. **`--phase` without a number or number outside 1–4** → Display the Usage section above verbatim, then STOP.
 4. **`--scope` without a path or path does not exist** → Display the Usage section above verbatim, then STOP.
 
-## Iterative Convergence
+## Phase Delegation
 
-Each phase runs multiple Explore agent rounds (opus) for completeness. Round 1 discovers, Rounds 2+ review and refine with fresh context. Stops when findings converge (minimal changes) or after 5 rounds max. See `reference.md` Section 3 for the full protocol.
+Each phase is delegated to an independent Phase Agent (`general-purpose`, `sonnet`) that manages its own convergence loop internally. Each Phase Agent spawns `Explore` (`opus`) rounds for deep codebase analysis, writes its output files, and returns only a brief summary to the orchestrator. This keeps the orchestrator's context lightweight. See `reference.md` Section 3 for the full architecture.
 
 ## Execution Flow
 
 ### Step 0: Initialization
 
 1. Read `reference.md` and all files in `shared/`
-2. Detect first-run vs subsequent-run:
+2. Note the absolute path of this skill's directory — referred to as `{skill_dir}` below. Pass this path to all Phase Agents.
+3. Detect first-run vs subsequent-run:
    - Check if `claudedocs/requirements.md` exists
    - Check if `claudedocs/test-cases.md` exists
    - If either exists: **validate QA structure** (see reference.md Section 2 — Structure Validation)
    - If structure is incompatible: ask user via `AskUserQuestion` (migrate / overwrite / abort)
    - Each file is evaluated independently
-3. If `--force-rebuild`: mark all existing entries RETIRED before proceeding
-4. If `--scope`: validate path exists, restrict analysis scope
+4. If `--force-rebuild`: mark all existing entries RETIRED before proceeding
+5. If `--scope`: validate path exists, restrict analysis scope
 
 ### Step 1: System Discovery (Phase 1)
 
-Run iterative convergence loop (see reference.md Section 4):
+Spawn Phase Agent (`general-purpose`, `sonnet`). Construct the prompt from `reference.md` Section 4 — Phase Agent Prompt template.
 
-- Round 1: Spawn `Explore` agent to discover components and external interfaces
-- Round 2+: Spawn `Explore` (opus) agent to review and refine findings
-- Stop when CONVERGED or round 5
+Pass to the agent:
+- `{skill_dir}`: absolute path to this skill's directory
+- `{scope}`: `--scope` value or "entire project"
 
-Output: `claudedocs/system-view.md` (rendered from `templates/system-view.md.j2`)
+Expect back: `PHASE_SUMMARY` with `output_files` and stats (`components`, `interfaces`).
 
 ### Step 2: Requirements Extraction (Phase 2)
 
-Run iterative convergence loop (see reference.md Section 5):
+Spawn Phase Agent (`general-purpose`, `sonnet`). Construct the prompt from `reference.md` Section 5 — Phase Agent Prompt template.
 
-- Input: system-view.md + existing requirements (if subsequent-run)
-- Round 1: Spawn `Explore` agent to extract functional requirements from code
-- Round 2+: Spawn `Explore` (opus) agent to review completeness
-- Stop when CONVERGED or round 5
+Pass to the agent:
+- `{skill_dir}`: absolute path to this skill's directory
+- `{run_mode}`: first-run or subsequent-run (detected in Step 0)
+- `{force_rebuild}`: whether `--force-rebuild` was specified
+- `{scope}`: `--scope` value or "entire project"
 
-Output: `claudedocs/requirements.md` + `claudedocs/requirements/*.md` (from templates)
+Expect back: `PHASE_SUMMARY` with stats (`requirements`, `new`, `groups`).
 
 ### Step 3: Test Cases Derivation (Phase 3)
 
-Run iterative convergence loop (see reference.md Section 6):
+Spawn Phase Agent (`general-purpose`, `sonnet`). Construct the prompt from `reference.md` Section 6 — Phase Agent Prompt template.
 
-- Input: requirements + existing test cases (if subsequent-run)
-- Round 1: Spawn `Explore` agent to derive test cases and map existing tests
-- Round 2+: Spawn `Explore` (opus) agent to review mappings
-- Stop when CONVERGED or round 5
+Pass to the agent:
+- `{skill_dir}`: absolute path to this skill's directory
+- `{run_mode}`: first-run or subsequent-run (detected in Step 0)
+- `{force_rebuild}`: whether `--force-rebuild` was specified
+- `{scope}`: `--scope` value or "entire project"
 
-Output: `claudedocs/test-cases.md` + `claudedocs/test-cases/*.md` (from templates)
-Also updates: requirements group files with TC cross-references
+Expect back: `PHASE_SUMMARY` with stats (`test_cases`, `new`, `covered`, `uncovered`, `groups`).
 
 ### Step 4: Gap Analysis (Phase 4)
 
-Run iterative convergence loop (see reference.md Section 7):
+Spawn Phase Agent (`general-purpose`, `sonnet`). Construct the prompt from `reference.md` Section 7 — Phase Agent Prompt template.
 
-- Input: system-view + requirements + test cases
-- Round 1: Spawn `Explore` agent to cross-reference all artifacts
-- Round 2+: Spawn `Explore` (opus) agent to verify gaps
-- Stop when CONVERGED or round 5
+Pass to the agent:
+- `{skill_dir}`: absolute path to this skill's directory
 
-Output: `claudedocs/qa-report.md` (rendered from `templates/qa-report.md.j2`)
+Expect back: `PHASE_SUMMARY` with stats (`gaps_by_category`, `coverage_pct`).
 
-### Step 5: Write Documents
+### Step 5: Summary
 
-Render all final documents from templates using converged findings. Write to `claudedocs/` directory. Ensure all cross-references are consistent (REQ→TC matches TC→REQ).
-
-### Step 6: Summary
-
-Display to user:
+Assemble the final report from the 4 Phase Summaries. Display to user:
 
 ```
 QA Analysis complete.
 
 | Phase | Description | Rounds |
 |-------|-------------|--------|
-| 1 | System Discovery | {n} |
-| 2 | Requirements Extraction | {n} |
-| 3 | Test Cases Derivation | {n} |
-| 4 | Gap Analysis | {n} |
+| 1 | System Discovery | {from Phase 1 summary} |
+| 2 | Requirements Extraction | {from Phase 2 summary} |
+| 3 | Test Cases Derivation | {from Phase 3 summary} |
+| 4 | Gap Analysis | {from Phase 4 summary} |
 
 Results: {req_count} requirements, {tc_count} test cases, {coverage}% coverage
 
@@ -150,4 +146,5 @@ skills/qa/
 - **IDs immutable** — once assigned, never changed or reused (see `shared/id-conventions.md`)
 - **Lazy loading** — root catalogs reference groups only; detail files loaded on demand
 - **Max 5 convergence rounds** per phase — bounded cost
+- **Phase isolation** — each phase runs in its own agent, only summaries return to orchestrator
 - **claudedocs/guidelines/ and adrs/ are READ-ONLY** — read for context, never modify

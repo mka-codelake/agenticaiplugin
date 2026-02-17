@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.10.1
+
+- **QA skill: Phase Delegation architecture.** Each of the 4 QA phases now runs in its own Phase Agent (`general-purpose`, `sonnet`) instead of accumulating all convergence rounds in the orchestrator's context. 3-level hierarchy: Orchestrator (Opus) → Phase Agent (Sonnet, convergence loop + file I/O) → Round Agent (Explore, Opus, codebase analysis). Phase Agents read reference.md for instructions, manage rounds internally, write output files, and return only a 5-line `PHASE_SUMMARY`. Orchestrator context stays ~200 lines instead of ~3,350+. Round prompts and analysis quality unchanged. Step 5 (Write Documents) removed — each Phase Agent writes its own output. No user-facing changes (same CLI options, same output files).
+
 ## 0.10.0
 
 - **New skill: qa (Quality Square Traceability Manager).** Manages bidirectional traceability between Requirements, Code, Test Cases, and Tests. Four phases: System Discovery, Requirements Extraction, Test Cases Derivation, Gap Analysis. Uses iterative convergence pattern (Explore agents with Opus, max 5 rounds per phase) for completeness. Outputs to `claudedocs/` (system-view, requirements catalog + groups, test-cases catalog + groups, qa-report). Supports `--phase <1-4>`, `--scope <path>`, `--force-rebuild`. Includes Jinja2 templates, shared ID conventions (REQ-NNN, TC-NNN), and status definitions.

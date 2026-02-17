@@ -9,12 +9,12 @@ Detailed playbook for the Quality Assurance traceability skill. The orchestrator
 The Quality Square establishes bidirectional traceability between four artifacts:
 
 ```
-    Requirements ←————————→ Test Cases
+    Requirements <————————> Test Cases
          ↕          ╲  ╱         ↕
          ↕           ╲╱          ↕
          ↕           ╱╲          ↕
          ↕          ╱  ╲         ↕
-       Code ←————————————→ Tests
+       Code <————————————> Tests
 ```
 
 **Six cross-reference paths:**
@@ -111,23 +111,56 @@ Options:
 
 ---
 
-## 3. Iterative Convergence Protocol
+## 3. Phase Delegation Architecture
 
-Each phase (1–4) uses multiple sub-agent rounds instead of a single pass. This ensures completeness through independent review.
+Each phase (1–4) is delegated to an independent Phase Agent that manages its convergence loop internally. This 3-level architecture isolates each phase's context, preventing accumulation in the orchestrator.
 
-### Round Structure
+### 3-Level Hierarchy
 
 ```
-Round 1:  Explore agent (opus) → Initial discovery → Findings v1
-Round 2+: Explore agent (opus) → Review + refine → Findings vN + Convergence Assessment
+Orchestrator (Opus) — SKILL.md — lightweight sequencing (~200 lines context)
+  ├─ Phase 1 Agent (general-purpose, sonnet) → 5-line summary
+  │    ├─ Round 1 (Explore, opus) — initial discovery
+  │    └─ Round 2+ (Explore, opus) — review + refine
+  ├─ Phase 2 Agent (general-purpose, sonnet) → 5-line summary
+  │    └─ ...
+  ├─ Phase 3 Agent (general-purpose, sonnet) → 5-line summary
+  │    └─ ...
+  └─ Phase 4 Agent (general-purpose, sonnet) → 5-line summary
+       └─ ...
 ```
 
-### Sub-Agent Configuration
+| Level | Agent | Type | Model | Responsibility |
+|-------|-------|------|-------|----------------|
+| 1 | Orchestrator | Skill runner | Opus | Init, validation, phase sequencing, final summary |
+| 2 | Phase Agent | `general-purpose` | `sonnet` | Convergence loop, file I/O, template rendering |
+| 3 | Round Agent | `Explore` | `opus` | Codebase analysis, deep reasoning |
 
-| Round | Agent Type | Model | Purpose |
-|-------|-----------|-------|---------|
-| 1 | `Explore` | `opus` | Initial discovery — broad codebase analysis |
-| 2–5 | `Explore` | `opus` | Review previous findings, refine, assess completeness |
+### Phase Agent Responsibilities
+
+Each Phase Agent runs autonomously:
+
+1. **Read** reference.md Section {N} for detailed instructions
+2. **Read** `shared/` files (ID conventions, status definitions)
+3. **Read** relevant templates from `templates/`
+4. **Read** input files from previous phase (e.g., `claudedocs/system-view.md`)
+5. **Run convergence loop** internally:
+   ```
+   for round in 1..5:
+     if round == 1:
+       spawn Explore (opus) with Round 1 prompt
+     else:
+       spawn Explore (opus) with Round 2+ prompt + previous findings
+     findings = result
+     if round >= 2 and CONVERGED: break
+   ```
+6. **Post-process**: group findings, split if needed, render templates
+7. **Write** output files to `claudedocs/`
+8. **Return** Phase Summary to orchestrator
+
+### Round Agent Behavior (unchanged)
+
+Round agents are `Explore` (opus) agents. Their prompts and analysis behavior are identical — only the spawning location moves from the orchestrator to the Phase Agent.
 
 ### Convergence Assessment Format
 
@@ -147,30 +180,60 @@ Every Round 2+ agent must include at the end of its output:
 2. If **round = 5** → forced CONVERGED (cost bound)
 3. In practice, most phases converge in 2–3 rounds
 
-### Orchestrator Loop
+### Phase Summary Format
+
+Every Phase Agent MUST return this exact format as its final output:
 
 ```
-for each phase in [1, 2, 3, 4]:
-    findings = null
-    rounds_used = 0
-    for round in 1..5:
-        rounds_used = round
-        if round == 1:
-            agent = spawn Explore (opus) with phase task
-        else:
-            agent = spawn Explore (opus) with phase task + findings
-        findings = agent.result
-        if round >= 2 and recommendation == CONVERGED:
-            break
-    record rounds_used for summary
-    use findings as input to next phase
+PHASE_SUMMARY:
+- phase: {phase_number}
+- name: {phase_name}
+- rounds: {rounds_used}
+- output_files: [{comma-separated list of files written}]
+- stats: {phase-specific key metrics}
 ```
+
+The orchestrator uses these summaries to assemble the final user-facing report.
 
 ---
 
 ## 4. Phase 1: System Discovery
 
 **Goal:** Identify all components and their external interfaces.
+
+### Phase Agent Context
+
+| | |
+|---|---|
+| **Input files** | (none — first phase) |
+| **Output files** | `claudedocs/system-view.md` |
+| **Templates** | `templates/system-view.md.j2` |
+| **Summary stats** | `components: {n}, interfaces: {n}` |
+
+### Phase Agent Prompt
+
+The orchestrator spawns a `general-purpose` (`sonnet`) Phase Agent with this prompt:
+
+> You are running **Phase 1: System Discovery** of the QA Skill.
+>
+> **Instructions:** Read `{skill_dir}/reference.md`:
+> - Section 3 — Phase Delegation Architecture (convergence protocol, summary format)
+> - Section 4 — Phase 1 details (round prompts, post-processing)
+>
+> Also read:
+> - All files in `{skill_dir}/shared/`
+> - `{skill_dir}/templates/system-view.md.j2`
+>
+> **Scope:** {scope or "entire project"}
+>
+> **Execute the convergence loop** as described in Section 3:
+> 1. Spawn `Explore` (`opus`) rounds using the Round prompts from Section 4
+> 2. Stop when CONVERGED or after 5 rounds
+> 3. Post-process findings and render `system-view.md.j2`
+> 4. Write result to `claudedocs/system-view.md`
+> 5. Return your PHASE_SUMMARY (format in Section 3)
+
+Replace `{skill_dir}` with the absolute path to this skill's directory. Replace `{scope}` with the `--scope` value or "entire project".
 
 ### Round 1 Prompt (Explore Agent)
 
@@ -208,11 +271,9 @@ for each phase in [1, 2, 3, 4]:
 >
 > Return: Updated findings in the same structure + Convergence Assessment.
 
-### Output
+### Post-Processing (Phase Agent)
 
-Rendered via `system-view.md.j2` → `claudedocs/system-view.md`
-
-Passed as context to Phase 2.
+Render via `system-view.md.j2` → `claudedocs/system-view.md`
 
 ---
 
@@ -220,7 +281,46 @@ Passed as context to Phase 2.
 
 **Goal:** Extract functional requirements from code, one per observable behavior.
 
-### Preparation (Orchestrator)
+### Phase Agent Context
+
+| | |
+|---|---|
+| **Input files** | `claudedocs/system-view.md` |
+| **Output files** | `claudedocs/requirements.md`, `claudedocs/requirements/*.md` |
+| **Templates** | `templates/requirements-catalog.md.j2`, `templates/requirements-group.md.j2` |
+| **Summary stats** | `requirements: {n}, new: {n}, groups: {n}` |
+
+### Phase Agent Prompt
+
+The orchestrator spawns a `general-purpose` (`sonnet`) Phase Agent with this prompt:
+
+> You are running **Phase 2: Requirements Extraction** of the QA Skill.
+>
+> **Instructions:** Read `{skill_dir}/reference.md`:
+> - Section 3 — Phase Delegation Architecture (convergence protocol, summary format)
+> - Section 5 — Phase 2 details (preparation, round prompts, post-processing)
+>
+> Also read:
+> - All files in `{skill_dir}/shared/`
+> - `{skill_dir}/templates/requirements-catalog.md.j2` and `requirements-group.md.j2`
+>
+> **Input from Phase 1:** Read `claudedocs/system-view.md`
+>
+> **Runtime context:**
+> - Run mode: {first-run | subsequent-run}
+> - If subsequent-run: also read `claudedocs/requirements.md` and all files in `claudedocs/requirements/`
+> - If --force-rebuild: mark all existing entries RETIRED before analysis
+> - Scope: {scope or "entire project"}
+>
+> **Execute:**
+> 1. Follow Preparation steps in Section 5
+> 2. Run the convergence loop (Section 3) with Round prompts from Section 5
+> 3. Follow Post-Processing steps in Section 5
+> 4. Return your PHASE_SUMMARY (format in Section 3) — include stats: requirements, new, groups
+
+Replace `{skill_dir}`, `{run_mode}`, `{scope}` with actual values.
+
+### Preparation (Phase Agent)
 
 - If subsequent-run: read `claudedocs/requirements.md` and all `claudedocs/requirements/*.md`
 - Determine `next_req_id` = max existing REQ-ID + 1 (or 001 if first-run)
@@ -270,7 +370,7 @@ Passed as context to Phase 2.
 >
 > Return: Updated requirements in the same table format + Convergence Assessment.
 
-### Post-Processing (Orchestrator)
+### Post-Processing (Phase Agent)
 
 1. Group requirements by component
 2. If any group exceeds ~100 lines → split into sub-groups
@@ -283,7 +383,46 @@ Passed as context to Phase 2.
 
 **Goal:** Derive test cases from requirements and map to existing tests.
 
-### Preparation (Orchestrator)
+### Phase Agent Context
+
+| | |
+|---|---|
+| **Input files** | `claudedocs/requirements.md`, `claudedocs/requirements/*.md` |
+| **Output files** | `claudedocs/test-cases.md`, `claudedocs/test-cases/*.md` (+ updates `claudedocs/requirements/*.md`) |
+| **Templates** | `templates/test-cases-catalog.md.j2`, `templates/test-cases-group.md.j2` |
+| **Summary stats** | `test_cases: {n}, new: {n}, covered: {n}, uncovered: {n}, groups: {n}` |
+
+### Phase Agent Prompt
+
+The orchestrator spawns a `general-purpose` (`sonnet`) Phase Agent with this prompt:
+
+> You are running **Phase 3: Test Cases Derivation** of the QA Skill.
+>
+> **Instructions:** Read `{skill_dir}/reference.md`:
+> - Section 3 — Phase Delegation Architecture (convergence protocol, summary format)
+> - Section 6 — Phase 3 details (preparation, round prompts, post-processing)
+>
+> Also read:
+> - All files in `{skill_dir}/shared/`
+> - `{skill_dir}/templates/test-cases-catalog.md.j2` and `test-cases-group.md.j2`
+>
+> **Input from Phase 2:** Read `claudedocs/requirements.md` and all files in `claudedocs/requirements/`
+>
+> **Runtime context:**
+> - Run mode: {first-run | subsequent-run}
+> - If subsequent-run: also read `claudedocs/test-cases.md` and all files in `claudedocs/test-cases/`
+> - If --force-rebuild: mark all existing entries RETIRED before analysis
+> - Scope: {scope or "entire project"}
+>
+> **Execute:**
+> 1. Follow Preparation steps in Section 6
+> 2. Run the convergence loop (Section 3) with Round prompts from Section 6
+> 3. Follow Post-Processing steps in Section 6 (includes updating requirements group files with TC cross-references)
+> 4. Return your PHASE_SUMMARY (format in Section 3) — include stats: test_cases, new, covered, uncovered, groups
+
+Replace `{skill_dir}`, `{run_mode}`, `{scope}` with actual values.
+
+### Preparation (Phase Agent)
 
 - If subsequent-run: read `claudedocs/test-cases.md` and all `claudedocs/test-cases/*.md`
 - Determine `next_tc_id` = max existing TC-ID + 1 (or 001 if first-run)
@@ -334,7 +473,7 @@ Passed as context to Phase 2.
 >
 > Return: Updated test cases in the same table format + Convergence Assessment.
 
-### Post-Processing (Orchestrator)
+### Post-Processing (Phase Agent)
 
 1. Update requirements: fill in Test Cases column with linked TC-IDs
 2. Group test cases by component
@@ -348,6 +487,41 @@ Passed as context to Phase 2.
 ## 7. Phase 4: Gap Analysis
 
 **Goal:** Cross-reference all Quality Square artifacts and identify traceability gaps.
+
+### Phase Agent Context
+
+| | |
+|---|---|
+| **Input files** | `claudedocs/system-view.md`, `claudedocs/requirements.md`, `claudedocs/requirements/*.md`, `claudedocs/test-cases.md`, `claudedocs/test-cases/*.md` |
+| **Output files** | `claudedocs/qa-report.md` |
+| **Templates** | `templates/qa-report.md.j2` |
+| **Summary stats** | `gaps_by_category: {...}, coverage_pct: {n}` |
+
+### Phase Agent Prompt
+
+The orchestrator spawns a `general-purpose` (`sonnet`) Phase Agent with this prompt:
+
+> You are running **Phase 4: Gap Analysis** of the QA Skill.
+>
+> **Instructions:** Read `{skill_dir}/reference.md`:
+> - Section 3 — Phase Delegation Architecture (convergence protocol, summary format)
+> - Section 7 — Phase 4 details (round prompts, post-processing)
+>
+> Also read:
+> - All files in `{skill_dir}/shared/`
+> - `{skill_dir}/templates/qa-report.md.j2`
+>
+> **Input from Phases 1–3:** Read:
+> - `claudedocs/system-view.md`
+> - `claudedocs/requirements.md` and all files in `claudedocs/requirements/`
+> - `claudedocs/test-cases.md` and all files in `claudedocs/test-cases/`
+>
+> **Execute:**
+> 1. Run the convergence loop (Section 3) with Round prompts from Section 7
+> 2. Follow Post-Processing in Section 7
+> 3. Return your PHASE_SUMMARY (format in Section 3) — include stats: gaps_by_category, coverage_pct
+
+Replace `{skill_dir}` with the absolute path to this skill's directory.
 
 ### Round 1 Prompt (Explore Agent)
 
@@ -397,7 +571,7 @@ Passed as context to Phase 2.
 >
 > Return: Updated gap analysis + Convergence Assessment.
 
-### Post-Processing (Orchestrator)
+### Post-Processing (Phase Agent)
 
 Render via `qa-report.md.j2` → `claudedocs/qa-report.md`
 
