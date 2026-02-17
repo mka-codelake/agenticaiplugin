@@ -40,8 +40,52 @@ The QA Skill manages the first four paths (document-side references). The last t
 
 ### Detection
 
-- **First-run:** `claudedocs/requirements.md` does NOT exist
-- **Subsequent-run:** `claudedocs/requirements.md` exists
+Check both files independently:
+
+| File | Exists? | QA Structure? | Result |
+|------|---------|---------------|--------|
+| `claudedocs/requirements.md` | No | — | First-run (requirements) |
+| `claudedocs/requirements.md` | Yes | Valid | Subsequent-run (requirements) |
+| `claudedocs/requirements.md` | Yes | Invalid | Ask user (see Structure Validation) |
+| `claudedocs/test-cases.md` | No | — | First-run (test cases) |
+| `claudedocs/test-cases.md` | Yes | Valid | Subsequent-run (test cases) |
+| `claudedocs/test-cases.md` | Yes | Invalid | Ask user (see Structure Validation) |
+
+Each file is evaluated independently — it's possible that requirements are valid but test cases need migration, or vice versa.
+
+### Structure Validation
+
+When `claudedocs/requirements.md` or `claudedocs/test-cases.md` exists, validate QA skill compatibility before proceeding:
+
+**Required markers for `requirements.md`:**
+- Contains at least one `REQ-NNN` ID pattern
+- Contains a table with columns matching: ID | Title | Scope | Source | Test Cases | Status
+- References group files in `claudedocs/requirements/` (or contains inline tables)
+
+**Required markers for `test-cases.md`:**
+- Contains at least one `TC-NNN` ID pattern
+- Contains a table with columns matching: ID | Title | Scope | Type | Requirements | Test | Status
+- References group files in `claudedocs/test-cases/` (or contains inline tables)
+
+**If validation fails (incompatible structure detected):**
+
+STOP and ask the user via `AskUserQuestion`:
+
+```
+Existing file detected: claudedocs/{filename}
+
+This file exists but does not match the QA skill's expected structure.
+It may have been created manually or by another tool.
+
+What should I do?
+```
+
+Options:
+1. **Migrate content** — Parse existing content, extract requirements/test cases where possible, assign QA-format IDs, preserve original as `{filename}.backup.md`
+2. **Overwrite** — Treat as first-run, build from scratch (existing content is lost)
+3. **Abort** — Stop execution, leave everything unchanged
+
+**Important:** Never silently overwrite or ignore incompatible files. Always ask.
 
 ### First-Run Behavior
 

@@ -42,7 +42,12 @@ Each phase runs multiple Explore agent rounds (opus) for completeness. Round 1 d
 ### Step 0: Initialization
 
 1. Read `reference.md` and all files in `shared/`
-2. Detect first-run vs subsequent-run (does `claudedocs/requirements.md` exist?)
+2. Detect first-run vs subsequent-run:
+   - Check if `claudedocs/requirements.md` exists
+   - Check if `claudedocs/test-cases.md` exists
+   - If either exists: **validate QA structure** (see reference.md Section 2 — Structure Validation)
+   - If structure is incompatible: ask user via `AskUserQuestion` (migrate / overwrite / abort)
+   - Each file is evaluated independently
 3. If `--force-rebuild`: mark all existing entries RETIRED before proceeding
 4. If `--scope`: validate path exists, restrict analysis scope
 
