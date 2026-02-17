@@ -1,0 +1,27 @@
+# System View — {{ project_name }}
+
+> Generated: {{ date }} | QA Skill Phase 1
+
+## Tech Stack
+
+| Category | Technology |
+|----------|-----------|
+{% for item in tech_stack -%}
+| {{ item.category }} | {{ item.technology }} |
+{% endfor %}
+
+## Components
+
+| Name | Type | Path | Interfaces |
+|------|------|------|------------|
+{% for comp in components -%}
+| {{ comp.name }} | {{ comp.type }} | `{{ comp.path }}` | {{ comp.interfaces }} |
+{% endfor %}
+
+## External Interfaces
+
+| Interface | Type | Component | Entry Point |
+|-----------|------|-----------|-------------|
+{% for iface in interfaces -%}
+| {{ iface.name }} | {{ iface.type }} | {{ iface.component }} | `{{ iface.entry_point }}` |
+{% endfor %}

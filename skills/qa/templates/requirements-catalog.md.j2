@@ -1,0 +1,23 @@
+# Requirements Catalog
+
+> Generated: {{ date }} | Status: {{ status }}
+>
+> **Lazy-load:** This catalog contains only group references and statistics.
+> Open individual group files for requirement details.
+
+## Groups
+
+| Group | Component | Count | Link |
+|-------|-----------|-------|------|
+{% for group in groups -%}
+| {{ group.name }} | {{ group.component }} | {{ group.count }} | [{{ group.filename }}](requirements/{{ group.filename }}) |
+{% endfor %}
+
+## Statistics
+
+| Scope | Count | With Test Cases | Without Test Cases |
+|-------|-------|-----------------|--------------------|
+{% for stat in statistics -%}
+| {{ stat.scope }} | {{ stat.count }} | {{ stat.with_tc }} | {{ stat.without_tc }} |
+{% endfor %}
+| **Total** | **{{ total_count }}** | **{{ total_with_tc }}** | **{{ total_without_tc }}** |

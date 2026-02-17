@@ -1,0 +1,72 @@
+# QA Report — {{ project_name }}
+
+> Generated: {{ date }} | Phases: {{ phases_completed }}/4 | Rounds: {{ total_rounds }}
+
+## Quality Square Summary
+
+| Metric | Count | Coverage |
+|--------|-------|----------|
+| Requirements | {{ req_count }} | — |
+| Test Cases | {{ tc_count }} | {{ tc_coverage }}% covered |
+| Mapped Tests | {{ test_count }} | — |
+| External Interfaces | {{ interface_count }} | {{ interface_coverage }}% traced |
+
+## Gap Analysis
+
+### 1. Requirements Without Test Cases
+
+{% if reqs_without_tc -%}
+| ID | Title | Component |
+|----|-------|-----------|
+{% for gap in reqs_without_tc -%}
+| {{ gap.id }} | {{ gap.title }} | {{ gap.component }} |
+{% endfor %}
+{% else -%}
+No gaps found.
+{% endif %}
+
+### 2. Test Cases Without Tests (UNCOVERED)
+
+{% if tc_uncovered -%}
+| ID | Title | Requirements |
+|----|-------|-------------|
+{% for gap in tc_uncovered -%}
+| {{ gap.id }} | {{ gap.title }} | {{ gap.requirements }} |
+{% endfor %}
+{% else -%}
+No gaps found.
+{% endif %}
+
+### 3. Orphan Tests (Not Referenced by Any Test Case)
+
+{% if orphan_tests -%}
+| Test File | Test Name | Suggestion |
+|-----------|-----------|------------|
+{% for orphan in orphan_tests -%}
+| `{{ orphan.file }}` | {{ orphan.name }} | {{ orphan.suggestion }} |
+{% endfor %}
+{% else -%}
+No orphan tests found.
+{% endif %}
+
+### 4. Untraced Code (External Interfaces Without Requirements)
+
+{% if untraced_code -%}
+| Interface | Type | Component | Entry Point |
+|-----------|------|-----------|-------------|
+{% for item in untraced_code -%}
+| {{ item.name }} | {{ item.type }} | {{ item.component }} | `{{ item.entry_point }}` |
+{% endfor %}
+{% else -%}
+No untraced code found.
+{% endif %}
+
+## Recommendations
+
+{% for rec in recommendations -%}
+{{ loop.index }}. {{ rec }}
+{% endfor %}
+
+---
+
+See also: [System View](system-view.md) | [Requirements](requirements.md) | [Test Cases](test-cases.md)

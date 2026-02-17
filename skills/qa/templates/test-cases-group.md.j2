@@ -1,0 +1,9 @@
+# Test Cases — {{ component }}
+
+> Part of [Test Cases Catalog](../test-cases.md) | Generated: {{ date }}
+
+| ID | Title | Scope | Type | Requirements | Test | Status |
+|----|-------|-------|------|-------------|------|--------|
+{% for tc in test_cases -%}
+| {{ tc.id }} | {{ tc.title }} | {{ tc.scope }} | {{ tc.type }} | {{ tc.requirements }} | {{ tc.test }} | {{ tc.status }} |
+{% endfor %}

@@ -1,0 +1,23 @@
+# Test Cases Catalog
+
+> Generated: {{ date }} | Status: {{ status }}
+>
+> **Lazy-load:** This catalog contains only group references and statistics.
+> Open individual group files for test case details.
+
+## Groups
+
+| Group | Component | Covered | Uncovered | Link |
+|-------|-----------|---------|-----------|------|
+{% for group in groups -%}
+| {{ group.name }} | {{ group.component }} | {{ group.covered }} | {{ group.uncovered }} | [{{ group.filename }}](test-cases/{{ group.filename }}) |
+{% endfor %}
+
+## Coverage Statistics
+
+| Scope | Total | Covered | Uncovered | Partial | Coverage |
+|-------|-------|---------|-----------|---------|----------|
+{% for stat in statistics -%}
+| {{ stat.scope }} | {{ stat.total }} | {{ stat.covered }} | {{ stat.uncovered }} | {{ stat.partial }} | {{ stat.coverage }}% |
+{% endfor %}
+| **Total** | **{{ total_count }}** | **{{ total_covered }}** | **{{ total_uncovered }}** | **{{ total_partial }}** | **{{ total_coverage }}%** |

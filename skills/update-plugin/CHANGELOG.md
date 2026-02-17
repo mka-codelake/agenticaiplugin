@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.10.0
+
+- **New skill: qa (Quality Square Traceability Manager).** Manages bidirectional traceability between Requirements, Code, Test Cases, and Tests. Four phases: System Discovery, Requirements Extraction, Test Cases Derivation, Gap Analysis. Uses iterative convergence pattern (Explore agents with Opus, max 5 rounds per phase) for completeness. Outputs to `claudedocs/` (system-view, requirements catalog + groups, test-cases catalog + groups, qa-report). Supports `--phase <1-4>`, `--scope <path>`, `--force-rebuild`. Includes Jinja2 templates, shared ID conventions (REQ-NNN, TC-NNN), and status definitions.
+
 ## 0.9.4
 
 - **Upgraded model selection for code review specialists.** Three-tier model assignment: Security (#02) and Architecture (#03) upgraded from `sonnet` to `opus` for nuanced multi-file analysis where false negatives are costly. SOLID & Code Smells (#05) upgraded from `haiku` to `sonnet` for better SRP/LSP violation detection. All other specialists unchanged.

@@ -48,6 +48,7 @@ Zeige dem Benutzer folgende Übersicht:
 | **gitme** | Intelligente Git-Commits: Analysiert alle Änderungen, gruppiert sie logisch und erstellt aussagekräftige Commit-Messages. Kann mehrere Commits erstellen wenn sinnvoll |
 | **code-review** | Führt ein intelligentes Code-Review durch. Vier Modi: ohne Parameter = Git Diff (Standard), mit Datei = Einzeldatei, `--complete` = ganzes Projekt, `--renovate` = Dependency-Audit (Optionen: `--stack jvm/js/python`, `--quick`, `--save`) |
 | **architecture-audit** | Umfassendes Architektur-Audit: Erkennt Patterns, bewertet 7 Dimensionen (Boundaries, Dependencies, Naming, APIs, Wiring, Visibility), erstellt bewerteten Report (A-E Skala). Optionen: `--scope <path>` für Teilbereiche |
+| **qa** | Quality Assurance: Verwaltet bidirektionale Traceability zwischen Requirements, Code, Test Cases und Tests ("Quality Square"). Analysiert Code, extrahiert Requirements, leitet Test Cases ab, erstellt Gap-Analyse. Optionen: `--phase <1-4>`, `--scope <path>`, `--force-rebuild` |
 | **create-cli** | Designt CLI-Oberflächen: Argumente, Flags, Subcommands, Help-Text, Output-Formate, Exit-Codes, Prompts. Erstellt eine kompakte Spec zur Implementierung |
 
 ### Tools
@@ -87,6 +88,7 @@ Skills sind Wissensmodule, die Claude automatisch lädt wenn bestimmte Schlüsse
 
 ### Code-Qualität
 - **code-review** - Multi-Specialist Code-Reviews (11 fokussierte Spezialisten)
+- **qa** - Quality Square Traceability Manager (Command: `/agenticaiplugin:qa`)
 
 ### Architektur
 - **architecture-audit** - Architektur-Audit mit 7 Analyzern und A-E Bewertung (Command: `/agenticaiplugin:architecture-audit`)

@@ -1,0 +1,9 @@
+# Requirements — {{ component }}
+
+> Part of [Requirements Catalog](../requirements.md) | Generated: {{ date }}
+
+| ID | Title | Scope | Source | Test Cases | Status |
+|----|-------|-------|--------|------------|--------|
+{% for req in requirements -%}
+| {{ req.id }} | {{ req.title }} | {{ req.scope }} | `{{ req.source }}` | {{ req.test_cases }} | {{ req.status }} |
+{% endfor %}
