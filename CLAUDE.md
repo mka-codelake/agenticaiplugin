@@ -99,9 +99,10 @@ Changes are immediately available after marketplace update.
 
 When making feature changes, new commands, or directory changes, check:
 
-1. **Help-Skill** (`skills/help/SKILL.md`) — Is the overview still current?
-2. **CHANGELOG** (`skills/update-plugin/CHANGELOG.md`) — Entry added?
-3. **Per-Skill `--help`** — Usage section in affected skills up to date?
+1. **Rule template versions** (`rules-templates/*.md`) — If a rule template was modified, bump the `Rule vX.Y` **and** `Plugin-Version` in its HTML comment header. Without this, `/agenticaiplugin:update-plugin` won't detect the change and existing projects stay on the old version. **This has been overlooked repeatedly — always check.**
+2. **Help-Skill** (`skills/help/SKILL.md`) — Is the overview still current?
+3. **CHANGELOG** (`skills/update-plugin/CHANGELOG.md`) — Entry added?
+4. **Per-Skill `--help`** — Usage section in affected skills up to date?
 
 ### Testing
 

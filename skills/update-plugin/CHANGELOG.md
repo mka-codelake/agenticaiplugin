@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.10.4
+
+- **Fix: git-commit rule template version bump.** Rule template `agenticaiplugin-git-commit.md` was missing the `Plugin-Version` header, preventing `/agenticaiplugin:update-plugin` from detecting that the rule had changed. Projects installed before the fully qualified skill name fix (`agenticaiplugin:git-smart-commit`) were stuck with the old rule. Bumped rule from v1.0 to v1.1. Running `/agenticaiplugin:update-plugin` now correctly pushes the fixed rule.
+
 ## 0.10.3
 
 - **QA skill: Removed `--phase` and `--scope` options.** Both flags added complexity without sufficient value. `--phase <1-4>` (run single phase) and `--scope <path>` (restrict to subdirectory) are no longer accepted. The skill now always runs all 4 phases on the entire project. `--force-rebuild` remains unchanged.
