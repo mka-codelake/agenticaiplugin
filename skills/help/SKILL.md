@@ -41,6 +41,7 @@ Zeige dem Benutzer folgende Übersicht:
 | Command | Beschreibung |
 |---------|--------------|
 | **create-readme** | Erstellt/aktualisiert `README.md` - klassische Projektdokumentation für Menschen |
+| **github-publish** | Bereitet GitHub-Repository für Public Release vor: README-Enhancement (Badges, Logo, Status-Banner), Lizenzauswahl, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, GitHub Actions Release-Workflow, Issue-Templates. Modi: `--readme` (nur README), `--license` (nur Lizenz) |
 
 ### Entwicklung
 | Command | Beschreibung |
@@ -105,6 +106,7 @@ Agents sind isolierte Kontexte für spezifische Aufgaben.
 | Agent | Aufgabe |
 |-------|---------|
 | **context-creator** | Erstellt README.md |
+| **github-publisher** | Bereitet Repositories für Public Release auf GitHub vor |
 | **project-initializer** | Richtet Projekte für das Plugin ein, führt Updates durch |
 
 ---

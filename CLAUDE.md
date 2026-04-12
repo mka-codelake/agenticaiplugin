@@ -79,6 +79,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
 | `/agenticaiplugin:markdown-converter` | Convert files to Markdown via markitdown |
 | `/agenticaiplugin:create-readme` | Create or update README.md |
+| `/agenticaiplugin:github-publish` | Prepare repo for public GitHub release (badges, logo, license, etc.) |
 | `/agenticaiplugin:promote-perms` | Promote workspace permissions to user level |
 | `/agenticaiplugin:help` | Show overview of all plugin commands and skills |
 

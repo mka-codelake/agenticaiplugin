@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.11.0
+
+- **New skill: github-publish.** Prepares GitHub repositories for professional public release. Interactive workflow with 3 modes: full setup (default), `--readme` (README enhancement only), `--license` (license selection only). Creates/enhances README (badges via shields.io/nodei.co, SVG logo, development status banners), LICENSE (MIT/Apache 2.0/GPL v3 based on project type), CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, GitHub Actions release workflow, and issue templates. New `github-publisher` agent (Sonnet) handles the 5-phase interactive workflow: project analysis, status display, user decisions, file creation, summary. Includes Jinja2 templates for all generated files and a reference.md with badge patterns, license decision matrix, SVG logo generation guidelines, and README enhancement rules.
+
 ## 0.10.4
 
 - **Fix: git-commit rule template version bump.** Rule template `agenticaiplugin-git-commit.md` was missing the `Plugin-Version` header, preventing `/agenticaiplugin:update-plugin` from detecting that the rule had changed. Projects installed before the fully qualified skill name fix (`agenticaiplugin:git-smart-commit`) were stuck with the old rule. Bumped rule from v1.0 to v1.1. Running `/agenticaiplugin:update-plugin` now correctly pushes the fixed rule.
