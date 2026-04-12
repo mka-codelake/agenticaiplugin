@@ -1,12 +1,11 @@
-<img src="https://raw.githubusercontent.com/mka-codelake/agenticaiplugin/master/etc/logo.svg" width="400" align="right" alt=""/>
+<img src="./etc/logo.svg" width="400" align="right" alt="AgenticAI Plugin"/>
 
 # AgenticAI Plugin
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Release](https://github.com/mka-codelake/agenticaiplugin/actions/workflows/release.yml/badge.svg)](https://github.com/mka-codelake/agenticaiplugin/actions/workflows/release.yml)
 
 > [!NOTE]
-> **AgenticAI Plugin** is in beta. APIs may change between minor versions.
+> **AgenticAI Plugin** is in beta. Skills, agents, and conventions may change between minor versions.
 
 A powerful Claude Code plugin that transforms your development workflow with intelligent agents, auto-activated skills, and convenient slash commands. Built for agile teams working across multiple programming languages, with specialized support for Java/Spring Boot development.
 
