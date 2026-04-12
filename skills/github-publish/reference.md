@@ -216,11 +216,15 @@ find . -maxdepth 2 -type d -not -path '*/\.*' -not -path './node_modules/*' -not
 4. Add logo, badges, and banner
 
 **UPDATE mode** (README.md exists):
-1. Read existing README completely
-2. Compare against Baseline — identify missing sections
-3. Show missing sections in Plan Preview
-4. Apply changes following Update Rules (Section 5.4)
-5. Add/update logo, badges, and banner
+1. Run project analysis (Section 5.2) — same as CREATE mode
+2. Read existing README completely
+3. **Compare analysis results against README content:**
+   - Structure: Which Baseline sections are missing?
+   - Content: Does the README accurately reflect the current project state? (features, architecture, commands, tech stack, project structure)
+   - Factual: Are numbers, names, and descriptions still correct?
+4. Show discrepancies and missing sections in Plan Preview
+5. Apply changes following Update Rules (Section 5.4)
+6. Add/update logo, badges, and banner
 
 ### 5.4 Update Rules
 

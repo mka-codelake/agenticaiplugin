@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.12.1
+
+- **Fix(github-publish): UPDATE mode now runs full project analysis.** Previously, UPDATE mode only checked README structure against the Baseline but did not verify whether the content was still accurate. Now runs the same project analysis as CREATE mode and compares results against the existing README to detect factual discrepancies (e.g., outdated feature counts, missing new capabilities, stale project structure). Discrepancies are shown in the Plan Preview before any changes are made.
+
 ## 0.12.0
 
 - **BREAKING: Removed `create-readme` skill and `context-creator` agent.** README creation and enhancement is now fully handled by `github-publish` (use `--readme` mode for README-only updates). The `context-creator` agent's project analysis logic (tech stack detection, key file scanning, content generation) has been absorbed into `github-publisher` agent and `github-publish/reference.md` Section 5. New README Baseline Structure defines mandatory sections and ordering for all public repositories. The `github-publisher` agent now supports both CREATE mode (generate full README from project analysis) and UPDATE mode (check against baseline, add missing sections, preserve existing content).

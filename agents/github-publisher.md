@@ -281,14 +281,19 @@ This is the most critical step. Follow reference.md Section 5 strictly — it is
 
 **If README.md exists (UPDATE mode):**
 
-1. Read the current README completely
-2. Compare against Baseline structure (Section 5.1) — identify:
-   - Missing sections (to be added)
-   - Sections with potentially outdated content (Installation, Features, Project Structure)
-3. Follow Update Rules (Section 5.4):
+1. Run project analysis (reference.md Section 5.2) — same as CREATE mode:
+   - Detect project type from manifest files
+   - Read key files in priority order
+   - Scan directory structure, features, commands, agents, skills
+2. Read the current README completely
+3. **Compare analysis results against README content** — identify:
+   - Missing sections (not in README but required by Baseline)
+   - **Factual discrepancies** (e.g., README says "10 specialists" but code has 11, features list missing new capabilities, project structure outdated)
+   - Outdated technical sections (Installation, Features, Project Structure)
+4. Follow Update Rules (Section 5.4):
    - PRESERVE manually written prose and custom sections
    - ADD missing Baseline sections at correct positions
-   - UPDATE technical sections (Installation, Features) only if clearly outdated
+   - UPDATE sections where analysis found factual discrepancies
    - Ask before rewriting the Overview section
 4. Add/update cosmetic elements (Section 5.7):
    - Logo `<img>` tag before `# Title`
