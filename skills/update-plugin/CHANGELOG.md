@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.11.1
+
+- **github-publish: `--repo` parameter, feature branch, plan preview, no-remote support.** Skill now accepts `--repo <path|github-url>` to target a different repository. All changes are made on a dedicated `feat/github-publish` branch for PR-based review. New Phase 5 (Plan Preview) shows all planned CREATE/UPDATE/SKIP actions and requires user approval before execution. Repos without a remote are fully supported — agent uses placeholders for owner/repo, skips remote-dependent badges, and lists "add remote" as a next step. Agent never pushes automatically.
+
 ## 0.11.0
 
 - **New skill: github-publish.** Prepares GitHub repositories for professional public release. Interactive workflow with 3 modes: full setup (default), `--readme` (README enhancement only), `--license` (license selection only). Creates/enhances README (badges via shields.io/nodei.co, SVG logo, development status banners), LICENSE (MIT/Apache 2.0/GPL v3 based on project type), CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, GitHub Actions release workflow, and issue templates. New `github-publisher` agent (Sonnet) handles the 5-phase interactive workflow: project analysis, status display, user decisions, file creation, summary. Includes Jinja2 templates for all generated files and a reference.md with badge patterns, license decision matrix, SVG logo generation guidelines, and README enhancement rules.

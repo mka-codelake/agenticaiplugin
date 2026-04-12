@@ -20,62 +20,134 @@ You prepare repositories for professional public release on GitHub.
 
 Execute these phases in order. Read `skills/github-publish/reference.md` for detailed rules on badges, licenses, logos, and README enhancement.
 
-### Phase 1: Project Analysis
+### Phase 0: Resolve Target Repository
 
-Automatically detect (no user input needed):
+**If `--repo` parameter was provided:**
+
+1. **Local path** (starts with `/`, `~`, `.`, or drive letter):
+   - Verify directory exists: `ls -d {path} 2>/dev/null`
+   - Verify it's a git repo: `git -C {path} rev-parse --git-dir 2>/dev/null`
+   - If valid → use as working directory for all subsequent phases
+   - If invalid → report error and STOP
+
+2. **GitHub URL** (contains `github.com`):
+   - Extract `{owner}/{repo}` from URL
+   - Search for local clone by checking common locations:
+     ```bash
+     # Check if any local repo has this as remote
+     for dir in $(find ~ -maxdepth 4 -name .git -type d 2>/dev/null | head -20); do
+       remote=$(git -C "$(dirname "$dir")" remote get-url origin 2>/dev/null)
+       if echo "$remote" | grep -q "{owner}/{repo}"; then
+         echo "$(dirname "$dir")"
+         break
+       fi
+     done
+     ```
+   - If found → use that local directory
+   - If not found → ask user for the local clone path using AskUserQuestion
+   - If user has no local clone → offer to clone it:
+     ```bash
+     git clone https://github.com/{owner}/{repo}.git /tmp/{repo}
+     ```
+
+**If no `--repo` parameter:** Use current working directory.
+
+**Verify access:** Ensure you can read/write in the target directory before proceeding.
+
+### Phase 1: Create Feature Branch
+
+All changes go on a dedicated branch to enable PR-based review.
+
+```bash
+# Ensure clean working tree
+git -C {repo_path} status --porcelain
+```
+
+If there are uncommitted changes, warn the user and ask whether to proceed or abort.
+
+```bash
+# Create and switch to feature branch
+git -C {repo_path} checkout -b feat/github-publish
+```
+
+If branch already exists (from a previous run), ask user:
+- **Continue** on existing branch (keep previous changes)
+- **Reset** — delete and recreate the branch from current HEAD
+
+Inform the user:
+```
+Working on branch: feat/github-publish
+All changes will be committed to this branch.
+```
+
+### Phase 2: Project Analysis
+
+Automatically detect (no user input needed). All git/file commands use `{repo_path}`.
 
 ```bash
 # Project type
-ls package.json pom.xml build.gradle build.gradle.kts Cargo.toml go.mod pyproject.toml setup.py requirements.txt *.sln *.csproj 2>/dev/null
+ls {repo_path}/package.json {repo_path}/pom.xml {repo_path}/build.gradle {repo_path}/build.gradle.kts {repo_path}/Cargo.toml {repo_path}/go.mod {repo_path}/pyproject.toml {repo_path}/setup.py {repo_path}/requirements.txt 2>/dev/null
 
 # Existing files
-ls README.md LICENSE NOTICE CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md etc/logo.svg .github/workflows/release.yml .github/ISSUE_TEMPLATE/ 2>/dev/null
+ls {repo_path}/README.md {repo_path}/LICENSE {repo_path}/NOTICE {repo_path}/CONTRIBUTING.md {repo_path}/CODE_OF_CONDUCT.md {repo_path}/SECURITY.md {repo_path}/etc/logo.svg {repo_path}/.github/workflows/release.yml {repo_path}/.github/ISSUE_TEMPLATE/ 2>/dev/null
 
-# Git remote (owner/repo)
-git remote get-url origin 2>/dev/null
+# Git remote (owner/repo) — may not exist yet
+git -C {repo_path} remote get-url origin 2>/dev/null
 
-# Default branch
-git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@'
+# Default branch — check local branches if no remote
+git -C {repo_path} symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@'
+# Fallback: detect main or master from local branches
+git -C {repo_path} branch --list main master 2>/dev/null
 
 # NPM package check
-cat package.json 2>/dev/null | grep -E '"name"|"private"'
+cat {repo_path}/package.json 2>/dev/null | grep -E '"name"|"private"'
 ```
 
-### Phase 2: Status Display
+**No remote? That's fine.** If `git remote get-url origin` returns nothing:
+- Set `{owner}` and `{repo}` to unknown — ask user later if needed for badge/logo URLs
+- Skip badge URLs that require `{owner}/{repo}` (GitHub Actions badge, logo raw.githubusercontent URL)
+- Use placeholder `{owner}/{repo}` in CONTRIBUTING.md issues URL — user fills in after adding remote
+- README enhancement still works (license badge, status banners, sections)
+- Summary will show "add remote and push" as a next step instead of push/PR instructions
+
+### Phase 3: Status Display
 
 Show the user what exists and what's missing:
 
 ```
 GitHub Publish — Project Status
 
-  README.md              {✓|✗}
-  LICENSE                {✓|✗}
-  CONTRIBUTING.md        {✓|✗}
-  CODE_OF_CONDUCT.md     {✓|✗}
-  SECURITY.md            {✓|✗}
-  .github/workflows/     {✓|✗}
-  .github/ISSUE_TEMPLATE/{✓|✗}
-  Logo (etc/logo.svg)    {✓|✗}
+  Repository:            {repo_path}
+  Branch:                feat/github-publish
+
+  README.md              {check_or_cross}
+  LICENSE                {check_or_cross}
+  CONTRIBUTING.md        {check_or_cross}
+  CODE_OF_CONDUCT.md     {check_or_cross}
+  SECURITY.md            {check_or_cross}
+  .github/workflows/     {check_or_cross}
+  .github/ISSUE_TEMPLATE/{check_or_cross}
+  Logo (etc/logo.svg)    {check_or_cross}
 
   Detected: {project_type} ({manifest_file})
-  GitHub: {owner}/{repo}
+  GitHub: {owner}/{repo} (or "no remote configured")
   NPM: {package_name or "not an npm package"}
 ```
 
-### Phase 3: Interactive Decisions
+### Phase 4: Interactive Decisions
 
 **Check the mode first:**
-- `readme-only` → Skip to Phase 4, only do README enhancement (steps 8-9)
-- `license-only` → Skip to questions 1 and 6 only, then Phase 4 steps 1-3
+- `readme-only` → Skip to Phase 6, only do README enhancement (steps 8-9)
+- `license-only` → Skip to questions 1 and 6 only, then Phase 6 steps 1-3
 - `full` → Ask all questions below
 
-Use `AskUserQuestion` for each decision. Provide smart defaults based on Phase 1 analysis.
+Use `AskUserQuestion` for each decision. Provide smart defaults based on Phase 2 analysis.
 
 **Questions (ask in batch where possible):**
 
 1. **Project classification** — Determines license
    - Options: Product (end-user app) / Library, Framework, or CLI / Small utility
-   - Default: Infer from project type (npm package without "private" → Library)
+   - Default: Infer from project type (npm package without "private" -> Library)
 
 2. **Development status** — Determines status banner
    - Options: Stable / Beta / Heavy Development
@@ -98,9 +170,38 @@ Use `AskUserQuestion` for each decision. Provide smart defaults based on Phase 1
    - Default: No
    - Only ask if project classification is "Small utility" (otherwise Apache 2.0 or GPL already handle patents)
 
-### Phase 4: File Creation
+### Phase 5: Plan Preview
 
-Execute in this order. Skip files that already exist (show "skipped — already exists" in summary). Read the templates from `skills/github-publish/templates/` for structure guidance.
+**Before creating any files**, present a complete action plan and wait for approval.
+
+```
+Geplante Aktionen (Branch: feat/github-publish):
+
+  CREATE  LICENSE (Apache 2.0)
+  CREATE  NOTICE
+  CREATE  CONTRIBUTING.md
+  CREATE  CODE_OF_CONDUCT.md
+  CREATE  SECURITY.md
+  CREATE  .github/workflows/release.yml
+  CREATE  .github/ISSUE_TEMPLATE/bug_report.md
+  CREATE  .github/ISSUE_TEMPLATE/feature_request.md
+  CREATE  etc/logo.svg (generated)
+  UPDATE  README.md (+ logo, badges, caution banner)
+  UPDATE  package.json (license: Apache-2.0)
+  SKIP    {file} (already exists)
+
+Soll ich fortfahren?
+```
+
+Use `AskUserQuestion` with options: **Yes, proceed** / **Modify plan** / **Abort**
+
+- **Yes** → Continue to Phase 6
+- **Modify** → Ask what to change, adjust plan, show again
+- **Abort** → Switch back to original branch, delete feat/github-publish, STOP
+
+### Phase 6: File Creation
+
+Execute in this order. Skip files that already exist (show "skipped" in summary). Read the templates from `skills/github-publish/templates/` for structure guidance. All file paths relative to `{repo_path}`.
 
 **Step 1: LICENSE**
 
@@ -120,7 +221,7 @@ If `package.json` exists, update the `license` and `author` fields using the Edi
 Use `templates/CONTRIBUTING.md.j2` as structure. Fill in:
 - `project_name`: From package.json name, repo name, or directory name
 - `issues_url`: `https://github.com/{owner}/{repo}/issues`
-- `default_branch`: Detected in Phase 1
+- `default_branch`: Detected in Phase 2
 - `license_name`: Based on license choice
 - `notice_ref`: ` and [NOTICE](NOTICE)` for Apache 2.0, empty otherwise
 
@@ -172,36 +273,55 @@ If README.md exists, enhance it:
 6. Add/update License section (reference LICENSE file)
 7. Write the enhanced README using the Edit tool to preserve existing content
 
-### Phase 5: Summary
+### Phase 7: Commit and Summary
 
-Output a structured summary:
+**Commit all changes on the feature branch:**
+
+```bash
+git -C {repo_path} add -A
+git -C {repo_path} commit -m "docs: prepare repository for public release
+
+Add LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md,
+GitHub Actions release workflow, issue templates, and project logo.
+Enhance README with badges, logo, and status banner."
+```
+
+**Output a structured summary:**
 
 ```
 GitHub Publish Complete!
 
+Branch: feat/github-publish
+
 Files created:
-  ✓ LICENSE — {license_name}
-  ✓ NOTICE — Apache attribution (Apache 2.0 only)
-  ✓ CONTRIBUTING.md — Contribution guidelines
-  ✓ CODE_OF_CONDUCT.md — Contributor Covenant v2.1
-  ✓ SECURITY.md — Vulnerability reporting policy
-  ✓ .github/workflows/release.yml — Automated releases
-  ✓ .github/ISSUE_TEMPLATE/bug_report.md
-  ✓ .github/ISSUE_TEMPLATE/feature_request.md
-  ✓ etc/logo.svg — Project logo
-  ✗ {file} — Skipped (already exists)
+  {checkmark} LICENSE — {license_name}
+  {checkmark} NOTICE — Apache attribution (Apache 2.0 only)
+  {checkmark} CONTRIBUTING.md — Contribution guidelines
+  {checkmark} CODE_OF_CONDUCT.md — Contributor Covenant v2.1
+  {checkmark} SECURITY.md — Vulnerability reporting policy
+  {checkmark} .github/workflows/release.yml — Automated releases
+  {checkmark} .github/ISSUE_TEMPLATE/bug_report.md
+  {checkmark} .github/ISSUE_TEMPLATE/feature_request.md
+  {checkmark} etc/logo.svg — Project logo
+  {cross} {file} — Skipped (already exists)
 
 Files updated:
-  ✓ README.md — Added logo, badges, status banner
-  ✓ package.json — License field updated
+  {checkmark} README.md — Added logo, badges, status banner
+  {checkmark} package.json — License field updated
 
 Next steps:
-  1. Review all generated files
-  2. Customize contact email in CODE_OF_CONDUCT.md and SECURITY.md
-  3. Create first release:
-     git tag v0.1.0
-     git push origin v0.1.0
-  {4. Set NPM_TOKEN secret in GitHub repo settings (if npm publish enabled)}
+  1. Review changes:  git diff {default_branch}..feat/github-publish
+
+  If remote exists:
+  2. Push branch:     git push -u origin feat/github-publish
+  3. Create PR on GitHub to review rendered README, badges, and logo
+  4. Merge when satisfied
+  {5. Set NPM_TOKEN secret in repo settings (if npm publish enabled)}
+
+  If no remote yet:
+  2. Add remote:      git remote add origin https://github.com/{owner}/{repo}.git
+  3. Push:            git push -u origin feat/github-publish
+  4. Update placeholder URLs in CONTRIBUTING.md and badge URLs in README.md
 ```
 
 ---
@@ -214,3 +334,5 @@ Next steps:
 4. **Read templates** from the skill's templates/ directory for structural guidance
 5. **Read reference.md** for detailed badge URLs, license rules, and SVG guidelines
 6. **Ask when uncertain** — use AskUserQuestion rather than assuming
+7. **All changes on feature branch** — never commit directly to main/master
+8. **Plan before execute** — always show the action plan and get approval first

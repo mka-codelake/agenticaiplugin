@@ -14,14 +14,29 @@ Prepares a repository for professional public release on GitHub.
 ## Usage
 
 ```
-/agenticaiplugin:github-publish [--readme | --license]
+/agenticaiplugin:github-publish [options]
 ```
 
-| Mode | Command | Description |
-|------|---------|-------------|
-| **Full Setup** | `/agenticaiplugin:github-publish` | Interactive complete workflow — all aspects |
-| **README Only** | `/agenticaiplugin:github-publish --readme` | Enhance README only (badges, logo, status banner) |
-| **License Only** | `/agenticaiplugin:github-publish --license` | License selection and file creation only |
+| Option | Description |
+|--------|-------------|
+| *(no options)* | Full interactive setup on current directory |
+| `--repo <path>` | Target a specific local repo directory instead of cwd |
+| `--repo <github-url>` | Target a GitHub repo (resolves to local clone) |
+| `--readme` | Enhance README only (badges, logo, status banner) |
+| `--license` | License selection and file creation only |
+| `--help` | Show this usage information |
+
+Options can be combined: `--repo /path/to/project --readme`
+
+### Examples
+
+```
+/agenticaiplugin:github-publish
+/agenticaiplugin:github-publish --repo /home/user/projects/my-lib
+/agenticaiplugin:github-publish --repo https://github.com/user/my-lib
+/agenticaiplugin:github-publish --readme
+/agenticaiplugin:github-publish --repo /path/to/project --license
+```
 
 ## Argument Handling
 
@@ -29,17 +44,28 @@ Prepares a repository for professional public release on GitHub.
 
 1. **`--help` passed** -> Display the Usage section above verbatim, then STOP.
 2. **Unrecognized flags or invalid arguments** -> Display the Usage section above verbatim, then STOP.
-3. **No argument** -> Proceed with Full Setup mode (default).
+3. **`--repo` without value** -> Display the Usage section above verbatim, then STOP.
+4. **No argument** -> Proceed with Full Setup mode on current directory.
 
 ## What It Does
 
 The `agenticaiplugin:github-publisher` agent performs an interactive, multi-phase workflow:
 
-1. **Analyzes** the project (type, existing files, git remote, npm package)
-2. **Displays** a status overview of what exists and what's missing
-3. **Asks** targeted questions (project type, dev status, badges, logo, releases)
-4. **Creates/updates** all necessary files in the correct order
-5. **Summarizes** what was done and next steps
+1. **Resolves** the target repo (cwd, local path, or GitHub URL -> local clone)
+2. **Creates** a feature branch `feat/github-publish` for all changes
+3. **Analyzes** the project (type, existing files, git remote, npm package)
+4. **Displays** a status overview of what exists and what's missing
+5. **Asks** targeted questions (project type, dev status, badges, logo, releases)
+6. **Presents** a plan of all changes for user approval before execution
+7. **Creates/updates** all necessary files in the correct order
+8. **Summarizes** what was done, with push and PR instructions
+
+### Feature Branch
+
+All changes are made on a dedicated `feat/github-publish` branch. This allows you to:
+- Push the branch and review changes via Pull Request on GitHub
+- See exactly how badges, logo, and banner look in the rendered README
+- Merge into main/master when satisfied
 
 ### Files Created/Enhanced
 
@@ -64,7 +90,7 @@ Invoke the `agenticaiplugin:github-publisher` agent:
 Agent(
     subagent_type="agenticaiplugin:github-publisher",
     description="Prepare repository for public GitHub release",
-    prompt="Analyze this project and prepare for GitHub publish. Mode: {mode}"
+    prompt="Analyze this project and prepare for GitHub publish. Mode: {mode}. Repo: {repo_path_or_cwd}"
 )
 ```
 

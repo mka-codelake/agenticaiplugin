@@ -226,7 +226,12 @@ Document in the summary output:
 git remote get-url origin 2>/dev/null
 ```
 
-Parse `{owner}/{repo}` from the URL. If no remote exists, ask the user for owner and repo name.
+Parse `{owner}/{repo}` from the URL. **If no remote exists:**
+- The repo may be brand new and not yet pushed to GitHub
+- Ask the user for `{owner}/{repo}` only if needed (badges, logo URL, CONTRIBUTING issues link)
+- If the user doesn't know yet, use placeholders: `{OWNER}` / `{REPO}` in generated files
+- Never attempt to push, fetch, or interact with a remote that doesn't exist
+- The Summary phase should list "add remote" as a next step
 
 ### Detecting Default Branch
 
