@@ -78,8 +78,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:gitme` | Short alias for git-smart-commit |
 | `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
 | `/agenticaiplugin:markdown-converter` | Convert files to Markdown via markitdown |
-| `/agenticaiplugin:create-readme` | Create or update README.md |
-| `/agenticaiplugin:github-publish` | Prepare repo for public GitHub release (badges, logo, license, etc.) |
+| `/agenticaiplugin:github-publish` | Prepare repo for public GitHub release (README, badges, logo, license, etc.) |
 | `/agenticaiplugin:promote-perms` | Promote workspace permissions to user level |
 | `/agenticaiplugin:help` | Show overview of all plugin commands and skills |
 
@@ -127,7 +126,7 @@ When making feature changes, new commands, or directory changes, check:
 When a skill or rule **instructs to invoke/call/spawn an agent**, always use the fully qualified name with plugin prefix:
 
 - ✅ `agenticaiplugin:project-initializer` — in invocation/instruction context
-- ✅ `agenticaiplugin:context-creator` — in invocation/instruction context
+- ✅ `agenticaiplugin:github-publisher` — in invocation/instruction context
 - ❌ `project-initializer` — will fail, Claude Code can't resolve the agent type
 
 **Exception:** Pure descriptive/documentation contexts (like tables listing available agents) may use the short name since no invocation happens there.

@@ -129,7 +129,7 @@ Specify which agent type executes the skill:
 ---
 name: code-check
 description: Quick code validation
-agent: context-creator
+agent: github-publisher
 ---
 ```
 
@@ -228,7 +228,7 @@ Specialized AI assistants for discrete workflows with isolated context. Think: "
 Single markdown file per agent in `agents/` directory:
 ```
 agents/
-├── context-creator.md
+├── github-publisher.md
 └── project-initializer.md
 ```
 

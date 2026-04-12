@@ -149,40 +149,137 @@ Use a relative path — this works on any branch and doesn't depend on the defau
 
 ---
 
-## 5. README Enhancement Rules
+## 5. README — Baseline Structure, Creation, and Enhancement
 
-### Insertion Order (top to bottom)
+This section is the single source of truth for README structure across all repositories.
 
-1. Logo `<img>` tag (before `# Title`)
-2. `# Title` (existing or from project name)
-3. Badge block (after title)
-4. Status banner (after badges)
-5. Rest of existing README content (preserved)
+### 5.1 Baseline Structure (required sections, in order)
 
-### Preservation Rules
+Every public repository README must follow this structure. Sections marked *(optional)* may be omitted if not applicable.
 
-When enhancing an existing README:
-- **NEVER** delete existing sections
-- **NEVER** rewrite existing prose
-- **INSERT** logo, badges, and banner at the correct positions
-- **ADD** missing standard sections at the end (Contributing, License) if absent
-- **UPDATE** License section to reference the actual LICENSE file
-
-### Standard Sections (add if missing)
-
-If the README lacks these sections, append them:
-
-```markdown
-## Contributing
-
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-## License
-
-{license_text} -- See [LICENSE](LICENSE){and_notice}.
+```
+1.  <img> logo                          (optional, before title)
+2.  # Project Name
+3.  Badges (license, npm, CI)           (after title, before text)
+4.  Status banner (Caution/Note)        (optional, after badges)
+5.  Introductory paragraph              (1-3 sentences: what is this?)
+6.  ## Overview                         (what, why, for whom, key benefits)
+7.  ## Features                         (bullet list with descriptions)
+8.  ## Installation                     (prerequisites + steps)
+9.  ## Usage                            (quick start + examples)
+10. ## Configuration                    (optional, if applicable)
+11. ## Project Structure                (directory tree with explanations)
+12. ## Contributing                     (reference CONTRIBUTING.md)
+13. ## License                          (reference LICENSE + NOTICE)
 ```
 
-Where `{and_notice}` is ` and [NOTICE](NOTICE)` for Apache 2.0, empty otherwise.
+**Rules:**
+- Sections 1-5 and 6-13 must appear in this order
+- Custom project-specific sections go between Usage/Configuration and Project Structure
+- Contributing and License are always the last two sections
+
+### 5.2 Content Generation (Project Analysis)
+
+When creating or updating a README, analyze the project first:
+
+**Manifest file detection** (determines project type and installation instructions):
+
+| File | Project Type | Install Command |
+|------|-------------|-----------------|
+| `package.json` | Node.js | `npm install {name}` |
+| `pom.xml` | Java/Maven | Maven dependency XML |
+| `build.gradle` / `build.gradle.kts` | Java/Kotlin/Gradle | Gradle dependency |
+| `Cargo.toml` | Rust | `cargo add {name}` |
+| `go.mod` | Go | `go get {module}` |
+| `pyproject.toml` / `setup.py` | Python | `pip install {name}` |
+| `*.sln` / `*.csproj` | .NET/C# | `dotnet add package {name}` |
+| `.claude-plugin/plugin.json` | Claude Code Plugin | Plugin marketplace install |
+
+**Key file priority** (read these for content):
+1. `CLAUDE.md` — Project instructions (highest priority)
+2. `README.md` — Existing description (for updates)
+3. Build/manifest files — Dependencies, version, scripts
+4. Configuration files — Settings, environment
+5. `docs/` directory — Additional documentation
+
+**Directory scan:**
+```bash
+find . -maxdepth 2 -type d -not -path '*/\.*' -not -path './node_modules/*' -not -path './target/*' -not -path './.git/*' -not -path './dist/*' -not -path './build/*' | head -50
+```
+
+### 5.3 Create vs Update Mode
+
+**CREATE mode** (no README.md exists):
+1. Run project analysis (Section 5.2)
+2. Generate complete README following Baseline (Section 5.1)
+3. Fill all sections with analyzed content
+4. Add logo, badges, and banner
+
+**UPDATE mode** (README.md exists):
+1. Read existing README completely
+2. Compare against Baseline — identify missing sections
+3. Show missing sections in Plan Preview
+4. Apply changes following Update Rules (Section 5.4)
+5. Add/update logo, badges, and banner
+
+### 5.4 Update Rules
+
+When modifying an existing README:
+
+**PRESERVE (never touch):**
+- Manually written prose in existing sections
+- Screenshots, images, diagrams
+- Custom sections not in the Baseline
+- Badges the user added manually
+
+**ADD (if missing):**
+- Sections from the Baseline that don't exist yet
+- Insert at the correct position per Baseline order
+- Contributing and License always go at the end
+
+**UPDATE (replace with current data):**
+- Installation steps (from build files)
+- Feature list (if code changed significantly)
+- Version numbers
+- Project Structure tree
+- Badge URLs (license type, workflow status)
+
+**BE CAREFUL WITH:**
+- Overview section (may have custom wording — ask before rewriting)
+- Any section with manual formatting or personal tone
+
+### 5.5 Quality Checklist
+
+After creating or updating, verify:
+
+- [ ] Overview explains what the project does, why it exists, and who it's for
+- [ ] Installation steps are complete (prerequisites + commands)
+- [ ] At least one usage example with code block
+- [ ] Prerequisites clearly listed with versions
+- [ ] Project structure briefly explained
+- [ ] Contributing section references CONTRIBUTING.md
+- [ ] License section references LICENSE file
+- [ ] Readable by someone new to the project
+- [ ] No broken links or placeholder URLs
+- [ ] No references to removed features or outdated architecture
+
+### 5.6 Writing Style
+
+- **Readable prose**: Full sentences with context, not just bullet points
+- **Explain the "why"**: Not just what the project does, but why it matters
+- **Practical examples**: Real-world usage scenarios with runnable code
+- **Step-by-step**: Numbered instructions for installation and setup
+- **Friendly tone**: Welcoming to new contributors
+- **Language-agnostic**: Describe capabilities without assuming a specific tech stack unless the project is stack-specific
+
+### 5.7 Cosmetic Elements (Insertion Order)
+
+When adding logo, badges, and banner to an existing README:
+
+1. Logo `<img>` tag — insert before `# Title` line
+2. Badges — insert on the line after `# Title`
+3. Status banner — insert after badges, before first paragraph
+4. Do NOT move or reorder existing content below the banner
 
 ---
 

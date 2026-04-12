@@ -186,7 +186,12 @@ Geplante Aktionen (Branch: feat/github-publish):
   CREATE  .github/ISSUE_TEMPLATE/bug_report.md
   CREATE  .github/ISSUE_TEMPLATE/feature_request.md
   CREATE  etc/logo.svg (generated)
-  UPDATE  README.md (+ logo, badges, caution banner)
+  CREATE  README.md (full generation from project analysis)
+    — or —
+  UPDATE  README.md
+          + Logo, Badges, {status} Banner
+          + Missing sections: {list of missing baseline sections}
+          ~ Update: {sections with outdated content}
   UPDATE  package.json (license: Apache-2.0)
   SKIP    {file} (already exists)
 
@@ -256,22 +261,42 @@ If user chose "have one already":
 1. Ask for the file path
 2. Copy/move to `etc/logo.svg`
 
-**Step 9: README Enhancement**
+**Step 9: README — Create or Enhance**
 
-This is the most critical step. Follow reference.md Section 5 rules strictly.
+This is the most critical step. Follow reference.md Section 5 strictly — it is the single source of truth for README structure.
 
-If no README.md exists:
-- Inform the user and suggest running `/agenticaiplugin:create-readme` first
-- Or create a minimal README with the project name
+**If no README.md exists (CREATE mode):**
 
-If README.md exists, enhance it:
+1. Run project analysis (reference.md Section 5.2):
+   - Detect project type from manifest files
+   - Read key files in priority order (CLAUDE.md → build files → configs → docs/)
+   - Scan directory structure
+2. Generate complete README following the Baseline (reference.md Section 5.1):
+   - All required sections in correct order
+   - Content derived from project analysis
+   - Installation instructions matching the detected tech stack
+   - At least one usage example
+3. Add logo, badges, and status banner at correct positions (Section 5.7)
+4. Run Quality Checklist (Section 5.5) before finalizing
+
+**If README.md exists (UPDATE mode):**
+
 1. Read the current README completely
-2. Insert logo `<img>` tag before the `# Title` line (if logo exists)
-3. Insert badge block after `# Title`
-4. Insert status banner after badges (if not Stable)
-5. Add Contributing section if missing (reference CONTRIBUTING.md)
-6. Add/update License section (reference LICENSE file)
-7. Write the enhanced README using the Edit tool to preserve existing content
+2. Compare against Baseline structure (Section 5.1) — identify:
+   - Missing sections (to be added)
+   - Sections with potentially outdated content (Installation, Features, Project Structure)
+3. Follow Update Rules (Section 5.4):
+   - PRESERVE manually written prose and custom sections
+   - ADD missing Baseline sections at correct positions
+   - UPDATE technical sections (Installation, Features) only if clearly outdated
+   - Ask before rewriting the Overview section
+4. Add/update cosmetic elements (Section 5.7):
+   - Logo `<img>` tag before `# Title`
+   - Badges after `# Title`
+   - Status banner after badges
+5. Ensure Contributing references CONTRIBUTING.md and License references LICENSE
+6. Run Quality Checklist (Section 5.5)
+7. Use the Edit tool for modifications to preserve existing content
 
 ### Phase 7: Commit and Summary
 

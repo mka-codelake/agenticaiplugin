@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.12.0
+
+- **BREAKING: Removed `create-readme` skill and `context-creator` agent.** README creation and enhancement is now fully handled by `github-publish` (use `--readme` mode for README-only updates). The `context-creator` agent's project analysis logic (tech stack detection, key file scanning, content generation) has been absorbed into `github-publisher` agent and `github-publish/reference.md` Section 5. New README Baseline Structure defines mandatory sections and ordering for all public repositories. The `github-publisher` agent now supports both CREATE mode (generate full README from project analysis) and UPDATE mode (check against baseline, add missing sections, preserve existing content).
+
 ## 0.11.2
 
 - **Fix(github-publish): three template bugs from first real-world test.** Logo embed now uses relative path (`./etc/logo.svg`) instead of `raw.githubusercontent.com` URL — works on any branch without depending on default branch name. GitHub Actions release badge is no longer added before the first release exists (links to empty page). Beta banner text is now adaptive to project type instead of hardcoded "APIs may change" (e.g., "Skills, agents, and conventions" for plugins, "APIs and data formats" for libraries).

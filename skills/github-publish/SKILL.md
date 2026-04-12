@@ -98,5 +98,4 @@ Where `{mode}` is one of: `full`, `readme-only`, `license-only`.
 
 ## Related
 
-- **create-readme** - Standalone README creation (complementary — github-publish enhances existing READMEs)
 - **git-smart-commit** - After github-publish, commit the generated files
