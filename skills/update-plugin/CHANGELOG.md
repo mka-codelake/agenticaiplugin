@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.11.2
+
+- **Fix(github-publish): three template bugs from first real-world test.** Logo embed now uses relative path (`./etc/logo.svg`) instead of `raw.githubusercontent.com` URL — works on any branch without depending on default branch name. GitHub Actions release badge is no longer added before the first release exists (links to empty page). Beta banner text is now adaptive to project type instead of hardcoded "APIs may change" (e.g., "Skills, agents, and conventions" for plugins, "APIs and data formats" for libraries).
+
 ## 0.11.1
 
 - **github-publish: `--repo` parameter, feature branch, plan preview, no-remote support.** Skill now accepts `--repo <path|github-url>` to target a different repository. All changes are made on a dedicated `feat/github-publish` branch for PR-based review. New Phase 5 (Plan Preview) shows all planned CREATE/UPDATE/SKIP actions and requires user approval before execution. Repos without a remote are fully supported — agent uses placeholders for owner/repo, skips remote-dependent badges, and lists "add remote" as a next step. Agent never pushes automatically.

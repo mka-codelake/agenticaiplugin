@@ -105,7 +105,7 @@ cat {repo_path}/package.json 2>/dev/null | grep -E '"name"|"private"'
 
 **No remote? That's fine.** If `git remote get-url origin` returns nothing:
 - Set `{owner}` and `{repo}` to unknown — ask user later if needed for badge/logo URLs
-- Skip badge URLs that require `{owner}/{repo}` (GitHub Actions badge, logo raw.githubusercontent URL)
+- Skip badge URLs that require `{owner}/{repo}` (GitHub Actions badge)
 - Use placeholder `{owner}/{repo}` in CONTRIBUTING.md issues URL — user fills in after adding remote
 - README enhancement still works (license badge, status banners, sections)
 - Summary will show "add remote and push" as a next step instead of push/PR instructions

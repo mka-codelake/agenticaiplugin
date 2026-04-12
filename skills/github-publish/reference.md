@@ -69,11 +69,13 @@ NPM version badge:
 [![npm version](https://img.shields.io/npm/v/{package_name})](https://www.npmjs.com/package/{package_name})
 ```
 
-### GitHub Actions Badge (if release workflow created)
+### GitHub Actions Badge (only after first release exists)
 
 ```markdown
 [![Release](https://github.com/{owner}/{repo}/actions/workflows/release.yml/badge.svg)](https://github.com/{owner}/{repo}/actions/workflows/release.yml)
 ```
+
+**Do NOT include this badge** if the repo has no releases yet — it links to an empty page and confuses visitors. Add it to the README only after the first `v*.*.*` tag has been pushed and the workflow has run at least once.
 
 ### Badge Placement
 
@@ -96,8 +98,10 @@ Use GitHub's native alert syntax. Place after badges, before the main descriptio
 
 ```markdown
 > [!NOTE]
-> **{project_name}** is in beta. APIs may change between minor versions.
+> **{project_name}** is in beta. Features and interfaces may change between minor versions.
 ```
+
+Adapt the wording to the project's nature (e.g., "Skills, agents, and conventions" for a plugin, "APIs and data formats" for a library).
 
 ### Stable
 
@@ -138,10 +142,10 @@ Save to: `etc/logo.svg`
 
 README embed (before `# Title`):
 ```html
-<img src="https://raw.githubusercontent.com/{owner}/{repo}/main/etc/logo.svg" width="400" align="right" alt=""/>
+<img src="./etc/logo.svg" width="400" align="right" alt="{project_name}"/>
 ```
 
-Determine the default branch (main or master) from git config.
+Use a relative path — this works on any branch and doesn't depend on the default branch name.
 
 ---
 
