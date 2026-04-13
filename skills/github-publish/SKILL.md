@@ -101,10 +101,10 @@ Where `{mode}` is one of: `full`, `readme-only`, `license-only`.
 After the github-publisher agent completes successfully:
 
 1. **Ask the user** via AskUserQuestion:
-   "Möchtest du auch einen Lizenz-Kompatibilitätscheck für die Abhängigkeiten durchführen?"
-   - Options: "Ja (Quick Scan)" / "Ja (Full Scan)" / "Nein"
+   "Would you also like to run a license compatibility check for the dependencies?"
+   - Options: "Yes (Quick Scan)" / "Yes (Full Scan)" / "No"
 
-2. **If user selects "Ja":**
+2. **If user selects "Yes":**
    Extract the project license from the github-publisher's output (the license created or detected in Phase 6 Step 1).
    Then invoke:
 
