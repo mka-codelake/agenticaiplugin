@@ -1,7 +1,7 @@
 {
   "name": "agenticaiplugin",
-  "description": "Agile workflow plugin with Epic/Story/Sprint management for flexible, iterative development. Includes testing philosophy and Java best practices skills.",
-  "version": "0.13.0",
+  "description": "Claude Code plugin with intelligent code reviews, architecture audits, license compliance checking, QA traceability, smart Git commits, and GitHub repository publishing.",
+  "version": "0.13.1",
   "author": {
     "name": "Michael Kagel"
   }

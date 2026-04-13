@@ -441,18 +441,21 @@ Agent(
 - `Mode: full` or `Mode: quick` — scan depth
 - `Project license: {name} ({SPDX})` — if provided, agent skips Phase 1 (license detection)
 
-### 6.3 github-publish Integration (Future)
+### 6.3 github-publish Integration
 
-After license selection in github-publish Phase 4, invoke:
+The `github-publish` SKILL.md offers an optional license check after the github-publisher agent completes. The question is asked at skill level (not inside the agent, since the agent has no Agent tool).
+
+Flow:
+1. github-publisher agent finishes (license created/detected)
+2. SKILL.md asks user: "Möchtest du auch einen Lizenz-Kompatibilitätscheck durchführen?"
+3. If yes: SKILL.md spawns the license-checker agent with the known project license
 
 ```
 Agent(
     subagent_type="agenticaiplugin:license-checker",
-    description="Verify dependency compatibility with selected license",
-    prompt="Check all project dependencies against license: {selected_license} ({SPDX}). Mode: quick. Report summary only — no file save."
+    description="Check dependency license compatibility",
+    prompt="Check license compatibility for this project. Mode: {quick|full}. Project license: {license_name} ({SPDX})."
 )
 ```
 
-The agent returns a summary. If INCOMPATIBLE findings exist, github-publish should warn the user before proceeding with license file creation.
-
-**Integration requires:** Adding the invocation to `agents/github-publisher.md` Phase 4 or Phase 6. This is NOT part of the current implementation — documented here for architectural preparation only.
+The license-checker runs its full workflow — report is displayed and saved to `claudedocs/license-check-result.md`. Phase 1 is skipped since the project license is provided in the prompt.

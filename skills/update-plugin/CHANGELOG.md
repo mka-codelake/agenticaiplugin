@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.13.1
+
+- **github-publish: optional license check after completion.** After the github-publisher agent finishes, the skill now asks the user whether to run a license compatibility check. If accepted, the `license-checker` agent is invoked with the project license pre-filled (skipping Phase 1 detection). Runs identically to a manual `/agenticaiplugin:license-check` invocation. Also updates README.md with license-check entries (commands, features, project structure) and fixes outdated plugin.json description.
+
 ## 0.13.0
 
 - **New skill: license-check.** Scans project dependencies, tools, scripts, and LLM model references for license compatibility issues. New `license-checker` agent (Sonnet) performs a 5-phase analysis: detect project license, scan dependencies across 7 ecosystems (npm, Python, Rust, Go, Maven, Gradle, .NET), identify LLM model references and vendored code, check compatibility against a comprehensive matrix, and generate a severity-rated report. Two modes: full scan (default, includes transitive dependencies via CLI tools) and `--quick` (direct dependencies only, no CLI tools needed). Report saved to `claudedocs/license-check-result.md`. Covers permissive, copyleft (GPL/LGPL/AGPL), non-OSI (SSPL/BSL), and proprietary licenses. Includes LLM model license table (Llama, Mistral, Phi, OpenAI, Claude, etc.), known license-changed packages (Redis, Elasticsearch, Terraform), and SPDX expression parsing (OR/AND/WITH). Architecturally prepared for future integration with `github-publish` skill.

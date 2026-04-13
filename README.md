@@ -23,6 +23,7 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 - **Smart Git Commits** — Analyzes changes, groups them logically, creates atomic commits following project conventions
 - **GitHub Publish** — Prepares repositories for public release: README (with baseline structure validation), LICENSE, CONTRIBUTING, badges, logo, GitHub Actions, issue templates
 - **CLI Design** — Designs CLI interfaces: arguments, flags, subcommands, help text, output formats, exit codes
+- **License Check** — Scans dependencies, tools, scripts, and LLM model references for license compatibility issues across 7 ecosystems
 - **Markdown Converter** — Converts PDF, Word, PowerPoint, Excel, images, audio, and more to Markdown
 - **Modular Rules System** — Plugin rules installed per-project, selectively updatable
 
@@ -79,6 +80,7 @@ Initialization creates:
 | `architecture-audit` | 7-dimension architecture assessment with A-E ratings |
 | `qa` | Quality Square traceability (requirements, code, test cases, tests) |
 | `create-cli` | Design CLI parameters, flags, and UX |
+| `license-check` | Check dependency license compatibility (full scan or `--quick`) |
 | `markdown-converter` | Convert files to Markdown (PDF, Word, images, audio, etc.) |
 | `init` | Initialize plugin in a project |
 | `update-plugin` | Update plugin rules to latest version |
@@ -123,7 +125,7 @@ Findings are deduplicated, sorted by severity, and consolidated into a single re
 /agenticaiplugin:github-publish --repo /path     # Target different repo
 ```
 
-Creates a `feat/github-publish` branch with: LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, project logo (SVG), badges, status banner, GitHub Actions release workflow, and issue templates. Shows a plan preview before making changes.
+Creates a `feat/github-publish` branch with: LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, project logo (SVG), badges, status banner, GitHub Actions release workflow, and issue templates. Shows a plan preview before making changes. Optionally offers a license compatibility check after completion.
 
 ## Configuration
 
@@ -153,6 +155,7 @@ agenticaiplugin/
 │   └── plugin.json              # Plugin metadata
 ├── agents/
 │   ├── github-publisher.md      # GitHub publish workflow
+│   ├── license-checker.md       # License compatibility scanning
 │   └── project-initializer.md   # Project setup and updates
 ├── rules-templates/             # Rule templates for project installation
 ├── skills/
@@ -162,6 +165,7 @@ agenticaiplugin/
 │   ├── git-smart-commit/        # Intelligent commit creation
 │   ├── github-publish/          # Public release preparation
 │   ├── gitme/                   # Smart commit command alias
+│   ├── license-check/           # License compatibility checking
 │   ├── help/                    # Plugin help overview
 │   ├── init/                    # Project initialization
 │   ├── markdown-converter/      # File-to-Markdown conversion
