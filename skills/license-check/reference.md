@@ -447,7 +447,7 @@ The `github-publish` SKILL.md offers an optional license check after the github-
 
 Flow:
 1. github-publisher agent finishes (license created/detected)
-2. SKILL.md asks user: "Möchtest du auch einen Lizenz-Kompatibilitätscheck durchführen?"
+2. SKILL.md asks user: "Would you also like to run a license compatibility check?"
 3. If yes: SKILL.md spawns the license-checker agent with the known project license
 
 ```

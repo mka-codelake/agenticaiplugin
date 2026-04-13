@@ -5,7 +5,7 @@ disable-model-invocation: true
 
 # AgenticAI Plugin Help
 
-Zeigt eine Übersicht über alle verfügbaren Commands, Skills und Agents.
+Shows an overview of all available commands, skills, and agents.
 
 ## Usage
 
@@ -24,108 +24,108 @@ No parameters required.
 
 ## Instructions
 
-Zeige dem Benutzer folgende Übersicht:
+Show the user the following overview:
 
 ---
 
-# AgenticAI Plugin - Übersicht
+# AgenticAI Plugin - Overview
 
 ## Commands
 
-### Projekt-Setup
-| Command | Beschreibung |
-|---------|--------------|
-| **init** | Initialisiert ein Projekt interaktiv. Erstellt Plugin-Regeln in .claude/rules/ und die claudedocs/-Verzeichnisstruktur (guidelines/, adrs/) |
+### Project Setup
+| Command | Description |
+|---------|-------------|
+| **init** | Initializes a project interactively. Creates plugin rules in .claude/rules/ and the claudedocs/ directory structure (guidelines/, adrs/) |
 
-### Dokumentation
-| Command | Beschreibung |
-|---------|--------------|
-| **github-publish** | Bereitet GitHub-Repository für Public Release vor: README erstellen/aktualisieren (Baseline-Struktur, Badges, Logo, Status-Banner), Lizenzauswahl, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, GitHub Actions Release-Workflow, Issue-Templates. Modi: `--readme` (nur README), `--license` (nur Lizenz), `--repo <path>` (anderes Repo) |
+### Documentation
+| Command | Description |
+|---------|-------------|
+| **github-publish** | Prepares a GitHub repository for public release: create/update README (baseline structure, badges, logo, status banner), license selection, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, GitHub Actions release workflow, issue templates. Modes: `--readme` (README only), `--license` (license only), `--repo <path>` (target a different repo) |
 
-### Entwicklung
-| Command | Beschreibung |
-|---------|--------------|
-| **gitme** | Intelligente Git-Commits: Analysiert alle Änderungen, gruppiert sie logisch und erstellt aussagekräftige Commit-Messages. Kann mehrere Commits erstellen wenn sinnvoll |
-| **code-review** | Führt ein intelligentes Code-Review durch. Vier Modi: ohne Parameter = Git Diff (Standard), mit Datei = Einzeldatei, `--complete` = ganzes Projekt, `--renovate` = Dependency-Audit (Optionen: `--stack jvm/js/python`, `--quick`, `--save`) |
-| **architecture-audit** | Umfassendes Architektur-Audit: Erkennt Patterns, bewertet 7 Dimensionen (Boundaries, Dependencies, Naming, APIs, Wiring, Visibility), erstellt bewerteten Report (A-E Skala). Optionen: `--scope <path>` für Teilbereiche |
-| **qa** | Quality Assurance: Verwaltet bidirektionale Traceability zwischen Requirements, Code, Test Cases und Tests ("Quality Square"). Analysiert Code, extrahiert Requirements, leitet Test Cases ab, erstellt Gap-Analyse. Option: `--force-rebuild` |
-| **create-cli** | Designt CLI-Oberflächen: Argumente, Flags, Subcommands, Help-Text, Output-Formate, Exit-Codes, Prompts. Erstellt eine kompakte Spec zur Implementierung |
-| **license-check** | Prüft Lizenzkompatibilität aller Abhängigkeiten, Tools, Scripts und LLM-Modelle gegen die Projektlizenz. Modi: Standard (vollständiger Scan inkl. transitive Deps) oder `--quick` (nur direkte Abhängigkeiten). Report wird in `claudedocs/license-check-result.md` gespeichert |
+### Development
+| Command | Description |
+|---------|-------------|
+| **gitme** | Intelligent Git commits: analyzes all changes, groups them logically, and creates meaningful commit messages. Can create multiple commits when appropriate |
+| **code-review** | Runs an intelligent code review. Four modes: no parameter = Git diff (default), with file = single file, `--complete` = entire project, `--renovate` = dependency audit (options: `--stack jvm/js/python`, `--quick`, `--save`) |
+| **architecture-audit** | Comprehensive architecture audit: detects patterns, evaluates 7 dimensions (Boundaries, Dependencies, Naming, APIs, Wiring, Visibility), produces a scored report (A-E scale). Options: `--scope <path>` for partial audits |
+| **qa** | Quality Assurance: manages bidirectional traceability between requirements, code, test cases, and tests ("Quality Square"). Analyzes code, extracts requirements, derives test cases, produces gap analysis. Option: `--force-rebuild` |
+| **create-cli** | Designs CLI interfaces: arguments, flags, subcommands, help text, output formats, exit codes, prompts. Produces a compact spec for implementation |
+| **license-check** | Checks license compatibility of all dependencies, tools, scripts, and LLM models against the project license. Modes: standard (full scan including transitive deps) or `--quick` (direct dependencies only). Report saved to `claudedocs/license-check-result.md` |
 
 ### Tools
-| Command | Beschreibung |
-|---------|--------------|
-| **markdown-converter** | Konvertiert Dateien zu Markdown via `uvx markitdown`. Unterstützt PDF, Word, PowerPoint, Excel, HTML, CSV, JSON, XML, Bilder, Audio, ZIP, YouTube-URLs, EPub |
+| Command | Description |
+|---------|-------------|
+| **markdown-converter** | Converts files to Markdown via `uvx markitdown`. Supports PDF, Word, PowerPoint, Excel, HTML, CSV, JSON, XML, images, audio, ZIP, YouTube URLs, EPub |
 
 ### System
-| Command | Beschreibung |
-|---------|--------------|
-| **update-plugin** | Aktualisiert Plugin-Regeln in .claude/rules/ auf die neueste Version. Migriert automatisch von Legacy-Installationen |
-| **promote-perms** | Hebt Workspace-spezifische Permissions auf User-Level (global). Nützlich wenn man dieselben Permissions in allen Projekten haben möchte |
-| **help** | Zeigt diese Übersicht aller Commands, Skills, Agents und Plugin-Regeln |
+| Command | Description |
+|---------|-------------|
+| **update-plugin** | Updates plugin rules in .claude/rules/ to the latest version. Automatically migrates from legacy installations |
+| **promote-perms** | Promotes workspace-specific permissions to user level (global). Useful when you want the same permissions across all projects |
+| **help** | Shows this overview of all commands, skills, agents, and plugin rules |
 
 ---
 
-## Projektstruktur (claudedocs/)
+## Project Structure (claudedocs/)
 
-Das Plugin nutzt ein `claudedocs/`-Verzeichnis für projektspezifische Konfiguration:
+The plugin uses a `claudedocs/` directory for project-specific configuration:
 
-| Verzeichnis | Zweck |
-|-------------|-------|
-| `claudedocs/guidelines/` | Eigene Coding-Regeln, die der Code-Review berücksichtigt (z.B. Exception-Handling, Logging-Standards) |
-| `claudedocs/adrs/` | Architecture Decision Records — dokumentierte Architektur-Entscheidungen, die Code-Review und Architecture-Audit als Kontext nutzen |
+| Directory | Purpose |
+|-----------|---------|
+| `claudedocs/guidelines/` | Your own coding rules that code review respects (e.g. exception handling, logging standards) |
+| `claudedocs/adrs/` | Architecture Decision Records — documented architecture decisions used as context by code review and architecture audit |
 
-Diese Verzeichnisse werden beim `/agenticaiplugin:init` angelegt. Du legst dort eigene `.md`-Dateien ab — das Plugin liest sie, ändert sie aber nie.
+These directories are created by `/agenticaiplugin:init`. You place your own `.md` files there — the plugin reads them but never modifies them.
 
 ---
 
-## Skills (werden automatisch aktiviert)
+## Skills (activated automatically)
 
-Skills sind Wissensmodule, die Claude automatisch lädt wenn bestimmte Schlüsselwörter erkannt werden.
+Skills are knowledge modules that Claude loads automatically when certain keywords are detected.
 
-### Entwicklung
-- **git-smart-commit** - Regeln für gute Commits
-- **create-cli** - CLI-Design: Argumente, Flags, Subcommands, Output-Formate, Exit-Codes (Command: `/agenticaiplugin:create-cli`)
+### Development
+- **git-smart-commit** - Rules for good commits
+- **create-cli** - CLI design: arguments, flags, subcommands, output formats, exit codes (Command: `/agenticaiplugin:create-cli`)
 
 ### Compliance
-- **license-check** - Lizenzkompatibilitätsprüfung (Command: `/agenticaiplugin:license-check`)
+- **license-check** - License compatibility checking (Command: `/agenticaiplugin:license-check`)
 
-### Code-Qualität
-- **code-review** - Multi-Specialist Code-Reviews (11 fokussierte Spezialisten)
+### Code Quality
+- **code-review** - Multi-specialist code reviews (11 focused specialists)
 - **qa** - Quality Square Traceability Manager (Command: `/agenticaiplugin:qa`)
 
-### Architektur
-- **architecture-audit** - Architektur-Audit mit 7 Analyzern und A-E Bewertung (Command: `/agenticaiplugin:architecture-audit`)
+### Architecture
+- **architecture-audit** - Architecture audit with 7 analyzers and A-E ratings (Command: `/agenticaiplugin:architecture-audit`)
 
 ### Tools
-- **markdown-converter** - Datei-zu-Markdown-Konvertierung via markitdown (Command: `/agenticaiplugin:markdown-converter`)
+- **markdown-converter** - File-to-Markdown conversion via markitdown (Command: `/agenticaiplugin:markdown-converter`)
 
 ---
 
-## Agents (spezialisierte Sub-Agenten)
+## Agents (specialized sub-agents)
 
-Agents sind isolierte Kontexte für spezifische Aufgaben.
+Agents are isolated contexts for specific tasks.
 
-| Agent | Aufgabe |
-|-------|---------|
-| **github-publisher** | Bereitet Repositories für Public Release auf GitHub vor (inkl. README-Erstellung) |
-| **license-checker** | Scannt Projektabhängigkeiten und prüft Lizenzkompatibilität |
-| **project-initializer** | Richtet Projekte für das Plugin ein, führt Updates durch |
-
----
-
-## Plugin-Regeln (immer aktiv nach /agenticaiplugin:init)
-
-Diese Regeln werden bei der Projektinitialisierung in `.claude/rules/` installiert und beeinflussen Claudes Verhalten dauerhaft:
-
-| Regel | Verhalten |
-|-------|-----------|
-| **Rückfragen statt Annahmen** | Claude fragt bei Unklarheiten nach, statt Annahmen zu treffen |
-| **Automatisches Code-Review** | Nach Abschluss einer Implementierung führt Claude automatisch ein Multi-Specialist Code-Review durch |
-| **Git-Commits über Skill** | `git commit` wird nie direkt ausgeführt — immer über `/agenticaiplugin:gitme` |
-| **Engineering-Prinzipien** | Story-Traceability, Code-Size-Limits, Test-Klassifizierung, Dependency-Management |
-| **Geschützte Verzeichnisse** | `claudedocs/guidelines/` und `claudedocs/adrs/` werden nur gelesen, nie verändert |
+| Agent | Task |
+|-------|------|
+| **github-publisher** | Prepares repositories for public release on GitHub (including README creation) |
+| **license-checker** | Scans project dependencies and checks license compatibility |
+| **project-initializer** | Sets up projects for the plugin and performs updates |
 
 ---
 
-**Tipp:** Die meisten Skills aktivieren sich automatisch. Für Commands nutze `/agenticaiplugin:<command>`.
+## Plugin Rules (always active after /agenticaiplugin:init)
+
+These rules are installed in `.claude/rules/` during project initialization and permanently influence Claude's behavior:
+
+| Rule | Behavior |
+|------|----------|
+| **Ask instead of assume** | Claude asks for clarification when uncertain rather than making assumptions |
+| **Automatic code review** | After completing an implementation, Claude automatically runs a multi-specialist code review |
+| **Git commits via skill** | `git commit` is never run directly — always via `/agenticaiplugin:gitme` |
+| **Engineering principles** | Story traceability, code size limits, test classification, dependency management |
+| **Protected directories** | `claudedocs/guidelines/` and `claudedocs/adrs/` are read-only — never modified |
+
+---
+
+**Tip:** Most skills activate automatically. For commands use `/agenticaiplugin:<command>`.

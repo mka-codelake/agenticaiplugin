@@ -156,7 +156,11 @@ agenticaiplugin/
 ├── agents/
 │   ├── github-publisher.md      # GitHub publish workflow
 │   ├── license-checker.md       # License compatibility scanning
-│   └── project-initializer.md   # Project setup and updates
+│   ├── project-initializer/     # Project setup and update sub-agents
+│   │   ├── init-agenticai.md
+│   │   ├── update-agenticai.md
+│   │   └── cleanup-deprecated.md
+│   └── project-initializer.md   # Project setup and updates (entry point)
 ├── rules-templates/             # Rule templates for project installation
 ├── skills/
 │   ├── architecture-audit/      # 7-dimension architecture assessment

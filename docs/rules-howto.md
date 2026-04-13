@@ -1,29 +1,29 @@
 # Claude Code Rules - How To Guide
 
-> **Stand:** Januar 2025
-> **Zweck:** Referenzdokumentation für Claude Code Rules - was sie sind, wie sie funktionieren, und wie sie sich zu Plugins verhalten.
+> **Status:** January 2025
+> **Purpose:** Reference documentation for Claude Code Rules — what they are, how they work, and how they relate to plugins.
 
 ---
 
-## Was sind Claude Code Rules?
+## What Are Claude Code Rules?
 
-**Modulare, pfad-spezifische Projektanweisungen** in `.claude/rules/*.md`. Sie ergänzen `CLAUDE.md` mit konditionaler, dateitypspezifischer Guidance.
+**Modular, path-specific project instructions** in `.claude/rules/*.md`. They extend `CLAUDE.md` with conditional, file-type-specific guidance.
 
-**Kerncharakteristik:** Rules sind **pfad-spezifisch** - sie gelten nur, wenn Claude mit Dateien arbeitet, die dem angegebenen Glob-Pattern entsprechen.
+**Key characteristic:** Rules are **path-specific** — they only apply when Claude is working with files that match the specified glob pattern.
 
 ---
 
-## Drei Memory-Ebenen
+## Three Memory Levels
 
-Claude Code hat drei Ebenen für Rules:
+Claude Code has three levels for rules:
 
-| Ebene | Location | Wer betroffen? | Geteilt? |
-|-------|----------|----------------|----------|
-| **Enterprise** | System-Pfade (s.u.) | Alle User auf Maschine | IT-managed |
-| **Project** | `.claude/rules/*.md` | Team via git | Ja (committed) |
-| **User** | `~/.claude/rules/*.md` | Nur du (alle Projekte) | Nein (persönlich) |
+| Level | Location | Who is affected? | Shared? |
+|-------|----------|-----------------|---------|
+| **Enterprise** | System paths (see below) | All users on machine | IT-managed |
+| **Project** | `.claude/rules/*.md` | Team via git | Yes (committed) |
+| **User** | `~/.claude/rules/*.md` | You only (all projects) | No (personal) |
 
-### Enterprise-Pfade (nach OS)
+### Enterprise Paths (by OS)
 
 - **macOS:** `/Library/Application Support/ClaudeCode/CLAUDE.md`
 - **Linux:** `/etc/claude-code/CLAUDE.md`
@@ -31,29 +31,29 @@ Claude Code hat drei Ebenen für Rules:
 
 ---
 
-## Verzeichnisstruktur
+## Directory Structure
 
 ```
-projekt/
+project/
 ├── .claude/
-│   ├── CLAUDE.md              # Allgemeine Projektanweisungen (immer geladen)
-│   ├── CLAUDE.local.md        # Persönliche Anweisungen (gitignored)
+│   ├── CLAUDE.md              # General project instructions (always loaded)
+│   ├── CLAUDE.local.md        # Personal instructions (gitignored)
 │   └── rules/
-│       ├── code-style.md      # Ohne paths: → gilt für alle Dateien
-│       ├── java.md            # Mit paths: → nur für bestimmte Dateien
-│       ├── security.md        # Sicherheitsregeln
-│       └── frontend/          # Unterverzeichnisse unterstützt
+│       ├── code-style.md      # Without paths: → applies to all files
+│       ├── java.md            # With paths: → only for specific files
+│       ├── security.md        # Security rules
+│       └── frontend/          # Subdirectories supported
 │           ├── react.md
 │           └── styling.md
 ```
 
-**Auto-Discovery:** Alle `.md` Dateien in `.claude/rules/` werden automatisch gefunden - keine Registrierung nötig.
+**Auto-Discovery:** All `.md` files in `.claude/rules/` are discovered automatically — no registration required.
 
 ---
 
-## Syntax mit YAML Frontmatter
+## Syntax with YAML Frontmatter
 
-### Basis-Syntax
+### Basic Syntax
 
 ```markdown
 ---
@@ -64,71 +64,71 @@ paths: src/**/*.java
 
 - Constructor-based Dependency Injection
 - Layered Architecture: Controller → Service → Repository
-- Keine Business-Logik in Controllern
+- No business logic in controllers
 ```
 
-### Frontmatter-Felder
+### Frontmatter Fields
 
-| Feld | Beschreibung |
-|------|--------------|
-| `paths` | Glob-Pattern(s) für welche Dateien die Rule gilt |
+| Field | Description |
+|-------|-------------|
+| `paths` | Glob pattern(s) specifying which files the rule applies to |
 
-**Wenn `paths` fehlt:** Rule gilt für alle Dateien (unconditional).
+**When `paths` is absent:** The rule applies to all files (unconditional).
 
-### Mehrere Patterns
+### Multiple Patterns
 
-**Komma-getrennt:**
+**Comma-separated:**
 ```markdown
 ---
 paths: src/**/*.ts, tests/**/*.test.ts
 ---
 ```
 
-**Brace-Expansion (effizienter):**
+**Brace expansion (more efficient):**
 ```markdown
 ---
 paths: src/**/*.{ts,tsx}
 ---
 ```
 
-**Komplex:**
+**Complex:**
 ```markdown
 ---
 paths: {src,lib}/**/*.ts, tests/**/*.test.ts
 ---
 ```
 
-### Unterstützte Glob-Patterns
+### Supported Glob Patterns
 
 | Pattern | Matches |
 |---------|---------|
-| `**/*.ts` | Alle TypeScript-Dateien in allen Verzeichnissen |
-| `src/**/*` | Alle Dateien unter `src/` |
-| `*.md` | Markdown-Dateien im Projekt-Root |
-| `src/components/*.tsx` | React-Komponenten in spezifischem Verzeichnis |
-| `src/**/*.{ts,tsx}` | Sowohl `.ts` als auch `.tsx` Dateien |
+| `**/*.ts` | All TypeScript files in all directories |
+| `src/**/*` | All files under `src/` |
+| `*.md` | Markdown files in the project root |
+| `src/components/*.tsx` | React components in a specific directory |
+| `src/**/*.{ts,tsx}` | Both `.ts` and `.tsx` files |
 
 ---
 
 ## Rules vs. CLAUDE.md
 
-| Aspekt | Rules (`.claude/rules/`) | CLAUDE.md |
+| Aspect | Rules (`.claude/rules/`) | CLAUDE.md |
 |--------|--------------------------|-----------|
-| **Struktur** | Mehrere fokussierte Dateien | Eine große Datei |
-| **Scope** | Pfad-spezifisch (konditional) | Gilt für alles |
-| **Use Case** | Sprach-/Themen-spezifisch | Allgemeine Projektguidance |
-| **Beispiel** | "Gilt NUR für TypeScript" | "Allgemeine Coding-Standards" |
-| **Organisation** | Unterverzeichnisse möglich | Flach (mit Headings) |
-| **Discovery** | Automatisch aus Verzeichnis | Muss an bestimmten Pfaden existieren |
+| **Structure** | Multiple focused files | One large file |
+| **Scope** | Path-specific (conditional) | Applies to everything |
+| **Use Case** | Language/topic-specific | General project guidance |
+| **Example** | "Applies ONLY to TypeScript" | "General coding standards" |
+| **Organisation** | Subdirectories possible | Flat (with headings) |
+| **Discovery** | Automatic from directory | Must exist at specific paths |
 
-### Typische Organisation
+### Typical Organisation
 
 ```
 .claude/
-├── CLAUDE.md                # Allgemein: Architektur, Workflows, Setup
+├── CLAUDE.md                # General: architecture, workflows, setup
 └── rules/
-    ├── code-style.md        # Gilt für alle Dateien
-    ├── security.md          # Gilt für alle Dateien
+    ├── code-style.md        # Applies to all files
+    ├── security.md          # Applies to all files
     ├── frontend/
     │   ├── react.md         # paths: src/**/*.tsx
     │   └── styling.md       # paths: src/styles/**/*.scss
@@ -139,18 +139,18 @@ paths: {src,lib}/**/*.ts, tests/**/*.test.ts
 
 ---
 
-## Hierarchie und Priorität
+## Hierarchy and Priority
 
-**Ladereihenfolge (höchste zu niedrigster Priorität):**
+**Load order (highest to lowest priority):**
 
-1. Enterprise Policy (höchste - kann nicht überschrieben werden)
+1. Enterprise Policy (highest — cannot be overridden)
 2. Command-line Arguments
 3. Local Project Rules (`.claude/CLAUDE.local.md`)
 4. Shared Project Rules (`.claude/rules/*.md`)
 5. User-level Rules (`~/.claude/rules/*.md`)
 6. User Memory (`~/.claude/CLAUDE.md`)
 
-**Project-Rules überschreiben User-Rules.**
+**Project rules override user rules.**
 
 ---
 
@@ -158,101 +158,101 @@ paths: {src,lib}/**/*.ts, tests/**/*.test.ts
 
 ### Project Rules (`.claude/rules/*.md`)
 
-- Im Projektverzeichnis gespeichert
-- In Source Control eingecheckt (git)
-- Gilt für alle Team-Mitglieder
-- Projekt-spezifische Guidance
-- **Höhere Priorität** als User Rules
+- Stored in the project directory
+- Checked into source control (git)
+- Applies to all team members
+- Project-specific guidance
+- **Higher priority** than user rules
 
 ### User Rules (`~/.claude/rules/*.md`)
 
-- Im Home-Verzeichnis des Users
-- Persönliche Präferenzen für alle Projekte
-- NICHT in Source Control
-- Wird vor Project Rules in der Hierarchie geladen
-- **Niedrigere Priorität** als Project Rules
+- Stored in the user's home directory
+- Personal preferences for all projects
+- NOT in source control
+- Loaded before project rules in the hierarchy
+- **Lower priority** than project rules
 
-### Beispiel-Szenario
+### Example Scenario
 
 ```
 ~/.claude/rules/
-├── my-preferences.md     # Persönliche Style-Präferenzen
-└── workflows.md          # Persönliche Workflows
+├── my-preferences.md     # Personal style preferences
+└── workflows.md          # Personal workflows
 
-projekt/.claude/rules/
-├── code-style.md         # Team-Standard (überschreibt persönliche Präferenzen)
-├── testing.md            # Team Testing-Konventionen
-└── security.md           # Firmen-Sicherheitsstandards
+project/.claude/rules/
+├── code-style.md         # Team standard (overrides personal preferences)
+├── testing.md            # Team testing conventions
+└── security.md           # Company security standards
 ```
 
 ---
 
-## Plugins und Rules
+## Plugins and Rules
 
-### Wichtig: Plugins können KEINE Rules direkt definieren
+### Important: Plugins CANNOT Define Rules Directly
 
-**Warum?**
-- Plugins leben außerhalb des Projektkontexts
-- Rules müssen in `.claude/rules/` des **Benutzerprojekts** liegen
-- Plugins werden in Claude Code's Plugin-Verzeichnis installiert
+**Why?**
+- Plugins live outside the project context
+- Rules must reside in `.claude/rules/` of the **user's project**
+- Plugins are installed in Claude Code's plugin directory
 
-### Was Plugins KÖNNEN
+### What Plugins CAN Do
 
-- **Skills** definieren (auto-geladener Kontext via `SKILL.md`)
-- **Agents** definieren (spezialisierte Sub-Agents)
-- **Commands** definieren (Slash-Commands)
+- Define **skills** (auto-loaded context via `SKILL.md`)
+- Define **agents** (specialized sub-agents)
+- Define **commands** (slash commands)
 
-### Was Plugins NICHT KÖNNEN
+### What Plugins CANNOT Do
 
-- `.claude/rules/*.md` Dateien direkt definieren
-- Projektstruktur im User-Repository überschreiben
+- Define `.claude/rules/*.md` files directly
+- Override project structure in the user's repository
 
-### Best Practice für Plugin-bereitgestellte Rules
+### Best Practice for Plugin-Provided Rules
 
-Plugins sollten einen **Command** anbieten (wie `/agenticaiplugin:init`), der:
+Plugins should provide a **command** (like `/agenticaiplugin:init`) that:
 
-1. `.claude/rules/` Verzeichnis im User-Projekt erstellt
-2. Es mit Template-Rule-Dateien befüllt
-3. User erlaubt, anzupassen und in git zu committen
+1. Creates the `.claude/rules/` directory in the user's project
+2. Populates it with template rule files
+3. Allows the user to customize and commit to git
 
-**Das hält Rules portabel und wartbar** (sie sind im Projekt, nicht im Plugin).
-
----
-
-## Fähigkeiten und Limitationen
-
-### Fähigkeiten
-
-| Feature | Beschreibung |
-|---------|--------------|
-| Pfad-spezifische Anwendung | `paths: src/**/*.java` |
-| Mehrere Rule-Dateien | Nach Thema und Sprache organisieren |
-| Unterverzeichnisse | Hierarchische Organisation |
-| Symlinks | Gemeinsame Rules über Projekte teilen |
-| Zirkuläre Symlink-Erkennung | Wird sauber behandelt |
-| Rekursive Discovery | Alle `.md` in Unterverzeichnissen gefunden |
-| Scoped Loading | User/Project/Enterprise Ebenen |
-| Lazy Loading | Rules nur geladen wenn nötig (pfad-spezifisch) |
-| Rich Markdown | Volle Markdown-Syntax unterstützt |
-
-### Limitationen
-
-| Limitation | Beschreibung |
-|------------|--------------|
-| Keine dynamische Generation | Rules sind statische Dateien |
-| Keine Rule-Vererbung | Kein Mechanismus zum Erweitern/Überschreiben |
-| Keine Rule-Versionierung | Kein eingebautes Version Control |
-| Keine Rule-Validierung | Syntax-Fehler erst beim Laden erkannt |
-| Keine Rule-Tests | Kein Mechanismus zum Testen der Anwendung |
-| Nur Pfad-Patterns | Kann nicht auf Dateiinhalt konditionieren |
-| Kein konditionelles Laden innerhalb | `paths` ist alles-oder-nichts |
-| Keine Prioritäts-/Reihenfolge-Kontrolle | Mehrere passende Rules laden in Discovery-Reihenfolge |
+**This keeps rules portable and maintainable** (they live in the project, not the plugin).
 
 ---
 
-## Praktische Beispiele
+## Capabilities and Limitations
 
-### Beispiel 1: Java/Spring Boot
+### Capabilities
+
+| Feature | Description |
+|---------|-------------|
+| Path-specific application | `paths: src/**/*.java` |
+| Multiple rule files | Organise by topic and language |
+| Subdirectories | Hierarchical organisation |
+| Symlinks | Share common rules across projects |
+| Circular symlink detection | Handled cleanly |
+| Recursive discovery | All `.md` files in subdirectories found |
+| Scoped loading | User/Project/Enterprise levels |
+| Lazy loading | Rules only loaded when needed (path-specific) |
+| Rich Markdown | Full Markdown syntax supported |
+
+### Limitations
+
+| Limitation | Description |
+|------------|-------------|
+| No dynamic generation | Rules are static files |
+| No rule inheritance | No mechanism to extend or override |
+| No rule versioning | No built-in version control |
+| No rule validation | Syntax errors only detected on load |
+| No rule tests | No mechanism for testing rule application |
+| Path patterns only | Cannot condition on file content |
+| No conditional loading within | `paths` is all-or-nothing |
+| No priority/ordering control | Multiple matching rules load in discovery order |
+
+---
+
+## Practical Examples
+
+### Example 1: Java/Spring Boot
 
 ```markdown
 ---
@@ -261,18 +261,18 @@ paths: src/**/*.java
 
 # Java/Spring Boot Standards
 
-## Architektur
+## Architecture
 - Layered: Controllers → Services → Repositories
-- @RestController, @Service, @Repository verwenden
+- Use @RestController, @Service, @Repository
 - Constructor-based Dependency Injection
 
 ## Testing
-- @SpringBootTest für Integration Tests
-- TestContainers für Datenbank-Tests
-- Externe Services mocken
+- @SpringBootTest for integration tests
+- TestContainers for database tests
+- Mock external services
 ```
 
-### Beispiel 2: TypeScript/React
+### Example 2: TypeScript/React
 
 ```markdown
 ---
@@ -282,47 +282,47 @@ paths: src/**/*.{ts,tsx}
 # TypeScript/React Guidelines
 
 ## Component Structure
-- Functional Components mit Hooks
-- Props mit Interfaces typisieren
-- Components als default exportieren
+- Functional components with hooks
+- Type props with interfaces
+- Export components as default
 
 ## Testing
-- Tests in `__tests__/` schreiben
-- React Testing Library verwenden
-- Minimum 80% Coverage erreichen
+- Write tests in `__tests__/`
+- Use React Testing Library
+- Achieve minimum 80% coverage
 ```
 
-### Beispiel 3: Sicherheitsregeln (alle Dateien)
+### Example 3: Security Rules (all files)
 
 ```markdown
 ---
-# Kein paths Feld = gilt für alle Dateien
+# No paths field = applies to all files
 ---
 
 # Security Standards
 
-## API Keys und Credentials
-- NIEMALS API Keys committen, Environment Variables nutzen
-- Mit API_KEY, ACCESS_TOKEN prefixen
-- In .env.example dokumentieren
+## API Keys and Credentials
+- NEVER commit API keys — use environment variables
+- Prefix with API_KEY, ACCESS_TOKEN
+- Document in .env.example
 
-## Datenbank
-- Alle Queries mit parametrisierten Statements
-- Keine rohe SQL-Konkatenation
-- Alle Inputs validieren
+## Database
+- All queries with parameterised statements
+- No raw SQL concatenation
+- Validate all inputs
 ```
 
 ---
 
-## Workflow: Rules zum Projekt hinzufügen
+## Workflow: Adding Rules to a Project
 
-### Schritt 1: Rules-Verzeichnis erstellen
+### Step 1: Create the rules directory
 
 ```bash
 mkdir -p .claude/rules
 ```
 
-### Schritt 2: Rule-Dateien erstellen
+### Step 2: Create rule files
 
 ```bash
 # Code Style Rules
@@ -333,26 +333,26 @@ paths: src/**/*.{ts,tsx}
 
 # TypeScript Code Style
 
-- 2-Space Indentation
-- `const` statt `let` bevorzugen
-- JSDoc-Kommentare für public Functions
+- 2-space indentation
+- Prefer `const` over `let`
+- JSDoc comments for public functions
 EOF
 
 # Testing Rules
 cat > .claude/rules/testing.md << 'EOF'
 ---
-# Kein paths = gilt für alle Dateien
+# No paths = applies to all files
 ---
 
 # Testing Standards
 
-- Tests für Business Logic schreiben
-- Minimum 80% Coverage für kritische Pfade
+- Write tests for business logic
+- Minimum 80% coverage for critical paths
 - AAA Pattern: Arrange, Act, Assert
 EOF
 ```
 
-### Schritt 3: In git committen
+### Step 3: Commit to git
 
 ```bash
 git add .claude/rules/
@@ -363,7 +363,7 @@ git commit -m "docs: add Claude Code rules for project"
 
 ## Advanced Patterns
 
-### Pattern 1: Nach Layer organisiert
+### Pattern 1: Organised by layer
 
 ```
 rules/
@@ -376,54 +376,54 @@ rules/
 │   ├── database.md   # paths: src/db/**/*.ts
 │   └── models.md     # paths: src/models/**/*.ts
 └── shared/
-    ├── testing.md    # Kein paths = alle Dateien
-    └── git.md        # Kein paths = alle Dateien
+    ├── testing.md    # No paths = all files
+    └── git.md        # No paths = all files
 ```
 
-### Pattern 2: Shared Rules mit Symlinks
+### Pattern 2: Shared rules with symlinks
 
 ```bash
-# Shared Rules Repo klonen
+# Clone shared rules repo
 git clone https://github.com/company/shared-claude-rules ~/shared-rules
 
-# Im Projekt verlinken
+# Link into project
 ln -s ~/shared-rules .claude/rules/company-standards
 
-# Symlink committen
+# Commit the symlink
 git add .claude/rules/company-standards
 git commit -m "feat: add shared company standards"
 ```
 
-### Pattern 3: User-Level persönliche Präferenzen
+### Pattern 3: User-level personal preferences
 
 ```
 ~/.claude/rules/
-├── my-style.md       # Persönliche Indentation, Naming Conventions
-├── workflows.md      # Persönliche Git Workflows
-└── tooling.md        # Persönliche Tool-Präferenzen
+├── my-style.md       # Personal indentation, naming conventions
+├── workflows.md      # Personal Git workflows
+└── tooling.md        # Personal tool preferences
 ```
 
 ---
 
-## Zusammenfassung
+## Summary
 
-| Aspekt | Details |
+| Aspect | Details |
 |--------|---------|
-| **Was** | Modulare, pfad-spezifische Projektanweisungen |
-| **Wo** | `.claude/rules/*.md` (Projekt), `~/.claude/rules/*.md` (User), System-Pfade (Enterprise) |
-| **Wie** | Markdown-Dateien mit optionalem YAML Frontmatter mit `paths` Glob-Patterns |
-| **Scope** | Project Rules überschreiben User Rules; User Rules gelten global |
-| **Auto-load** | Alle `.md` in `.claude/rules/` auto-discovered |
-| **Plugins** | Können KEINE Rules definieren, aber Init-Commands anbieten |
-| **Relation zu CLAUDE.md** | Rules sind pfad-spezifische Alternativen; CLAUDE.md ist unconditional |
-| **Syntax** | Markdown + YAML Frontmatter mit optionalem `paths: glob/pattern` |
+| **What** | Modular, path-specific project instructions |
+| **Where** | `.claude/rules/*.md` (project), `~/.claude/rules/*.md` (user), system paths (enterprise) |
+| **How** | Markdown files with optional YAML frontmatter with `paths` glob patterns |
+| **Scope** | Project rules override user rules; user rules apply globally |
+| **Auto-load** | All `.md` files in `.claude/rules/` auto-discovered |
+| **Plugins** | Cannot define rules directly, but can provide init commands |
+| **Relation to CLAUDE.md** | Rules are path-specific alternatives; CLAUDE.md is unconditional |
+| **Syntax** | Markdown + YAML frontmatter with optional `paths: glob/pattern` |
 
 ---
 
-## Quellen
+## Sources
 
 - [Claude Code Memory Documentation](https://code.claude.com/docs/en/memory.md)
 - [Claude Code Settings Documentation](https://code.claude.com/docs/en/settings.md)
 - [Claude Code - Best practices for agentic coding](https://www.anthropic.com/engineering/claude-code-best-practices)
 - [Using CLAUDE.MD files](https://claude.com/blog/using-claude-md-files)
-- [NikiforovAll/claude-code-rules](https://github.com/NikiforovAll/claude-code-rules) - Praktische Beispiele
+- [NikiforovAll/claude-code-rules](https://github.com/NikiforovAll/claude-code-rules) - Practical examples
