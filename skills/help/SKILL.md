@@ -40,7 +40,7 @@ Show the user the following overview:
 ### Documentation
 | Command | Description |
 |---------|-------------|
-| **github-publish** | Prepares a GitHub repository for public release: create/update README (baseline structure, badges, logo, status banner), license selection, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, GitHub Actions release workflow, issue templates. Modes: `--readme` (README only), `--license` (license only), `--repo <path>` (target a different repo) |
+| **github-publish** | Prepares a GitHub repository for public release: create/update README (baseline structure, badges, logo, status banner), license selection, version check, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, GitHub Actions release workflow, issue templates. Modes: `--readme` (README only), `--license` (license only), `--repo <path>` (target a different repo) |
 
 ### Development
 | Command | Description |

@@ -2,7 +2,7 @@
 name: github-publisher
 description: >
   Prepares GitHub repositories for professional public release. Interactive workflow
-  covering README enhancement (badges, logo, status banners), license selection,
+  covering README enhancement (badges, logo, status banners), license selection, version check,
   CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, GitHub Actions, and issue templates.
   Use when user runs /agenticaiplugin:github-publish.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
@@ -114,6 +114,30 @@ git -C {repo_path} branch --list main master 2>/dev/null
 cat {repo_path}/package.json 2>/dev/null | grep -E '"name"|"private"'
 ```
 
+**Version Detection:**
+
+Read the project version from the primary manifest file. See reference.md Section 9 for the full detection table.
+
+```bash
+# Version from manifest (example for package.json)
+cat {repo_path}/package.json 2>/dev/null | grep '"version"'
+
+# Version-related git tags
+git -C {repo_path} tag -l 'v*' '*.*.*' 2>/dev/null | head -10
+
+# CHANGELOG existence
+ls {repo_path}/CHANGELOG.md {repo_path}/CHANGES.md {repo_path}/HISTORY.md 2>/dev/null
+```
+
+Evaluate using the **"probably-default" heuristic** (all three must be true):
+1. Version matches a common default: `0.0.0`, `0.0.1`, `0.1.0`, `1.0.0`
+2. No version-related git tags exist
+3. No CHANGELOG/CHANGES/HISTORY file exists
+
+Store: `detected_version`, `version_source` (manifest filename), `version_looks_default` (boolean).
+
+For Go projects (only `go.mod`, no version field): store `version_source = "git tags"` — Go uses tags for versioning, not manifest fields.
+
 **Language Audit (full mode only):**
 
 After the project analysis above, scan for non-English content. Read reference.md Section 8 for detection heuristics, file types, and exclusions.
@@ -154,6 +178,7 @@ GitHub Publish — Project Status
   Detected: {project_type} ({manifest_file})
   GitHub: {owner}/{repo} (or "no remote configured")
   NPM: {package_name or "not an npm package"}
+  Version:               {version} ({version_source}) {✓ | ⚠ appears to be default | — no manifest with version field}
 
   Language Audit:
     Documentation:  {✓ All English | ⚠ German text in {X} files ({file_examples})}
@@ -168,7 +193,7 @@ If language audit found no issues, show: `Language Audit: ✓ All content appear
 
 **Check the mode first:**
 - `readme-only` → Skip to Phase 6, only do README enhancement (steps 8-9)
-- `license-only` → Skip to questions 1 and 6 only, then Phase 6 steps 1-3
+- `license-only` → Skip to questions 1 and 7 only, then Phase 6 steps 1-3
 - `full` → Ask all questions below
 
 Use `AskUserQuestion` for each decision. Provide smart defaults based on Phase 2 analysis.
@@ -183,24 +208,32 @@ Use `AskUserQuestion` for each decision. Provide smart defaults based on Phase 2
    - Options: Stable / Beta / Heavy Development
    - No default (must ask)
 
-3. **NPM badges** — Only ask if npm package detected
+3. **Project version** — Only ask if `version_looks_default` is true
+   - Read reference.md Section 9.3 for status-dependent options
+   - Options depend on the development status chosen in Q2:
+     - **Heavy Development**: Keep as-is (intentional) / Add pre-release suffix (e.g. `0.1.0-dev`) / Custom
+     - **Beta**: `0.9.0` / `1.0.0-beta.1` / Keep as-is (intentional) / Custom
+     - **Stable**: `1.0.0` (Recommended) / Keep as-is (intentional) / Custom
+   - If user keeps as-is: no change. Otherwise store `new_version` for Phase 6.
+
+4. **NPM badges** — Only ask if npm package detected
    - Options: Yes / No
    - Default: Yes
 
-4. **Project logo** — Logo generation
+5. **Project logo** — Logo generation
    - Options: Yes, generate one / I have one already / No logo
    - No default
 
-5. **GitHub Actions release workflow** — Automated releases
+6. **GitHub Actions release workflow** — Automated releases
    - Options: Yes / No
    - Default: Yes
 
-6. **Patent-sensitive domain** — License override
+7. **Patent-sensitive domain** — License override
    - Options: Yes / No
    - Default: No
    - Only ask if project classification is "Small utility" (otherwise Apache 2.0 or GPL already handle patents)
 
-7. **Language translation** — Only ask if Phase 2 language audit found non-English content
+8. **Language translation** — Only ask if Phase 2 language audit found non-English content
    - Use `AskUserQuestion` with `multiSelect: true`:
      "Non-English content detected. What should be translated to English?"
    - Options (only show categories with findings):
@@ -232,7 +265,7 @@ Planned actions (Branch: feat/github-publish):
           + Logo, Badges, {status} Banner
           + Missing sections: {list of missing baseline sections}
           ~ Update: {sections with outdated content}
-  UPDATE  package.json (license: Apache-2.0)
+  UPDATE  package.json (license: Apache-2.0{, version: 0.1.0 → 1.0.0 — if version change selected})
   SKIP    {file} (already exists)
 
   {If language translation selected:}
@@ -266,9 +299,19 @@ For Apache 2.0, also create the `NOTICE` file.
 
 If `package.json` exists, update the `license` and `author` fields using the Edit tool.
 
-**Step 2.5: Language Translation (conditional)**
+**Step 2.5: Version Update (conditional)**
 
-Only execute if the user selected categories for translation in Phase 4 Question 7. Read reference.md Section 8.5 for translation rules.
+Only if the user chose a new version in Phase 4 Q3 (`new_version` is set):
+
+1. Update the version in the primary manifest file using the Edit tool
+2. If `package.json`: update `"version": "{new_version}"`
+3. For other manifests: update the version field per reference.md Section 9.1
+
+Combine with the license/author update from Step 2 when both target `package.json` (single Edit call).
+
+**Step 2.7: Language Translation (conditional)**
+
+Only execute if the user selected categories for translation in Phase 4 Question 8. Read reference.md Section 8.5 for translation rules.
 
 For each selected category, process files identified in Phase 2:
 

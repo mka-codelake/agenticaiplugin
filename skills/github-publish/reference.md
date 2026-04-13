@@ -430,3 +430,79 @@ When translating, follow these rules strictly:
 | `full` (default) | Yes — scan all 3 categories |
 | `--readme` | No — only README cosmetics |
 | `--license` | No — only license files |
+
+---
+
+## 9. Version Check
+
+### 9.1 Version Detection by Manifest
+
+| Manifest | Version Field | Read Command |
+|----------|--------------|--------------|
+| `package.json` | `"version": "X.Y.Z"` | `grep '"version"' package.json` |
+| `pyproject.toml` | `version = "X.Y.Z"` under `[project]` | `grep -A5 '^\[project\]' pyproject.toml \| grep version` |
+| `Cargo.toml` | `version = "X.Y.Z"` under `[package]` | `grep -A5 '^\[package\]' Cargo.toml \| grep version` |
+| `pom.xml` | `<version>X.Y.Z</version>` (top-level, not in `<dependency>`) | `grep '<version>' pom.xml \| head -1` |
+| `build.gradle(.kts)` | `version = "X.Y.Z"` or `version "X.Y.Z"` | `grep -E '^version\s' build.gradle*` |
+| `*.csproj` | `<Version>X.Y.Z</Version>` or `<PackageVersion>` | `grep -E '<(Package)?Version>' *.csproj` |
+| `go.mod` | *(none — Go uses git tags)* | `git tag -l 'v*'` |
+
+**Priority:** Use the manifest matching the detected project type from Phase 2.
+
+### 9.2 "Probably Default" Heuristic
+
+A version is flagged as **probably not intentionally set** when ALL three conditions are true:
+
+1. **Common default value**: The version is one of `0.0.0`, `0.0.1`, `0.1.0`, `1.0.0`
+2. **No version tags**: `git tag -l 'v*' '*.*.*'` returns no results
+3. **No changelog**: None of `CHANGELOG.md`, `CHANGES.md`, `HISTORY.md` exists in the repo root
+
+If any condition is false, the version is assumed intentional — no question is asked.
+
+**Special cases:**
+- **Go projects** (only `go.mod`): No manifest version field. Show `Version: — (Go uses git tags)` in status. If git tags exist, show the latest. If no tags exist, flag as "no version tags found" but do not ask the manifest question.
+- **No manifest found**: Show `Version: — (no manifest with version field)` in status. No question asked.
+- **Multiple manifests**: Use the primary one matching the detected project type.
+
+### 9.3 Status-Dependent Recommendations
+
+The version question (Phase 4 Q3) adapts its options based on the development status chosen in Q2:
+
+**Heavy Development:**
+
+> "The project version `{version}` in `{manifest}` looks like a default from project initialization (no version tags or changelog found). Since the project is under heavy development, a pre-1.0 version is appropriate — but it should be intentional."
+
+| Option | Description |
+|--------|-------------|
+| Keep `{version}` | The current version is intentional |
+| `{version}-dev` | Add `-dev` pre-release suffix to signal work-in-progress |
+| *(Other)* | Enter a custom version |
+
+**Beta:**
+
+> "The project version `{version}` in `{manifest}` looks like a default from project initialization (no version tags or changelog found). For a Beta release, the version should reflect the current maturity."
+
+| Option | Description |
+|--------|-------------|
+| `0.9.0` | Approaching first stable release |
+| `1.0.0-beta.1` | First official beta |
+| Keep `{version}` | The current version is intentional |
+| *(Other)* | Enter a custom version |
+
+**Stable:**
+
+> "The project version `{version}` in `{manifest}` looks like a default from project initialization (no version tags or changelog found). A stable release should have a version that reflects production readiness."
+
+| Option | Description |
+|--------|-------------|
+| `1.0.0` (Recommended) | First stable release |
+| Keep `{version}` | The current version is intentional |
+| *(Other)* | Enter a custom version |
+
+### 9.4 Mode Behavior
+
+| Mode | Version Check |
+|------|--------------|
+| `full` (default) | Yes — detect, display, ask if default |
+| `--readme` | No — only README cosmetics |
+| `--license` | No — only license files |

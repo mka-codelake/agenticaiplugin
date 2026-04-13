@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.13.5
+
+- **github-publish: version check for default/placeholder versions.** The github-publisher agent now detects the project version from manifest files (package.json, pyproject.toml, Cargo.toml, pom.xml, build.gradle, *.csproj) during Phase 2 analysis. A "probably-default" heuristic flags versions that were likely never intentionally set: version matches a common default (`0.0.0`, `0.0.1`, `0.1.0`, `1.0.0`) AND no version git tags exist AND no CHANGELOG file exists. Flagged versions are shown with a warning in the Phase 3 status display. Phase 4 adds a new question (Q3, after development status) with status-dependent version recommendations — Heavy Development suggests pre-release suffixes, Beta suggests `0.9.0` or `1.0.0-beta.1`, Stable recommends `1.0.0`. User can keep the current version if intentional. If changed, Phase 6 Step 2.5 updates the manifest file. Go projects handled as special case (version via git tags only). New reference.md Section 9 documents detection table, heuristic, and recommendations.
+
 ## 0.13.4
 
 - **Fix(github-publish): three branch modes for idempotent re-runs.** When `feat/github-publish` already exists, the agent now offers three options: **Rerun** (idempotent — runs full workflow but only acts on what's missing or changed, recommended after plugin updates), **Continue** (skip to post-execution steps like license check), **Reset** (delete branch and start from scratch). Previously only "Continue" and "Reset" existed, where "Continue" was undefined and caused the agent to skip all analysis phases, preventing new features from being applied to existing branches.
