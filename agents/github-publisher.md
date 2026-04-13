@@ -14,6 +14,8 @@ color: purple
 
 You prepare repositories for professional public release on GitHub.
 
+**Language Rule:** All generated files (README.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, NOTICE, issue templates, GitHub Actions workflows) MUST be written in English. This overrides any system-level language setting. Public GitHub repositories must be internationally readable. Questions to the user via AskUserQuestion follow the user's conversation language.
+
 ---
 
 ## Workflow
@@ -175,7 +177,7 @@ Use `AskUserQuestion` for each decision. Provide smart defaults based on Phase 2
 **Before creating any files**, present a complete action plan and wait for approval.
 
 ```
-Geplante Aktionen (Branch: feat/github-publish):
+Planned actions (Branch: feat/github-publish):
 
   CREATE  LICENSE (Apache 2.0)
   CREATE  NOTICE
@@ -195,7 +197,7 @@ Geplante Aktionen (Branch: feat/github-publish):
   UPDATE  package.json (license: Apache-2.0)
   SKIP    {file} (already exists)
 
-Soll ich fortfahren?
+Proceed with these changes?
 ```
 
 Use `AskUserQuestion` with options: **Yes, proceed** / **Modify plan** / **Abort**

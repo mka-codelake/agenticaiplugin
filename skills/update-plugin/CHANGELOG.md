@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.13.2
+
+- **Fix(github-publish): enforce English for all generated files.** Added explicit language rule to github-publisher agent: all generated files (README, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue templates, workflows) must be written in English, overriding any system-level language setting. Replaced German text in Phase 5 Plan Preview ("Geplante Aktionen" → "Planned actions", "Soll ich fortfahren?" → "Proceed with these changes?"). Added "English only" to reference.md Section 5.6 Writing Style.
+
 ## 0.13.1
 
 - **github-publish: optional license check after completion.** After the github-publisher agent finishes, the skill now asks the user whether to run a license compatibility check. If accepted, the `license-checker` agent is invoked with the project license pre-filled (skipping Phase 1 detection). Runs identically to a manual `/agenticaiplugin:license-check` invocation. Also updates README.md with license-check entries (commands, features, project structure) and fixes outdated plugin.json description.

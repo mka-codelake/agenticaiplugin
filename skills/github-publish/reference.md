@@ -269,6 +269,7 @@ After creating or updating, verify:
 
 ### 5.6 Writing Style
 
+- **English only**: All README content must be written in English for international accessibility
 - **Readable prose**: Full sentences with context, not just bullet points
 - **Explain the "why"**: Not just what the project does, but why it matters
 - **Practical examples**: Real-world usage scenarios with runnable code
