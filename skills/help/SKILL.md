@@ -50,6 +50,7 @@ Zeige dem Benutzer folgende Übersicht:
 | **architecture-audit** | Umfassendes Architektur-Audit: Erkennt Patterns, bewertet 7 Dimensionen (Boundaries, Dependencies, Naming, APIs, Wiring, Visibility), erstellt bewerteten Report (A-E Skala). Optionen: `--scope <path>` für Teilbereiche |
 | **qa** | Quality Assurance: Verwaltet bidirektionale Traceability zwischen Requirements, Code, Test Cases und Tests ("Quality Square"). Analysiert Code, extrahiert Requirements, leitet Test Cases ab, erstellt Gap-Analyse. Option: `--force-rebuild` |
 | **create-cli** | Designt CLI-Oberflächen: Argumente, Flags, Subcommands, Help-Text, Output-Formate, Exit-Codes, Prompts. Erstellt eine kompakte Spec zur Implementierung |
+| **license-check** | Prüft Lizenzkompatibilität aller Abhängigkeiten, Tools, Scripts und LLM-Modelle gegen die Projektlizenz. Modi: Standard (vollständiger Scan inkl. transitive Deps) oder `--quick` (nur direkte Abhängigkeiten). Report wird in `claudedocs/license-check-result.md` gespeichert |
 
 ### Tools
 | Command | Beschreibung |
@@ -86,6 +87,9 @@ Skills sind Wissensmodule, die Claude automatisch lädt wenn bestimmte Schlüsse
 - **git-smart-commit** - Regeln für gute Commits
 - **create-cli** - CLI-Design: Argumente, Flags, Subcommands, Output-Formate, Exit-Codes (Command: `/agenticaiplugin:create-cli`)
 
+### Compliance
+- **license-check** - Lizenzkompatibilitätsprüfung (Command: `/agenticaiplugin:license-check`)
+
 ### Code-Qualität
 - **code-review** - Multi-Specialist Code-Reviews (11 fokussierte Spezialisten)
 - **qa** - Quality Square Traceability Manager (Command: `/agenticaiplugin:qa`)
@@ -105,6 +109,7 @@ Agents sind isolierte Kontexte für spezifische Aufgaben.
 | Agent | Aufgabe |
 |-------|---------|
 | **github-publisher** | Bereitet Repositories für Public Release auf GitHub vor (inkl. README-Erstellung) |
+| **license-checker** | Scannt Projektabhängigkeiten und prüft Lizenzkompatibilität |
 | **project-initializer** | Richtet Projekte für das Plugin ein, führt Updates durch |
 
 ---
