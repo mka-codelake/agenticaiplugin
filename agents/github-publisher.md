@@ -105,6 +105,17 @@ git -C {repo_path} branch --list main master 2>/dev/null
 cat {repo_path}/package.json 2>/dev/null | grep -E '"name"|"private"'
 ```
 
+**Language Audit (full mode only):**
+
+After the project analysis above, scan for non-English content. Read reference.md Section 8 for detection heuristics, file types, and exclusions.
+
+1. **Documentation:** Find `.md` files in root and `docs/`, check manifest description fields — grep for German umlauts and keywords
+2. **Code Comments:** Grep source files for German text in comment patterns (`//`, `#`, `/* */`, docstrings)
+3. **Code Strings:** Grep source files for German text in string literals (`"..."`, `'...'`)
+4. **Git History (informational):** `git log --oneline -50` — count messages with German text
+
+Store results: file counts per category + example file names for the status display.
+
 **No remote? That's fine.** If `git remote get-url origin` returns nothing:
 - Set `{owner}` and `{repo}` to unknown — ask user later if needed for badge/logo URLs
 - Skip badge URLs that require `{owner}/{repo}` (GitHub Actions badge)
@@ -134,7 +145,15 @@ GitHub Publish — Project Status
   Detected: {project_type} ({manifest_file})
   GitHub: {owner}/{repo} (or "no remote configured")
   NPM: {package_name or "not an npm package"}
+
+  Language Audit:
+    Documentation:  {✓ All English | ⚠ German text in {X} files ({file_examples})}
+    Code Comments:  {✓ All English | ⚠ German comments in {X} files}
+    Code Strings:   {✓ All English | ⚠ German strings in {X} files}
+    Git History:    {✓ All English | ℹ {N} German commit messages (not auto-translatable)}
 ```
+
+If language audit found no issues, show: `Language Audit: ✓ All content appears to be in English`
 
 ### Phase 4: Interactive Decisions
 
@@ -172,6 +191,16 @@ Use `AskUserQuestion` for each decision. Provide smart defaults based on Phase 2
    - Default: No
    - Only ask if project classification is "Small utility" (otherwise Apache 2.0 or GPL already handle patents)
 
+7. **Language translation** — Only ask if Phase 2 language audit found non-English content
+   - Use `AskUserQuestion` with `multiSelect: true`:
+     "Non-English content detected. What should be translated to English?"
+   - Options (only show categories with findings):
+     - "Documentation files ({X} files)" — if documentation findings > 0
+     - "Code comments ({Y} files)" — if comment findings > 0
+     - "User-facing strings in code ({Z} files)" — if string findings > 0
+     - "Nothing — keep as-is"
+   - If user selects nothing or "keep as-is": skip translation in Phase 6
+
 ### Phase 5: Plan Preview
 
 **Before creating any files**, present a complete action plan and wait for approval.
@@ -196,6 +225,11 @@ Planned actions (Branch: feat/github-publish):
           ~ Update: {sections with outdated content}
   UPDATE  package.json (license: Apache-2.0)
   SKIP    {file} (already exists)
+
+  {If language translation selected:}
+  TRANSLATE  Documentation → English ({X} files)
+  TRANSLATE  Code comments → English ({Y} files)
+  TRANSLATE  Code strings → English ({Z} files)
 
 Proceed with these changes?
 ```
@@ -222,6 +256,24 @@ For Apache 2.0, also create the `NOTICE` file.
 **Step 2: package.json license field**
 
 If `package.json` exists, update the `license` and `author` fields using the Edit tool.
+
+**Step 2.5: Language Translation (conditional)**
+
+Only execute if the user selected categories for translation in Phase 4 Question 7. Read reference.md Section 8.5 for translation rules.
+
+For each selected category, process files identified in Phase 2:
+
+1. **Documentation:** Read each flagged `.md` file completely. Identify all German text passages. Translate to natural English. Use Edit tool to replace all German text in one pass per file. Also update manifest description fields if flagged.
+
+2. **Code Comments:** Read each flagged source file. Identify German comments (inline, block, docstrings). Translate to English. Use Edit tool — replace only comment text, preserve code structure, indentation, and comment delimiters.
+
+3. **Code Strings:** Read each flagged source file. Identify German string literals (error messages, log messages, UI strings, test descriptions). Translate to English. Use Edit tool — replace only string content, preserve delimiters and surrounding code.
+
+**Critical rules:**
+- Never modify code logic, variables, or function names
+- One Edit per file (batch all translations for that file)
+- Preserve formatting, indentation, and comment style
+- If a string might be intentionally German (e.g., i18n locale file), skip it and note in summary
 
 **Step 3: CONTRIBUTING.md**
 
@@ -315,7 +367,8 @@ git -C {repo_path} commit -m "docs: prepare repository for public release
 
 Add LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md,
 GitHub Actions release workflow, issue templates, and project logo.
-Enhance README with badges, logo, and status banner."
+Enhance README with badges, logo, and status banner.
+{If translations were applied: Translate German content to English ({N} files).}"
 ```
 
 **Output a structured summary:**
@@ -340,6 +393,13 @@ Files created:
 Files updated:
   {checkmark} README.md — Added logo, badges, status banner
   {checkmark} package.json — License field updated
+
+{If translations were applied:}
+Language translations:
+  {checkmark} Documentation: {X} files translated to English
+  {checkmark} Code comments: {Y} files translated to English
+  {checkmark} Code strings: {Z} files translated to English
+  {info} Git history: {N} German commit messages (not modified — would require history rewrite)
 
 Next steps:
   1. Review changes:  git diff {default_branch}..feat/github-publish

@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.13.3
+
+- **github-publish: language audit with optional translation.** In full mode, the github-publisher agent now scans the project for non-English content before publishing. Detects German text in three categories: documentation files (README, docs/, manifest descriptions), code comments (inline, block, docstrings), and user-facing code strings (error messages, log output, test descriptions). Results shown in Phase 3 status display. If non-English content is found, Phase 4 asks the user which categories to translate (multiSelect). Phase 6 Step 2.5 translates selected categories using the Edit tool while preserving code structure. Git commit messages are flagged but not modified (would require history rewrite). New reference.md Section 8 documents detection heuristics, German keyword list, scan patterns, and translation rules.
+
 ## 0.13.2
 
 - **Fix(github-publish): enforce English for all generated files.** Added explicit language rule to github-publisher agent: all generated files (README, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue templates, workflows) must be written in English, overriding any system-level language setting. Replaced German text in Phase 5 Plan Preview ("Geplante Aktionen" → "Planned actions", "Soll ich fortfahren?" → "Proceed with these changes?"). Added "English only" to reference.md Section 5.6 Writing Style.

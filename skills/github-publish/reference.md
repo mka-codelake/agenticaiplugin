@@ -346,3 +346,87 @@ git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/ori
 ```
 
 Fallback: check if `main` or `master` branch exists.
+
+---
+
+## 8. Language Audit
+
+### 8.1 Purpose
+
+Before publishing a repository to GitHub, scan for non-English content that should be translated for international accessibility. The audit detects German text (the most common non-English language in this context) and offers translation per category.
+
+### 8.2 Categories
+
+| Category | What It Covers | Detection Target |
+|----------|---------------|-----------------|
+| **Documentation** | README, CONTRIBUTING, CHANGELOG, docs/, manifest descriptions | Complete .md files and description fields |
+| **Code Comments** | Inline, block, docstrings, Javadoc, JSDoc, TODO/FIXME | Comments embedded in source code |
+| **Code Strings** | Error messages, log messages, CLI output, UI strings, test descriptions | String literals in source code |
+
+**Not translatable (flag only):**
+- Git commit messages — visible on GitHub but requires history rewrite → only mention in summary
+- Variable/function names — renaming breaks code → never touch
+
+### 8.3 Detection Heuristics
+
+**Primary indicator — German umlauts in text context:**
+```
+[äöüßÄÖÜ]
+```
+
+**Secondary indicator — common German words in comments/strings:**
+```
+Fehler|Eingabe|Berechnung|Prüfung|Verarbeitung|Rückgabe|Ausgabe|Abfrage|Ergebnis|Übersicht|Anwendung|Zusammenfassung|Schnittstelle|Eigenschaft|Beschreibung|Funktion|Methode|Klasse|Wert|Datei|Ordner|Zustand|Anfrage|Antwort|Verbindung|Konfiguration|Einstellung|Benutzung|Beispiel|Hinweis|Warnung|Berechtigung
+```
+
+**Source file types to scan:**
+`*.java`, `*.py`, `*.js`, `*.ts`, `*.jsx`, `*.tsx`, `*.go`, `*.rs`, `*.kt`, `*.scala`, `*.cs`, `*.cpp`, `*.c`, `*.h`, `*.rb`, `*.php`, `*.sh`, `*.bash`
+
+**Directories to exclude:**
+`node_modules/`, `.git/`, `vendor/`, `target/`, `dist/`, `build/`, `__pycache__/`, `.gradle/`, `bin/`, `obj/`
+
+**Lock files to exclude:**
+`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `Cargo.lock`, `poetry.lock`, `go.sum`, `*.lock`
+
+### 8.4 Scan Method
+
+**Step 1: Documentation files**
+- Find all `.md` files in root and `docs/` directory
+- Read each file, check for German text patterns
+- Also check `package.json` `description`, `pom.xml` `<description>`, `pyproject.toml` `description`
+
+**Step 2: Code comments**
+- Use Grep tool with patterns for umlauts and German keywords
+- Filter to comment contexts (lines starting with `//`, `#`, `*`, or inside `/* */`, `""" """` blocks)
+- Count affected files and total occurrences
+
+**Step 3: Code strings**
+- Use Grep tool with patterns for umlauts and German keywords
+- Filter to string contexts (content inside `"..."`, `'...'`, `` `...` ``)
+- Count affected files and total occurrences
+
+**Step 4: Git history (informational only)**
+```bash
+git log --oneline -50 | grep -cP '[äöüßÄÖÜ]|Fehler|Eingabe|Berechnung|Prüfung'
+```
+
+### 8.5 Translation Rules
+
+When translating, follow these rules strictly:
+
+1. **Preserve code structure** — only change text content, never modify logic, variables, or formatting
+2. **Translate meaning, not word-by-word** — produce natural English
+3. **Keep technical terms** — don't translate framework-specific or domain-specific terms
+4. **Maintain comment style** — if original uses `//`, translated version uses `//`
+5. **Preserve string delimiters** — don't change `"` to `'` or vice versa
+6. **Use Edit tool** — one edit per file, replacing all German text in that file at once
+7. **Never rename variables or functions** — even if they contain German words
+8. **Never modify git history** — only flag German commits in the summary
+
+### 8.6 Mode Behavior
+
+| Mode | Language Audit |
+|------|---------------|
+| `full` (default) | Yes — scan all 3 categories |
+| `--readme` | No — only README cosmetics |
+| `--license` | No — only license files |
