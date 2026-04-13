@@ -72,14 +72,23 @@ If there are uncommitted changes, warn the user and ask whether to proceed or ab
 git -C {repo_path} checkout -b feat/github-publish
 ```
 
-If branch already exists (from a previous run), ask user:
-- **Continue** on existing branch (keep previous changes)
-- **Reset** — delete and recreate the branch from current HEAD
+If branch already exists (from a previous run), ask user via AskUserQuestion:
+- **Rerun** — Full workflow on existing branch (idempotent: scans everything, only acts on what's missing or changed) *(recommended after plugin updates)*
+- **Continue** — Resume where you left off (skip to post-execution steps like license check)
+- **Reset** — Delete branch and start from scratch
+
+**Rerun (idempotent):**
+Checkout the existing branch, then proceed with Phase 2 (full analysis + language audit). All subsequent phases run normally. Phase 6 skips files that already exist and match expectations — only creates/updates/translates what's actually needed. This is the correct choice when the plugin was updated and new features (e.g., language audit, license check) should be applied to an existing branch.
+
+**Continue:**
+Checkout the existing branch. Skip Phases 2-7 entirely. Jump directly to post-execution steps (license check offer from SKILL.md). Use this when the previous run completed successfully but you skipped optional post-steps.
+
+**Reset:**
+Delete the branch (`git branch -D feat/github-publish`), recreate from current HEAD. Full workflow from scratch as if running for the first time. Previous changes on the branch are lost.
 
 Inform the user:
 ```
-Working on branch: feat/github-publish
-All changes will be committed to this branch.
+Working on branch: feat/github-publish (mode: {rerun|continue|reset})
 ```
 
 ### Phase 2: Project Analysis

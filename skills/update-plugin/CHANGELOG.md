@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.13.4
+
+- **Fix(github-publish): three branch modes for idempotent re-runs.** When `feat/github-publish` already exists, the agent now offers three options: **Rerun** (idempotent — runs full workflow but only acts on what's missing or changed, recommended after plugin updates), **Continue** (skip to post-execution steps like license check), **Reset** (delete branch and start from scratch). Previously only "Continue" and "Reset" existed, where "Continue" was undefined and caused the agent to skip all analysis phases, preventing new features from being applied to existing branches.
+
 ## 0.13.3
 
 - **github-publish: language audit with optional translation.** In full mode, the github-publisher agent now scans the project for non-English content before publishing. Detects German text in three categories: documentation files (README, docs/, manifest descriptions), code comments (inline, block, docstrings), and user-facing code strings (error messages, log output, test descriptions). Results shown in Phase 3 status display. If non-English content is found, Phase 4 asks the user which categories to translate (multiSelect). Phase 6 Step 2.5 translates selected categories using the Edit tool while preserving code structure. Git commit messages are flagged but not modified (would require history rewrite). New reference.md Section 8 documents detection heuristics, German keyword list, scan patterns, and translation rules.
