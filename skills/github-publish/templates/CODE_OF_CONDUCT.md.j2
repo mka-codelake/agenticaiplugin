@@ -6,7 +6,18 @@ All participants in this project are expected to follow this code of conduct. Fo
 
 ## Reporting
 
-If you experience or witness unacceptable behavior, please report it by contacting the project maintainer at **{{ contact_email }}**.
+If you experience or witness unacceptable behavior, please report it through one of the channels below.
+
+{% if contact_mode == "github-native" -%}
+- Open a private issue in the repository's [Issue Tracker]({{ issues_url }}) and mention a maintainer
+- For sensitive cases, use GitHub's [Report Abuse](https://github.com/contact/report-abuse) flow
+{%- elif contact_mode == "email" -%}
+Contact the project maintainer at **{{ contact_email }}**.
+{%- elif contact_mode == "both" -%}
+- Open an issue in the repository's [Issue Tracker]({{ issues_url }}) (preferred for non-sensitive reports)
+- Contact the project maintainer directly at **{{ contact_email }}** for sensitive cases
+- Use GitHub's [Report Abuse](https://github.com/contact/report-abuse) flow for urgent concerns
+{%- endif %}
 
 All reports will be reviewed and investigated promptly and fairly.
 

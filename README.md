@@ -21,7 +21,7 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 - **Architecture Audit** — 7-dimension analysis with A-E ratings (boundaries, dependencies, naming, APIs, wiring, visibility, patterns)
 - **QA Traceability** — Bidirectional mapping between requirements, code, test cases, and tests ("Quality Square")
 - **Smart Git Commits** — Analyzes changes, groups them logically, creates atomic commits following project conventions
-- **GitHub Publish** — Prepares repositories for public release: README (with baseline structure validation), LICENSE, CONTRIBUTING, badges, logo, version check, GitHub Actions, issue templates
+- **GitHub Publish** — Prepares repositories for public release: README (with baseline structure validation), LICENSE, CONTRIBUTING, badges, logo, version check, sensitive content audit (secrets, emails, private paths), GitHub Actions, issue templates
 - **CLI Design** — Designs CLI interfaces: arguments, flags, subcommands, help text, output formats, exit codes
 - **License Check** — Scans dependencies, tools, scripts, and LLM model references for license compatibility issues across 7 ecosystems
 - **Markdown Converter** — Converts PDF, Word, PowerPoint, Excel, images, audio, and more to Markdown
@@ -125,7 +125,7 @@ Findings are deduplicated, sorted by severity, and consolidated into a single re
 /agenticaiplugin:github-publish --repo /path     # Target different repo
 ```
 
-Creates a `feat/github-publish` branch with: LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, project logo (SVG), badges, status banner, GitHub Actions release workflow, and issue templates. Detects default/placeholder versions and suggests appropriate versioning based on development status. Shows a plan preview before making changes. Optionally offers a license compatibility check after completion.
+Creates a `feat/github-publish` branch with: LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, project logo (SVG), badges, status banner, GitHub Actions release workflow, and issue templates. Detects default/placeholder versions and suggests appropriate versioning based on development status. Scans for sensitive content (API keys, tokens, private email addresses, internal infrastructure references, local filesystem paths) and offers interactive redaction before publish. Shows a plan preview before making changes. Optionally offers a license compatibility check after completion.
 
 ## Configuration
 

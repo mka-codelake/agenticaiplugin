@@ -466,7 +466,7 @@ If any condition is false, the version is assumed intentional — no question is
 
 ### 9.3 Status-Dependent Recommendations
 
-The version question (Phase 4 Q3) adapts its options based on the development status chosen in Q2:
+The version question (Phase 4 Q4) adapts its options based on the development status chosen in Q3:
 
 **Heavy Development:**
 
@@ -506,3 +506,173 @@ The version question (Phase 4 Q3) adapts its options based on the development st
 | `full` (default) | Yes — detect, display, ask if default |
 | `--readme` | No — only README cosmetics |
 | `--license` | No — only license files |
+
+---
+
+## 10. Sensitive Content Audit
+
+### 10.1 Purpose
+
+Before publishing a repository to GitHub, scan for sensitive content that should not become publicly visible: credentials, personal email addresses, private filesystem paths, internal infrastructure references, and unintended third-party GitHub references. The audit reports findings per category and offers interactive redaction.
+
+### 10.2 Scan Categories
+
+| # | Category | What It Covers | Severity |
+|---|----------|---------------|----------|
+| 1 | **Secrets & Credentials** | AWS/Google/Anthropic/OpenAI/GitHub/Stripe/Slack API keys, SSH/PGP private keys, JWT tokens, `password=…` assignments, DB connection strings with credentials | Critical |
+| 2 | **E-Mail Addresses** | Any email address — the plugin's default user has no public email, so every match is a finding unless explicitly approved | High |
+| 3 | **Private Paths** | Unix home directories, macOS home directories, Windows drive paths, WSL mount paths | Medium |
+| 4 | **Internal Infrastructure** | Private IPv4 ranges (RFC 1918), hostnames ending in `.internal`/`.local`/`.corp`/`.lan`/`.intranet`, VPN endpoints | Medium |
+| 5 | **External GitHub References** | References to other GitHub accounts/repos that are not the current project's own remote | Medium |
+| 6 | **Git History** | Any of the above categories detected in `git log -p` output | Informational (no auto-rewrite) |
+
+**Not in scope** (too unreliable without ML or too noisy):
+- Real personal names
+- Phone numbers
+
+### 10.3 Detection Patterns
+
+**Secrets & Credentials:**
+
+| Key Type | Pattern |
+|----------|---------|
+| AWS Access Key ID | `AKIA[0-9A-Z]{16}` |
+| AWS Secret Access Key | `(?i)aws.{0,20}['"][0-9a-zA-Z/+]{40}['"]` |
+| Google API Key | `AIza[0-9A-Za-z_-]{35}` |
+| Anthropic API Key | `sk-ant-[a-zA-Z0-9_-]{32,}` |
+| OpenAI API Key | `sk-[a-zA-Z0-9]{48,}` |
+| GitHub Token | `gh[pousr]_[0-9a-zA-Z]{36,}` |
+| Stripe Live Key | `sk_live_[0-9a-zA-Z]{24,}` |
+| Slack Token | `xox[baprs]-[0-9a-zA-Z-]{10,}` |
+| SSH/PEM Private Key | `-----BEGIN (RSA \|OPENSSH \|EC \|DSA )?PRIVATE KEY-----` |
+| PGP Private Key | `-----BEGIN PGP PRIVATE KEY BLOCK-----` |
+| JWT | `eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}` |
+| Generic Password | `(?i)(password\|passwd\|pwd)\s*[:=]\s*['"][^'"$\s]{6,}['"]` |
+| Connection String | `(?i)(mongodb\|postgres(ql)?\|mysql)://[^:]+:[^@]+@` |
+
+**E-Mail Addresses:**
+
+```
+[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}
+```
+
+**Private Paths:**
+
+| Type | Pattern |
+|------|---------|
+| Unix Home | `/home/[a-zA-Z][a-zA-Z0-9_-]*/` |
+| macOS Home | `/Users/[a-zA-Z][a-zA-Z0-9_-]*/` |
+| Windows Drive | `[A-Z]:\\[^\\]+\\` |
+| WSL Mount | `/mnt/[c-z]/` |
+
+**Internal Infrastructure:**
+
+| Type | Pattern |
+|------|---------|
+| Private IPv4 | `\b(10\.\|192\.168\.\|172\.(1[6-9]\|2[0-9]\|3[01])\.)[0-9.]+\b` |
+| Internal Hostname | `[a-zA-Z0-9-]+\.(internal\|local\|corp\|lan\|intranet)\b` |
+
+**External GitHub References:**
+
+Match `github.com/<owner>/<repo>` and `@<owner>/<repo>` (npm scope). Compare `<owner>` against the current repo's remote owner — anything different is a finding. If no remote exists, all GitHub references are findings (user must review).
+
+### 10.4 Scan Method
+
+**Step 1: File-based scan (working tree)**
+
+Use Grep against all text files. Exclusions (same as Language Audit):
+- `node_modules/`, `.git/`, `vendor/`, `target/`, `dist/`, `build/`, `__pycache__/`, `.gradle/`, `bin/`, `obj/`
+- Lock files: `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `Cargo.lock`, `poetry.lock`, `go.sum`, `*.lock`
+- Binary files (let Grep skip automatically)
+
+For each category, count affected files and collect up to 3 example paths.
+
+**Step 2: Git history scan (informational)**
+
+```bash
+# Cap at recent history for performance (last 100 commits)
+git -C {repo_path} log -p -100 | grep -cE '<pattern>'
+```
+
+Only count matches. Do not modify git history — record in `sensitive_findings.git_history` with category breakdown.
+
+**Step 3: Optional external tools (graceful degradation)**
+
+If available in `PATH`:
+
+```bash
+# gitleaks
+command -v gitleaks >/dev/null && gitleaks detect --no-git --source {repo_path} --report-format json
+
+# trufflehog
+command -v trufflehog >/dev/null && trufflehog filesystem {repo_path} --json
+```
+
+Merge external tool findings into the Secrets category. If a tool is not installed, silently continue — do not prompt the user to install it.
+
+### 10.5 False-Positive Handling
+
+**Downgrade severity (flag as Informational, not Critical):**
+- Test files: paths matching `*test*`, `*spec*`, `fixtures/`, `testdata/`
+- Example files: `*.example`, `*.sample`, files in `examples/` directories
+- AWS-provided dummy key: `AKIAIOSFODNN7EXAMPLE` (officially documented as a placeholder)
+
+**Ignore entirely (not a finding):**
+- Environment variable references: `process.env.X`, `${VAR}`, `os.environ[…]`, `System.getenv(…)` — these are not hardcoded secrets
+- `.env.example` files containing `KEY=your-key-here`-style placeholders
+- Matches inside `.gitignore`d paths
+
+### 10.6 Redaction Rules
+
+For each user-selected category, apply these rules:
+
+| Category | Action |
+|----------|--------|
+| **Secrets** | Show each finding individually to the user. Require explicit confirmation per secret before replacing with `<REDACTED>` or deleting the file. Never silently remove. |
+| **E-Mails** | Replace with `<contact-email>` — unless the user explicitly opted into an `email` or `both` contact mode, in which case their approved address stays. |
+| **Private Paths** | Replace with `/path/to/your/project`, `~/your-home`, `C:\path\to\project`, etc. Match replacement style to original path style. |
+| **Internal Infra** | Replace with `<internal-host>`, `<private-ip>`. |
+| **External Refs** | Ask the user: remove entirely, replace with `<owner>/<repo>`, or keep (if legitimate). |
+| **Git History** | Never modify. Output manual rewrite instructions in Phase 7 summary. |
+
+**Critical rules:**
+- Never modify code logic, variable names, function names, or import statements
+- One Edit call per file (batch all redactions for that file)
+- Preserve formatting, indentation, and delimiters
+- Test files are not auto-redacted — only flagged (user confirms individually if desired)
+- For external refs in CONTRIBUTING.md and similar templates: prefer replacement over removal to keep structure intact
+
+### 10.7 Mode Behavior
+
+| Mode | Sensitive Audit |
+|------|----------------|
+| `full` (default) | Yes — scan all 6 categories, offer redaction |
+| `--readme` | No — only README cosmetics |
+| `--license` | No — only license files |
+
+### 10.8 Git History Rewrite Instructions
+
+When findings are detected in git history (category 6), include this in Phase 7 summary:
+
+```
+Git history contains {N} findings that cannot be removed by file editing.
+To rewrite history and remove sensitive content:
+
+  1. Use git filter-repo (recommended):
+       pip install git-filter-repo
+       git filter-repo --replace-text <patterns.txt>
+
+  2. Or BFG Repo-Cleaner:
+       bfg --replace-text <patterns.txt>
+
+  3. After rewrite:
+       git push --force-with-lease
+
+  WARNING: History rewrite is destructive and breaks clones.
+  Coordinate with collaborators before running.
+
+  Full guide:
+  https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository
+```
+
+Never execute history rewrite automatically.

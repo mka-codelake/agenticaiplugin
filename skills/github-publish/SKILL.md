@@ -55,10 +55,11 @@ The `agenticaiplugin:github-publisher` agent performs an interactive, multi-phas
 2. **Creates** a feature branch `feat/github-publish` for all changes
 3. **Analyzes** the project (type, existing files, git remote, npm package)
 4. **Displays** a status overview of what exists and what's missing
-5. **Asks** targeted questions (project type, dev status, version, badges, logo, releases)
-6. **Presents** a plan of all changes for user approval before execution
-7. **Creates/updates** all necessary files in the correct order
-8. **Summarizes** what was done, with push and PR instructions
+5. **Asks** targeted questions (project type, contact method, dev status, version, badges, logo, releases)
+6. **Audits** for sensitive content (secrets, emails, private paths, internal infra, external refs) and offers interactive redaction
+7. **Presents** a plan of all changes for user approval before execution
+8. **Creates/updates** all necessary files in the correct order
+9. **Summarizes** what was done, with push and PR instructions
 
 ### Feature Branch
 

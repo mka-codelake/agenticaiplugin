@@ -149,6 +149,20 @@ After the project analysis above, scan for non-English content. Read reference.m
 
 Store results: file counts per category + example file names for the status display.
 
+**Sensitive Content Audit (full mode only):**
+
+Scan the repository for sensitive content that should not be published. Read reference.md Section 10 for the full pattern catalog, scan method, exclusions, and false-positive handling.
+
+1. **Secrets & Credentials**: Grep for API keys (AWS, Google, Anthropic, OpenAI, GitHub, Stripe, Slack), private keys (SSH/PGP), JWTs, generic password assignments, connection strings
+2. **E-Mail Addresses**: Grep for any email pattern — every match is a finding unless the user explicitly opts into an email contact mode in Phase 4
+3. **Private Paths**: Grep for home directories, Windows drives, WSL mounts
+4. **Internal Infrastructure**: Grep for RFC 1918 IPs and internal hostnames
+5. **External GitHub Refs**: Grep for `github.com/<owner>/<repo>` and compare `<owner>` to the current remote owner — any mismatch is a finding
+6. **Git History (informational)**: `git log -p -100 | grep -cE '<pattern>'` per category — never auto-rewritten
+7. **Optional tools**: If `gitleaks` or `trufflehog` are in `PATH`, run them additionally and merge findings into the Secrets category. Silently continue if missing.
+
+Apply false-positive downgrades (test files, `.example`/`.sample`, env var references) per reference.md Section 10.5. Store: `sensitive_findings = { secrets: [...], emails: [...], paths: [...], infra: [...], external_refs: [...], git_history: [...], tools_used: [...] }` — each list contains up to 3 example file paths plus total count.
+
 **No remote? That's fine.** If `git remote get-url origin` returns nothing:
 - Set `{owner}` and `{repo}` to unknown — ask user later if needed for badge/logo URLs
 - Skip badge URLs that require `{owner}/{repo}` (GitHub Actions badge)
@@ -185,15 +199,25 @@ GitHub Publish — Project Status
     Code Comments:  {✓ All English | ⚠ German comments in {X} files}
     Code Strings:   {✓ All English | ⚠ German strings in {X} files}
     Git History:    {✓ All English | ℹ {N} German commit messages (not auto-translatable)}
+
+  Sensitive Content Audit:
+    Secrets & Credentials:   {✓ None found | ⚠ CRITICAL: {N} findings in {X} files}
+    E-Mail Addresses:        {✓ None found | ⚠ {N} addresses in {X} files}
+    Private Paths:           {✓ None found | ⚠ {N} paths in {X} files}
+    Internal Infrastructure: {✓ None found | ⚠ {N} references in {X} files}
+    External GitHub Refs:    {✓ None found | ⚠ {N} references in {X} files}
+    Git History:             {✓ Clean | ℹ {N} findings in history (requires manual rewrite)}
+    {If external tools ran: Additional scan via gitleaks/trufflehog applied}
 ```
 
 If language audit found no issues, show: `Language Audit: ✓ All content appears to be in English`
+If sensitive content audit found no issues, show: `Sensitive Content Audit: ✓ No sensitive content detected`
 
 ### Phase 4: Interactive Decisions
 
 **Check the mode first:**
 - `readme-only` → Skip to Phase 6, only do README enhancement (steps 8-9)
-- `license-only` → Skip to questions 1 and 7 only, then Phase 6 steps 1-3
+- `license-only` → Skip to questions 1 and 8 only, then Phase 6 steps 1-3
 - `full` → Ask all questions below
 
 Use `AskUserQuestion` for each decision. Provide smart defaults based on Phase 2 analysis.
@@ -204,36 +228,45 @@ Use `AskUserQuestion` for each decision. Provide smart defaults based on Phase 2
    - Options: Product (end-user app) / Library, Framework, or CLI / Small utility
    - Default: Infer from project type (npm package without "private" -> Library)
 
-2. **Development status** — Determines status banner
+2. **Contact method** — Determines how SECURITY.md and CODE_OF_CONDUCT.md expose reporting channels
+   - Options:
+     - "GitHub Security Advisories + Issues (Recommended)" — no email appears in any file
+     - "E-Mail contact" — asks for a public email address
+     - "Both" — GitHub-native primary, email as supplement
+   - Default: GitHub-native
+   - If the user selects "E-Mail contact" or "Both": follow up with a free-text question for the email address. Show this warning verbatim before the input: "Make sure this is a PUBLIC address intended to appear in your open-source repository."
+   - Store: `contact_mode`, `contact_email` (empty if mode is `github-native`)
+
+3. **Development status** — Determines status banner
    - Options: Stable / Beta / Heavy Development
    - No default (must ask)
 
-3. **Project version** — Only ask if `version_looks_default` is true
+4. **Project version** — Only ask if `version_looks_default` is true
    - Read reference.md Section 9.3 for status-dependent options
-   - Options depend on the development status chosen in Q2:
+   - Options depend on the development status chosen in Q3:
      - **Heavy Development**: Keep as-is (intentional) / Add pre-release suffix (e.g. `0.1.0-dev`) / Custom
      - **Beta**: `0.9.0` / `1.0.0-beta.1` / Keep as-is (intentional) / Custom
      - **Stable**: `1.0.0` (Recommended) / Keep as-is (intentional) / Custom
    - If user keeps as-is: no change. Otherwise store `new_version` for Phase 6.
 
-4. **NPM badges** — Only ask if npm package detected
+5. **NPM badges** — Only ask if npm package detected
    - Options: Yes / No
    - Default: Yes
 
-5. **Project logo** — Logo generation
+6. **Project logo** — Logo generation
    - Options: Yes, generate one / I have one already / No logo
    - No default
 
-6. **GitHub Actions release workflow** — Automated releases
+7. **GitHub Actions release workflow** — Automated releases
    - Options: Yes / No
    - Default: Yes
 
-7. **Patent-sensitive domain** — License override
+8. **Patent-sensitive domain** — License override
    - Options: Yes / No
    - Default: No
    - Only ask if project classification is "Small utility" (otherwise Apache 2.0 or GPL already handle patents)
 
-8. **Language translation** — Only ask if Phase 2 language audit found non-English content
+9. **Language translation** — Only ask if Phase 2 language audit found non-English content
    - Use `AskUserQuestion` with `multiSelect: true`:
      "Non-English content detected. What should be translated to English?"
    - Options (only show categories with findings):
@@ -242,6 +275,20 @@ Use `AskUserQuestion` for each decision. Provide smart defaults based on Phase 2
      - "User-facing strings in code ({Z} files)" — if string findings > 0
      - "Nothing — keep as-is"
    - If user selects nothing or "keep as-is": skip translation in Phase 6
+
+10. **Sensitive content redaction** — Only ask if Phase 2 sensitive content audit found any findings
+    - Use `AskUserQuestion` with `multiSelect: true`:
+      "Sensitive content detected. Select categories to handle:"
+    - Options (only show categories with findings):
+      - "Secrets & Credentials ({N}) — CRITICAL, must be removed before publish" (pre-selected when > 0)
+      - "E-Mail addresses ({N}) — replace with contact placeholder"
+      - "Private paths ({N}) — replace with placeholders"
+      - "Internal infrastructure ({N}) — replace with placeholders"
+      - "External GitHub refs ({N}) — remove or generalize"
+      - "Git history findings ({N}) — show manual rewrite instructions (informational)"
+      - "Skip all — I'll handle sensitive content manually"
+    - Store: `redaction_categories` (list of selected keys)
+    - If the user skips Secrets but secrets were found: show a warning in Phase 7 summary (see "WARNING" block there)
 
 ### Phase 5: Plan Preview
 
@@ -273,6 +320,18 @@ Planned actions (Branch: feat/github-publish):
   TRANSLATE  Code comments → English ({Y} files)
   TRANSLATE  Code strings → English ({Z} files)
 
+  {If sensitive content redaction selected:}
+  REDACT     Secrets & Credentials ({N} findings in {X} files) — user confirms each
+  REDACT     E-Mail addresses ({N} findings) → <contact-email>
+  REDACT     Private paths ({N} findings) → /path/to/your/project
+  REDACT     Internal infrastructure ({N} findings) → <internal-host>
+  REDACT     External GitHub refs ({N} findings) → user confirms per finding
+  INFO       Git history: {N} findings — rewrite instructions in summary
+
+  {SECURITY.md / CODE_OF_CONDUCT.md reflect contact_mode:}
+  UPDATE     SECURITY.md — {GitHub Security Advisory link | email | both}
+  UPDATE     CODE_OF_CONDUCT.md — {GitHub Issues link | email | both}
+
 Proceed with these changes?
 ```
 
@@ -301,7 +360,7 @@ If `package.json` exists, update the `license` and `author` fields using the Edi
 
 **Step 2.5: Version Update (conditional)**
 
-Only if the user chose a new version in Phase 4 Q3 (`new_version` is set):
+Only if the user chose a new version in Phase 4 Q4 (`new_version` is set):
 
 1. Update the version in the primary manifest file using the Edit tool
 2. If `package.json`: update `"version": "{new_version}"`
@@ -311,7 +370,7 @@ Combine with the license/author update from Step 2 when both target `package.jso
 
 **Step 2.7: Language Translation (conditional)**
 
-Only execute if the user selected categories for translation in Phase 4 Question 8. Read reference.md Section 8.5 for translation rules.
+Only execute if the user selected categories for translation in Phase 4 Question 9. Read reference.md Section 8.5 for translation rules.
 
 For each selected category, process files identified in Phase 2:
 
@@ -327,6 +386,37 @@ For each selected category, process files identified in Phase 2:
 - Preserve formatting, indentation, and comment style
 - If a string might be intentionally German (e.g., i18n locale file), skip it and note in summary
 
+**Step 2.8: Sensitive Content Redaction (conditional)**
+
+Only execute if the user selected categories in Phase 4 Q10 (`redaction_categories` is non-empty). Read reference.md Section 10.6 for the full redaction rules.
+
+For each selected category, process the files identified in Phase 2:
+
+1. **Secrets**: Show each finding individually to the user via `AskUserQuestion` (options: Redact / Keep / Delete file). Do not batch — secrets require per-finding confirmation. Replace approved findings with `<REDACTED>` using the Edit tool. If the user chose "Delete file", move the file to the repository's trash or remove it (confirm first).
+
+2. **E-Mail addresses**: Read each flagged file, replace every email match with `<contact-email>` using the Edit tool. Exception: if `contact_mode` is `email` or `both`, the explicitly approved `contact_email` stays untouched in SECURITY.md and CODE_OF_CONDUCT.md.
+
+3. **Private paths**: Replace with style-matched placeholders:
+   - `/home/<user>/...` → `/path/to/your/project`
+   - `/Users/<user>/...` → `/path/to/your/project`
+   - `C:\<user>\...` → `C:\path\to\project`
+   - `/mnt/c/...` → `/path/to/your/project`
+
+4. **Internal infrastructure**: Replace private IPs with `<private-ip>` and internal hostnames with `<internal-host>`.
+
+5. **External GitHub refs**: For each finding, ask the user (Redact to `<owner>/<repo>` / Remove line / Keep). Preserve surrounding structure.
+
+6. **Git history**: Do NOT modify. Only collect the findings for the Phase 7 summary (reference.md Section 10.8).
+
+**Critical rules (strict):**
+- Never modify code logic, variables, or function names
+- One Edit call per file (batch all redactions for that file)
+- Preserve formatting, indentation, and delimiters
+- Test files (`*test*`, `*spec*`, `fixtures/`, `testdata/`): flag only, do not auto-redact
+- Apply false-positive downgrades before asking (reference.md Section 10.5)
+
+After redaction, re-run the relevant Grep scans to confirm zero findings remain in the working tree for each processed category. If any secret still matches, flag as an error and stop before commit.
+
 **Step 3: CONTRIBUTING.md**
 
 Use `templates/CONTRIBUTING.md.j2` as structure. Fill in:
@@ -338,11 +428,20 @@ Use `templates/CONTRIBUTING.md.j2` as structure. Fill in:
 
 **Step 4: CODE_OF_CONDUCT.md**
 
-Use `templates/CODE_OF_CONDUCT.md.j2` as structure. Ask user for contact email if not already known.
+Use `templates/CODE_OF_CONDUCT.md.j2` as structure. The template branches on `contact_mode` (set in Phase 4 Q2). Fill in:
+- `contact_mode`: `github-native` | `email` | `both`
+- `issues_url`: `https://github.com/{owner}/{repo}/issues` (only used when mode is `github-native` or `both`)
+- `contact_email`: Only if mode is `email` or `both` (otherwise leave unset)
+
+Do NOT ask for an email here — Q2 in Phase 4 already handled that decision.
 
 **Step 5: SECURITY.md**
 
-Use `templates/SECURITY.md.j2` as structure. Use the same contact email.
+Use `templates/SECURITY.md.j2` as structure. The template branches on `contact_mode`. Fill in:
+- `contact_mode`: Same as Q2
+- `project_name`: From package.json name, repo name, or directory name
+- `advisory_url`: `https://github.com/{owner}/{repo}/security/advisories/new` (only used when mode is `github-native` or `both`)
+- `contact_email`: Only if mode is `email` or `both`
 
 **Step 6: GitHub Actions release workflow**
 
@@ -420,7 +519,8 @@ git -C {repo_path} commit -m "docs: prepare repository for public release
 Add LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md,
 GitHub Actions release workflow, issue templates, and project logo.
 Enhance README with badges, logo, and status banner.
-{If translations were applied: Translate German content to English ({N} files).}"
+{If translations were applied: Translate German content to English ({N} files).}
+{If sensitive content was redacted: Redact sensitive content ({categories}).}"
 ```
 
 **Output a structured summary:**
@@ -452,6 +552,20 @@ Language translations:
   {checkmark} Code comments: {Y} files translated to English
   {checkmark} Code strings: {Z} files translated to English
   {info} Git history: {N} German commit messages (not modified — would require history rewrite)
+
+{If sensitive content redaction was applied:}
+Sensitive content audit:
+  {checkmark} Secrets redacted: {N} (CRITICAL findings addressed)
+  {checkmark} E-Mails redacted: {N}
+  {checkmark} Private paths redacted: {N}
+  {checkmark} Internal infra redacted: {N}
+  {checkmark} External refs redacted: {N}
+  {info} Git history: {N} findings not modified.
+         Rewrite required: use `git filter-repo` or BFG Repo-Cleaner.
+         See: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository
+
+{If secrets were found but NOT redacted:}
+  ⚠ WARNING: {N} secrets remain in the working tree. Do NOT push until resolved.
 
 Next steps:
   1. Review changes:  git diff {default_branch}..feat/github-publish
