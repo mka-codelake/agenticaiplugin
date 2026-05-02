@@ -25,6 +25,7 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 - **CLI Design** — Designs CLI interfaces: arguments, flags, subcommands, help text, output formats, exit codes
 - **License Check** — Scans dependencies, tools, scripts, and LLM model references for license compatibility issues across 7 ecosystems
 - **Markdown Converter** — Converts PDF, Word, PowerPoint, Excel, images, audio, and more to Markdown
+- **Handover** — Cross-session continuity snapshots: capture open items, blockers, and next steps; resume cleanly after a break with a freshness check
 - **Modular Rules System** — Plugin rules installed per-project, selectively updatable
 
 ## Installation
@@ -83,6 +84,7 @@ Initialization creates:
 | `create-cli` | Design CLI parameters, flags, and UX |
 | `license-check` | Check dependency license compatibility (full scan or `--quick`) |
 | `markdown-converter` | Convert files to Markdown (PDF, Word, images, audio, etc.) |
+| `handover` | Save/load cross-session continuity snapshot (open items, blockers, next steps) with reconciliation against prior state |
 | `init` | Initialize plugin in a project |
 | `update-plugin` | Update plugin rules to latest version |
 | `promote-perms` | Promote workspace permissions to user level |
@@ -141,6 +143,20 @@ End-to-end npm release workflow in one skill. The first half (Phase 2 "Release C
 
 The second half audits across seven dimensions: `package.json` hygiene (required + recommended fields, `bin`-path prefix, `prepublishOnly` guard), version sync (informational if cutting ran, critical otherwise), license compliance (with explicit `NOTICE` handling for Apache-2.0), README sanity, tarball content scan (absolute paths, emails, IPs, hostnames, secret patterns for JWT/npm/GitHub/OpenAI/Anthropic/Slack/AWS tokens, dotfile leaks like `.claude/settings.local.json` documented by Check Point Research as a real-world credential vector, source-maps with embedded `sourcesContent`), registry state, and dependency vulnerabilities. Findings are classified Critical / Warning / Informational and presented for interactive remediation. The actual `npm publish` step requires explicit user confirmation in Phase 9 — default is "user runs publish manually" because of 2FA passkey/OTP interaction limits.
 
+### Handover
+
+```bash
+/agenticaiplugin:handover               # Save (default): capture current state
+/agenticaiplugin:handover save          # Same as above, explicit
+/agenticaiplugin:handover load          # Load existing snapshot back into context
+```
+
+Cross-session continuity mechanism that complements Claude Code's auto-memory (which holds persistent semantic facts) with a *temporal* snapshot — "where was I, what's open, what's next?". Useful when a session approaches the context limit, when work pauses for the day, or when picking up after a break.
+
+**Save mode** reads the existing snapshot first (if present), gathers live repo state (`git status`, `git log`, `gh issue list`, `gh pr list`), and synthesizes a new snapshot using **reconciliation rules**: items demonstrably resolved this session are dropped, items not mentioned are preserved as still-open by default, conflicts are resolved by current state, and the hands-off list carries forward unless explicitly freed. Writes to `<project_memory_dir>/handover.md` with a 7-section structure (Letzter Stand, Repo-State, Offene Items, Blocker, Geplante nächste Schritte, Referenzen, Hands-off-Liste), and indexes it via a one-line entry under `## Handover` in `MEMORY.md`.
+
+**Load mode** reads the snapshot, performs a freshness check (warns at 15+ days, strongly at 30+), prints the full content into context, and suggests verification steps. Skill is explicit-trigger only (`disable-model-invocation: true`) — never auto-loads, since stale snapshots silently entering context would corrupt new sessions. One file per project, no archive; for a fresh start, delete `handover.md` manually.
+
 ## Configuration
 
 ### Project Guidelines
@@ -184,6 +200,7 @@ agenticaiplugin/
 │   ├── git-smart-commit/        # Intelligent commit creation
 │   ├── github-publish/          # Public release preparation
 │   ├── gitme/                   # Smart commit command alias
+│   ├── handover/                # Cross-session continuity snapshots
 │   ├── license-check/           # License compatibility checking
 │   ├── npm-publisher/           # npm pre-publish audit
 │   ├── help/                    # Plugin help overview

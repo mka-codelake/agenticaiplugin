@@ -58,6 +58,11 @@ Show the user the following overview:
 |---------|-------------|
 | **markdown-converter** | Converts files to Markdown via `uvx markitdown`. Supports PDF, Word, PowerPoint, Excel, HTML, CSV, JSON, XML, images, audio, ZIP, YouTube URLs, EPub |
 
+### Session
+| Command | Description |
+|---------|-------------|
+| **handover** | Save (`save`, default) or load (`load`) a structured cross-session continuity snapshot in the project's auto-memory directory. Captures last activity, open items, blockers, planned next steps. Bridges sessions when context fills or work pauses |
+
 ### System
 | Command | Description |
 |---------|-------------|

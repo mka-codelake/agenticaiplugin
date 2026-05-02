@@ -81,6 +81,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:github-publish` | Prepare repo for public GitHub release (README, badges, logo, license, etc.) |
 | `/agenticaiplugin:npm-publish` | End-to-end npm release: cut release (semver bump + CHANGELOG from Conventional Commits) + pre-publish audit (package.json, version sync, tarball, secrets, license) |
 | `/agenticaiplugin:license-check` | Check license compatibility of dependencies, tools, and LLM models |
+| `/agenticaiplugin:handover` | Save/load cross-session continuity snapshot (open items, blockers, next steps) — reconciles with prior state, never auto-loads |
 | `/agenticaiplugin:promote-perms` | Promote workspace permissions to user level |
 | `/agenticaiplugin:help` | Show overview of all plugin commands and skills |
 
