@@ -244,7 +244,9 @@ Apply these before reporting findings to avoid noise:
 
 ---
 
-## 4. Version Sync
+## 4. Version Sync (Audit-Side Check)
+
+**Note:** As of plugin v0.16.0, version-sync remediation is performed in **Phase 2 Release Cutting** (see Section 11). The audit here is now informational — the cutting phase already syncs source-file VERSION constants to `package.json.version` whenever it bumps. A mismatch found in audit means cutting was skipped (e.g., audit-only mode) or a constant exists that the cutting-phase grep missed; in either case the user is informed.
 
 ### 4.1 Detection
 
@@ -267,16 +269,16 @@ Common patterns:
 
 ### 4.2 Resolution
 
-For each mismatch, ask the user:
-- **Update source file** to match `package.json` (most common case — the source forgot to bump)
-- **Update package.json** to match source (rare — source was bumped but package.json missed)
+For each mismatch found in audit (i.e., not handled by cutting):
+- **Update source file** to match `package.json` (most common case)
+- **Update package.json** to match source (rare)
 - **Skip** (intentional divergence — e.g., the constant tracks something else)
 
 ### 4.3 Why this is critical
 
 Real example from `aiknowledgedb` v2.1.0 publish: `package.json` was bumped to `2.1.0`, but `app/src/cli.ts:43` retained `const VERSION = '2.0.0'`. The published binary reported `aiknowledgedb --version` → `2.0.0`, contradicting the registry metadata. Caught only because the publisher manually verified — without an audit, it would have shipped wrong.
 
-Better solutions exist (e.g., `import {version} from '../package.json' assert {type: 'json'}`), but they require build-time tooling. For now, sync detection is the pragmatic guard.
+Better solutions exist (e.g., `import {version} from '../package.json' assert {type: 'json'}`), but they require build-time tooling. The Phase 2 cutting workflow + audit-side check together provide pragmatic defense-in-depth.
 
 ---
 
@@ -344,14 +346,130 @@ The skill emphasizes "audit clean, ready to publish — here's the command" as t
 
 ---
 
-## 9. Out-of-Scope (Document, Don't Implement)
+## 9. Release Cutting (Phase 2)
+
+The agent's Phase 2 prepares a release: it decides the next version, syncs hard-coded VERSION constants in source files, generates a CHANGELOG entry, and produces a `chore(release): vX.Y.Z` commit before the audit phases run. This section documents the cutting logic in detail.
+
+### 9.1 Detection branches
+
+Compare local `package.json.version` against `npm view <name> version`. Four branches:
+
+| Local vs. published | Treatment |
+|---|---|
+| Package not on registry (404) | First publish — skip cutting, inform user that `package.json.version` will be the initial release |
+| `local == published` | Re-release branch (main path) — propose bump |
+| `local > published` | Already-bumped — confirm and optionally generate CHANGELOG only |
+| `local < published` | Inconsistent — abort with clear error |
+
+### 9.2 Conventional Commits parsing
+
+Read commits since the last release tag (`git log v{published_latest}..HEAD --pretty=format:"%H|%s|%b"`). Parse each commit's subject:
+
+| Pattern | Type | Bump suggestion |
+|---|---|---|
+| `feat:` or `feat(scope):` | feature | minor |
+| `fix:` or `fix(scope):` | bug fix | patch |
+| `refactor:`, `perf:`, `style:`, `test:`, `chore:`, `build:`, `ci:`, `docs:` | maintenance | patch |
+| `<type>!:` (any type with `!`) | breaking | **major** |
+| Body contains `BREAKING CHANGE:` | breaking | **major** |
+
+Aggregate across all commits — the highest-impact signal wins (any `major` → bump major; else any `feat` → minor; else patch).
+
+**Filter out:**
+- Merge commits (`Merge branch ...`, `Merge pull request ...`) — auto-generated, no semantic value
+- Previous `chore(release):` commits — these mark prior releases, not new content
+- Co-author trailer lines from bodies (`Co-Authored-By: ...`)
+
+### 9.3 Bump computation
+
+Given current version `MAJOR.MINOR.PATCH` and bump type:
+
+| Bump | New version |
+|---|---|
+| major | `(MAJOR+1).0.0` |
+| minor | `MAJOR.(MINOR+1).0` |
+| patch | `MAJOR.MINOR.(PATCH+1)` |
+
+Pre-release suffixes (`-alpha.1`, `-rc.2`, etc.): if user is on a pre-release, the heuristic should suggest the next pre-release increment (`1.0.0-alpha.1` → `1.0.0-alpha.2`); but in practice it's safer to ask the user explicitly when pre-releases are involved.
+
+**Always present the user with a multi-choice question.** Heuristic-suggested option is highlighted as recommended, but the user can override to any of patch / minor / major / custom / skip.
+
+### 9.4 Code-constant sync
+
+After the user confirms a bump, update `package.json.version`, then sync hard-coded VERSION constants in source files (same grep pattern as Section 4.1). For each match: ask the user whether to update (default Yes for `*VERSION` constants, default Skip for context-ambiguous matches like `version: "1.2.3"` in config objects).
+
+### 9.5 CHANGELOG format (Keep a Changelog)
+
+Reference: <https://keepachangelog.com/en/1.1.0/>
+
+```markdown
+## [X.Y.Z] — YYYY-MM-DD
+
+### Added
+- New features (mapped from `feat` commits)
+
+### Fixed
+- Bug fixes (mapped from `fix` commits)
+
+### Changed
+- Other changes (mapped from `refactor`, `perf`, `chore` (excluding chore(release)), `build`, `ci`)
+
+### Removed
+- Removals (only when explicit in commit message; usually paired with major bumps)
+```
+
+Section ordering and naming follow Keep a Changelog. Empty subsections (no commits of that type) are omitted.
+
+### 9.6 CHANGELOG file detection
+
+Search at repo root in priority order:
+1. `CHANGELOG.md` (most common)
+2. `CHANGES.md`
+3. `HISTORY.md`
+
+If found: prepend the new section right after the file header (typically a `# Changelog` line and intro paragraph). Do not append to the end.
+
+If none found: ask the user via AskUserQuestion. Default Yes — create `CHANGELOG.md` at repo root with the standard Keep a Changelog header and the new section as the first entry.
+
+### 9.7 Commit message format
+
+```
+chore(release): v{X.Y.Z}
+```
+
+No body required for routine releases. The CHANGELOG entry IS the documentation. Optional body: short summary if the bump is unusual (e.g., a major version warranting context).
+
+### 9.8 Skip conditions
+
+Phase 2 is skipped entirely when:
+- `--skip-release-cut` flag is passed
+- `--audit-only` flag is passed (audit-only is stricter — also skips fixes and publish)
+- The user selects "Skip" from the bump-type AskUserQuestion (treats run as re-publish or audit-only)
+- First-publish branch (no prior version to cut from)
+
+When skipped, Phase 3 (audit) runs against the existing `package.json.version`, and any version-sync mismatches surface as informational findings (Section 4) rather than being remediated automatically.
+
+### 9.9 Edge cases
+
+**No commits since last tag:** AskUserQuestion: skip cutting / force re-release with empty CHANGELOG / abort. The first option is usually correct (nothing changed; user might be re-running the audit on a previously-cut release).
+
+**Last tag missing:** If `git describe --tags --match 'v*'` returns nothing (no tags exist locally) but `npm view` shows a published version, fall back to scanning all commits as if they were a single release. Warn the user that bump-type detection is less reliable without tag boundaries.
+
+**User edits CHANGELOG manually before commit:** AskUserQuestion offers an "Edit before commit" option. The agent writes the generated section to a temp file, prints the path, and waits — user edits in their editor, confirms, agent reads the result and uses it for the commit.
+
+**Multi-line commit subjects (rare):** Use only the first line of `%s` for parsing; the rest goes into `%b` (body) which is checked separately for `BREAKING CHANGE:`.
+
+---
+
+## 10. Out-of-Scope (Document, Don't Implement)
 
 If the user requests these, point to alternatives or future work:
 
-- **Monorepo support** (Lerna/Nx/pnpm-workspaces) — eachpackage has its own audit; needs orchestration. Aborted in Phase 0.
+- **Monorepo support** (Lerna/Nx/pnpm-workspaces) — each package has its own audit; needs orchestration. Aborted in Phase 0.
 - **`npm unpublish`** — different tool, time-window restricted, security-sensitive. Use `npm` CLI directly.
 - **`npm deprecate`** — marks a version as deprecated without removal. Different workflow.
 - **Yarn / pnpm publish** — npm CLI is the lowest-common-denominator. Yarn/pnpm proxy to npm anyway for the publish step.
 - **Private-registry authentication** (GitHub Packages, GitLab Package Registry, Verdaccio, JFrog Artifactory) — different `.npmrc` setup per registry, often org-specific tokens.
 - **Code signing / npm provenance** — `npm publish --provenance` is supported but requires GitHub Actions + OIDC setup; covered briefly in the optional auto-publish workflow template, not as a standalone audit step.
-- **CHANGELOG generation** — adjacent concern, fits a `release-cutter` skill better.
+- **BREAKING-CHANGE detection from code diff** (vs. only commit messages) — too complex to do reliably; trust the author's Conventional-Commit marking.
+- **Pre-release version arithmetic** beyond simple suggestions — pre-release semver is intricate and project-specific; the cutting phase asks the user explicitly when pre-release suffixes are detected.
