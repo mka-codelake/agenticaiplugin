@@ -75,6 +75,7 @@ Initialization creates:
 | Command | Description |
 |---------|-------------|
 | `github-publish` | Prepare repo for public release (README, license, badges, logo, etc.) |
+| `npm-publish` | Pre-publish audit for npm packages (package.json, tarball content, secrets, version sync) |
 | `gitme` | Smart Git commits with logical grouping |
 | `code-review` | Multi-specialist code review (4 modes: diff, file, complete, renovate) |
 | `architecture-audit` | 7-dimension architecture assessment with A-E ratings |
@@ -127,6 +128,16 @@ Findings are deduplicated, sorted by severity, and consolidated into a single re
 
 Creates a `feat/github-publish` branch with: LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, project logo (SVG), badges, status banner, GitHub Actions release workflow, and issue templates. Detects default/placeholder versions and suggests appropriate versioning based on development status. Audits for non-English content (German detection) and offers per-category translation of documentation, code comments, and user-facing strings to English. Scans for sensitive content (API keys, tokens, private email addresses, internal infrastructure references, local filesystem paths) and offers interactive redaction before publish. Shows a plan preview before making changes. Optionally offers a license compatibility check after completion.
 
+### NPM Publish
+
+```bash
+/agenticaiplugin:npm-publish                  # Full audit + interactive fixes on cwd
+/agenticaiplugin:npm-publish --repo /path     # Target a specific package directory
+/agenticaiplugin:npm-publish --audit-only     # Report findings only, skip fixes/publish
+```
+
+Audits npm packages across seven dimensions before publish: `package.json` hygiene (required + recommended fields, `bin`-path prefix, `prepublishOnly` guard), version sync between `package.json.version` and hard-coded `VERSION` constants in source files, license compliance (with explicit `NOTICE` handling for Apache-2.0), README sanity, tarball content scan (absolute paths, emails, IPs, hostnames, secret patterns for JWT/npm/GitHub/OpenAI/Anthropic/Slack/AWS tokens, dotfile leaks like `.claude/settings.local.json` documented by Check Point Research as a real-world credential vector, source-maps with embedded `sourcesContent`), registry state (first-publish vs update, semver bump), and dependency vulnerabilities. Findings are classified Critical / Warning / Informational and presented for interactive remediation. Audit-only by default — explicit confirmation required for the actual `npm publish` step.
+
 ## Configuration
 
 ### Project Guidelines
@@ -156,6 +167,7 @@ agenticaiplugin/
 ├── agents/
 │   ├── github-publisher.md      # GitHub publish workflow
 │   ├── license-checker.md       # License compatibility scanning
+│   ├── npm-publisher.md         # npm publish audit and remediation
 │   ├── project-initializer/     # Project setup and update sub-agents
 │   │   ├── init-agenticai.md
 │   │   ├── update-agenticai.md
@@ -170,6 +182,7 @@ agenticaiplugin/
 │   ├── github-publish/          # Public release preparation
 │   ├── gitme/                   # Smart commit command alias
 │   ├── license-check/           # License compatibility checking
+│   ├── npm-publisher/           # npm pre-publish audit
 │   ├── help/                    # Plugin help overview
 │   ├── init/                    # Project initialization
 │   ├── markdown-converter/      # File-to-Markdown conversion

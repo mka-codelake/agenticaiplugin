@@ -79,6 +79,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
 | `/agenticaiplugin:markdown-converter` | Convert files to Markdown via markitdown |
 | `/agenticaiplugin:github-publish` | Prepare repo for public GitHub release (README, badges, logo, license, etc.) |
+| `/agenticaiplugin:npm-publish` | Pre-publish audit for npm packages (package.json hygiene, version sync, tarball content scan, secrets, license compliance) |
 | `/agenticaiplugin:license-check` | Check license compatibility of dependencies, tools, and LLM models |
 | `/agenticaiplugin:promote-perms` | Promote workspace permissions to user level |
 | `/agenticaiplugin:help` | Show overview of all plugin commands and skills |
@@ -128,6 +129,7 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 
 - ✅ `agenticaiplugin:project-initializer` — in invocation/instruction context
 - ✅ `agenticaiplugin:github-publisher` — in invocation/instruction context
+- ✅ `agenticaiplugin:npm-publisher` — in invocation/instruction context
 - ❌ `project-initializer` — will fail, Claude Code can't resolve the agent type
 
 **Exception:** Pure descriptive/documentation contexts (like tables listing available agents) may use the short name since no invocation happens there.
