@@ -75,7 +75,7 @@ Initialization creates:
 | Command | Description |
 |---------|-------------|
 | `github-publish` | Prepare repo for public release (README, license, badges, logo, etc.) |
-| `npm-publish` | Pre-publish audit for npm packages (package.json, tarball content, secrets, version sync) |
+| `npm-publish` | End-to-end npm release: cut release (semver bump from Conventional Commits + CHANGELOG generation) + pre-publish audit (package.json, tarball content, secrets, version sync) |
 | `gitme` | Smart Git commits with logical grouping |
 | `code-review` | Multi-specialist code review (4 modes: diff, file, complete, renovate) |
 | `architecture-audit` | 7-dimension architecture assessment with A-E ratings |
@@ -131,12 +131,15 @@ Creates a `feat/github-publish` branch with: LICENSE, CONTRIBUTING.md, CODE_OF_C
 ### NPM Publish
 
 ```bash
-/agenticaiplugin:npm-publish                  # Full audit + interactive fixes on cwd
-/agenticaiplugin:npm-publish --repo /path     # Target a specific package directory
-/agenticaiplugin:npm-publish --audit-only     # Report findings only, skip fixes/publish
+/agenticaiplugin:npm-publish                       # Full release flow: cut + audit + fixes
+/agenticaiplugin:npm-publish --repo /path          # Target a specific package directory
+/agenticaiplugin:npm-publish --skip-release-cut    # Skip semver bump + CHANGELOG (already done)
+/agenticaiplugin:npm-publish --audit-only          # Diagnostic only — no writes, no publish
 ```
 
-Audits npm packages across seven dimensions before publish: `package.json` hygiene (required + recommended fields, `bin`-path prefix, `prepublishOnly` guard), version sync between `package.json.version` and hard-coded `VERSION` constants in source files, license compliance (with explicit `NOTICE` handling for Apache-2.0), README sanity, tarball content scan (absolute paths, emails, IPs, hostnames, secret patterns for JWT/npm/GitHub/OpenAI/Anthropic/Slack/AWS tokens, dotfile leaks like `.claude/settings.local.json` documented by Check Point Research as a real-world credential vector, source-maps with embedded `sourcesContent`), registry state (first-publish vs update, semver bump), and dependency vulnerabilities. Findings are classified Critical / Warning / Informational and presented for interactive remediation. Audit-only by default — explicit confirmation required for the actual `npm publish` step.
+End-to-end npm release workflow in one skill. The first half (Phase 2 "Release Cutting") detects the registry state, analyzes Conventional Commits since the last release tag, suggests a semver bump (patch/minor/major), bumps `package.json.version`, syncs hard-coded `VERSION` constants in source files, generates a Keep-a-Changelog entry from grouped commits, and produces a `chore(release): vX.Y.Z` commit. Skipped on first-publish, when local is already ahead of published, or via `--skip-release-cut` / `--audit-only`.
+
+The second half audits across seven dimensions: `package.json` hygiene (required + recommended fields, `bin`-path prefix, `prepublishOnly` guard), version sync (informational if cutting ran, critical otherwise), license compliance (with explicit `NOTICE` handling for Apache-2.0), README sanity, tarball content scan (absolute paths, emails, IPs, hostnames, secret patterns for JWT/npm/GitHub/OpenAI/Anthropic/Slack/AWS tokens, dotfile leaks like `.claude/settings.local.json` documented by Check Point Research as a real-world credential vector, source-maps with embedded `sourcesContent`), registry state, and dependency vulnerabilities. Findings are classified Critical / Warning / Informational and presented for interactive remediation. The actual `npm publish` step requires explicit user confirmation in Phase 9 — default is "user runs publish manually" because of 2FA passkey/OTP interaction limits.
 
 ## Configuration
 

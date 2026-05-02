@@ -41,7 +41,7 @@ Show the user the following overview:
 | Command | Description |
 |---------|-------------|
 | **github-publish** | Prepares a GitHub repository for public release: create/update README (baseline structure, badges, logo, status banner), license selection, version check, sensitive content audit (secrets, private data, internal refs), CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, GitHub Actions release workflow, issue templates. Modes: `--readme` (README only), `--license` (license only), `--repo <path>` (target a different repo) |
-| **npm-publish** | Pre-publish audit for npm packages: validates `package.json` hygiene (required + recommended fields, `bin` path prefix, `prepublishOnly` guard), version sync between `package.json.version` and source-file VERSION constants, license compliance (Apache-2.0 NOTICE handling), README sanity, tarball content scan (absolute paths, emails, IPs, hostnames, secret patterns for JWT/npm/GitHub/OpenAI/Anthropic/Slack/AWS tokens, dotfile leaks like `.claude/settings.local.json`, source-maps with embedded `sourcesContent`), registry state, and dependency vulnerabilities. Findings classified Critical/Warning/Informational with interactive remediation. Modes: `--audit-only` (no fixes/publish), `--repo <path>` (target a different package). Audit-only by default — explicit confirmation required for actual publish |
+| **npm-publish** | End-to-end npm release workflow. Phase 2 cuts the release (analyzes Conventional Commits since last tag, suggests semver bump, updates `package.json.version`, syncs source-file VERSION constants, generates a Keep-a-Changelog entry, commits as `chore(release): vX.Y.Z`). Phases 3+ audit publish-readiness across seven dimensions (`package.json` hygiene including `bin` path prefix and `prepublishOnly` guard, version sync, license compliance with Apache-2.0 NOTICE handling, README sanity, tarball content scan for absolute paths/emails/IPs/hostnames/secret patterns/dotfile leaks/source-maps with embedded sourcesContent, registry state, dependency vulnerabilities). Findings classified Critical/Warning/Informational with interactive remediation. Modes: `--skip-release-cut` (skip Phase 2), `--audit-only` (skip Phase 2 + all writes/publish), `--repo <path>` (target a different package). Audit-only for the publish step by default — explicit confirmation required for actual `npm publish` |
 
 ### Development
 | Command | Description |
@@ -111,7 +111,7 @@ Agents are isolated contexts for specific tasks.
 |-------|------|
 | **github-publisher** | Prepares repositories for public release on GitHub (including README creation) |
 | **license-checker** | Scans project dependencies and checks license compatibility |
-| **npm-publisher** | Audits npm packages pre-publish (package.json hygiene, version sync, tarball content, secrets, dotfile leaks, registry state) |
+| **npm-publisher** | Cuts and audits npm releases (Phase 2: semver bump from Conventional Commits + CHANGELOG generation; Phase 3+: package.json hygiene, version sync, tarball content, secrets, dotfile leaks, registry state) |
 | **project-initializer** | Sets up projects for the plugin and performs updates |
 
 ---
