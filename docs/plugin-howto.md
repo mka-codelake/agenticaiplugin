@@ -80,10 +80,40 @@ These fields apply to SKILL.md files in `skills/` and also to command files in `
 | `allowed-tools` | NO | all | Tool restrictions (YAML list supported) |
 | `context` | NO | - | `fork` for isolated sub-agent context |
 | `agent` | NO | - | Agent type for execution |
+| `model` | NO | inherits session | `haiku` / `sonnet` / `opus` / `inherit` — see [Effort + Model](#effort--model) |
+| `effort` | NO | inherits session | `low` / `medium` / `high` / `xhigh` / `max` — see [Effort + Model](#effort--model) |
 | `hooks` | NO | - | PreToolUse/PostToolUse/Stop hooks |
 | `user-invocable` | NO | `true` | Show in slash command menu |
 | `disable-model-invocation` | NO | `false` | Prevent Claude from auto-invoking |
 | `argument-hint` | NO | - | Hint shown in slash command menu |
+
+### Effort + Model
+
+Both `effort:` and `model:` are officially documented Anthropic fields ([Skills](https://code.claude.com/docs/en/skills#frontmatter-reference), [Subagents](https://code.claude.com/docs/en/sub-agents#supported-frontmatter-fields)). They override the session defaults *while the skill or agent is active*.
+
+**`effort:`** — Reasoning/thinking budget. Higher = more deliberate analysis, longer latency, higher cost.
+
+**`model:`** — Which Claude model executes the skill or agent. `haiku` is fast/cheap, `sonnet` balanced, `opus` deepest reasoning.
+
+**Plugin classification heuristic.** `effort:` measures the *skill's own* reasoning load — not the user-perceived workload. A wrapper skill that delegates to an agent has *low* skill-side effort even when the agent does heavy work.
+
+| Pattern | Typical `effort:` | Typical `model:` | Example |
+|---------|-------------------|------------------|---------|
+| Pure lookup / display | `low` | `haiku` | `help`, `markdown-converter` |
+| Single-pass mechanical action | `low` | `haiku` | `promote-perms` |
+| Thin wrapper that delegates to an agent | `low` | inherit | `init`, `github-publish` |
+| Reconciliation / structured output | `medium` | inherit | `handover` |
+| Domain-deep single-pass reasoning | `high` | inherit | `create-cli`, `git-smart-commit` |
+| Multi-phase orchestration with consolidation | `xhigh` | inherit | `code-review`, `architecture-audit`, `qa` |
+
+**Where each override applies (and where it does not).** This determines whether `model:` is worth setting at all:
+
+- **Skill without `context: fork`** → `effort:` and `model:` apply to the main conversation while the skill body executes.
+- **Skill with `context: fork`** → both apply inside the fork; the main conversation is unaffected.
+- **Skill that delegates via the Task tool to a subagent** → both apply only to the *orchestrating skill body*. The spawned subagent runs with **its own** `model:`/`effort:` (subagent definition wins per the [model resolution order](https://code.claude.com/docs/en/sub-agents#choose-a-model)). So setting `model: haiku` on a *thin* wrapper skill has minimal impact — the wrapper body is too short for the model switch to outweigh the prompt-cache invalidation cost.
+- **Skill preloaded into a subagent via `skills:`** → the skill content is injected as domain knowledge. The subagent runs on its own `model:`/`effort:`. The skill's frontmatter `model:`/`effort:` is **ignored** in this path.
+
+**Pairing rule.** Set `model: haiku` only when the skill body itself does the work (pure lookup, mechanical action). For thin wrappers that delegate, leave `model` to inherit — set only `effort: low`. `effort:` is always worth setting because it shapes the reasoning budget for whatever portion of the skill body actually runs.
 
 ### Auto-Activation Patterns
 
@@ -268,6 +298,7 @@ Clear description.
 | `description` | YES | Max 1024 chars, include triggers | - |
 | `tools` | NO | Comma-separated | Inherit all |
 | `model` | NO | `sonnet`, `opus`, `haiku` | `sonnet` |
+| `effort` | NO | `low`, `medium`, `high`, `xhigh`, `max` | inherits session — see [Effort + Model](#effort--model) |
 | `color` | NO | `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan` | - |
 | `skills` | NO | Comma-separated skill names | None |
 

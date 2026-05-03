@@ -6,6 +6,7 @@ description: >
   Use when user runs /agenticaiplugin:license-check.
 tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
 model: sonnet
+effort: xhigh
 ---
 
 # License Checker Agent

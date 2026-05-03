@@ -11,6 +11,7 @@ description: >
   Use when user runs /agenticaiplugin:npm-publish.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 model: sonnet
+effort: xhigh
 color: cyan
 ---
 

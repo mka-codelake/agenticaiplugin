@@ -2,6 +2,7 @@
 description: Run comprehensive architecture audit. Analyzes project structure, patterns, boundaries, naming, dependencies. Produces a rated assessment report. Invoke via /agenticaiplugin:architecture-audit.
 disable-model-invocation: true
 context: fork
+effort: xhigh
 ---
 
 Architecture audit — comprehensive assessment of a project's architectural health. You are the **Lead Architect** producing a structured assessment report.

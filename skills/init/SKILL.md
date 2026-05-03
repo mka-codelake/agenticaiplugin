@@ -1,6 +1,7 @@
 ---
 description: Initialize project for AgenticAI Plugin (rules, directories, guidelines)
 disable-model-invocation: true
+effort: low
 ---
 
 # Project Initialization Command

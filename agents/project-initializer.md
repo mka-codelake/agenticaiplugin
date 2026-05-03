@@ -3,6 +3,7 @@ name: project-initializer
 description: Performs interactive project setup and updates for AgenticAI Plugin. Use when user runs /agenticaiplugin:init (fresh setup) or /agenticaiplugin:update-plugin (update existing installation). Creates/updates rules in .claude/rules/, handles CLAUDE.md migration.
 tools: Read, Write, Edit, Bash, Glob, AskUserQuestion
 model: sonnet
+effort: medium
 color: cyan
 ---
 

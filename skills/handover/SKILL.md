@@ -16,6 +16,7 @@ allowed-tools:
   - Bash(test:*)
   - Bash(mkdir:*)
   - Glob
+effort: medium
 ---
 
 # Handover — Cross-Session Continuity Snapshot

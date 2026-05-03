@@ -7,6 +7,7 @@ description: >
   Use when user runs /agenticaiplugin:github-publish.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 model: sonnet
+effort: xhigh
 color: purple
 ---
 

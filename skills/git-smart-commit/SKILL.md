@@ -10,6 +10,7 @@ allowed-tools:
   - Read
   - Glob
   - Grep
+effort: high
 ---
 
 # ⚠️ CRITICAL: This skill REPLACES git commit
