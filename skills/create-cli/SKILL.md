@@ -6,6 +6,7 @@ description: >
   (before implementation) or refactoring an existing CLI's surface area for
   consistency, composability, and discoverability.
 disable-model-invocation: true
+effort: high
 ---
 
 # Create CLI

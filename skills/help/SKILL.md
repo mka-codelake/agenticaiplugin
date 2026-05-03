@@ -1,6 +1,8 @@
 ---
 description: Show overview of all plugin commands, skills, and agents
 disable-model-invocation: true
+model: haiku
+effort: low
 ---
 
 # AgenticAI Plugin Help

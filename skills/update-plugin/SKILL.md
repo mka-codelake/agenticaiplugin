@@ -1,6 +1,8 @@
 ---
 description: Update plugin rules and migrate legacy CLAUDE.md installations
 disable-model-invocation: true
+model: haiku
+effort: low
 ---
 
 # Update Plugin Command

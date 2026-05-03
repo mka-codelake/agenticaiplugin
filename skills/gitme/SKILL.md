@@ -1,6 +1,7 @@
 ---
 description: Smart git commit — analyze changes, group logically, create meaningful messages
 disable-model-invocation: true
+effort: high
 ---
 
 # Git Smart Commit Command

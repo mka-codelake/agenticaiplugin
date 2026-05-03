@@ -5,6 +5,7 @@ description: >
   Invoke via /agenticaiplugin:qa.
 disable-model-invocation: true
 context: fork
+effort: xhigh
 ---
 
 Quality Assurance — manages bidirectional traceability across the Quality Square (Requirements, Code, Test Cases, Tests). Analyzes only — does NOT write code or tests.

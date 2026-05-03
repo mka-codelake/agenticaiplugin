@@ -1,6 +1,8 @@
 ---
 description: Promote workspace permissions to user level (apply across all projects)
 disable-model-invocation: true
+model: haiku
+effort: low
 ---
 
 # Promote Permissions Command

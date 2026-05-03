@@ -1,5 +1,6 @@
 ---
 description: Run intelligent, multi-specialist code review. Analyzes changes, spawns focused review specialists (security, architecture, SOLID, code quality, tests, etc.), consolidates findings. Invoke via /agenticaiplugin:code-review.
+effort: xhigh
 ---
 
 Multi-specialist code review. You are the **Chief Architect** orchestrating 11 focused review specialists.

@@ -80,10 +80,38 @@ These fields apply to SKILL.md files in `skills/` and also to command files in `
 | `allowed-tools` | NO | all | Tool restrictions (YAML list supported) |
 | `context` | NO | - | `fork` for isolated sub-agent context |
 | `agent` | NO | - | Agent type for execution |
+| `model` | NO | inherits session | `haiku` / `sonnet` / `opus` / `inherit` — see [Effort + Model](#effort--model) |
+| `effort` | NO | inherits session | `low` / `medium` / `high` / `xhigh` / `max` — see [Effort + Model](#effort--model) |
 | `hooks` | NO | - | PreToolUse/PostToolUse/Stop hooks |
 | `user-invocable` | NO | `true` | Show in slash command menu |
 | `disable-model-invocation` | NO | `false` | Prevent Claude from auto-invoking |
 | `argument-hint` | NO | - | Hint shown in slash command menu |
+
+### Effort + Model
+
+Both `effort:` and `model:` are officially documented Anthropic fields ([Skills](https://code.claude.com/docs/en/skills#frontmatter-reference), [Subagents](https://code.claude.com/docs/en/sub-agents#supported-frontmatter-fields)). They override the session defaults *while the skill or agent is active*.
+
+**`effort:`** — Reasoning/thinking budget. Higher = more deliberate analysis, longer latency, higher cost.
+
+**`model:`** — Which Claude model executes the skill or agent. `haiku` is fast/cheap, `sonnet` balanced, `opus` deepest reasoning.
+
+**Plugin classification heuristic.** `effort:` measures the *skill's own* reasoning load — not the user-perceived workload. A wrapper skill that delegates to an agent has *low* skill-side effort even when the agent does heavy work.
+
+| Pattern | Typical `effort:` | Typical `model:` | Example |
+|---------|-------------------|------------------|---------|
+| Pure lookup / display | `low` | `haiku` | `help`, `markdown-converter` |
+| Thin wrapper that delegates to an agent | `low` | `haiku` | `init`, `github-publish` |
+| Single-pass mechanical action | `low` | `haiku` | `promote-perms` |
+| Reconciliation / structured output | `medium` | inherit | `handover` |
+| Domain-deep single-pass reasoning | `high` | inherit | `create-cli`, `git-smart-commit` |
+| Multi-phase orchestration with consolidation | `xhigh` | inherit | `code-review`, `architecture-audit`, `qa` |
+
+**Pairing rule.** When `effort: low` is set, prefer `model: haiku`. Otherwise let `model` inherit unless a specific model is needed.
+
+**Where the override applies.**
+- Skills without `context: fork` → applies to the main conversation while the skill is active.
+- Skills with `context: fork` → applies inside the fork (the main conversation is unaffected).
+- Skills that spawn sub-agents via the Task tool → applies to the *orchestrating* skill body, not to the spawned sub-agents (which run with their own model).
 
 ### Auto-Activation Patterns
 
@@ -268,6 +296,7 @@ Clear description.
 | `description` | YES | Max 1024 chars, include triggers | - |
 | `tools` | NO | Comma-separated | Inherit all |
 | `model` | NO | `sonnet`, `opus`, `haiku` | `sonnet` |
+| `effort` | NO | `low`, `medium`, `high`, `xhigh`, `max` | inherits session — see [Effort + Model](#effort--model) |
 | `color` | NO | `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan` | - |
 | `skills` | NO | Comma-separated skill names | None |
 
