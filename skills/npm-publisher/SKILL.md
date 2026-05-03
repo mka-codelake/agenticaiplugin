@@ -10,7 +10,6 @@ description: |
   required for actual publish.
   Invoke via /agenticaiplugin:npm-publish.
 disable-model-invocation: true
-model: haiku
 effort: low
 ---
 

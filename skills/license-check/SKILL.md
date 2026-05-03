@@ -4,7 +4,6 @@ description: |
   against the project's own license. Reports incompatibilities with actionable recommendations.
   Invoke via /agenticaiplugin:license-check.
 disable-model-invocation: true
-model: haiku
 effort: low
 ---
 

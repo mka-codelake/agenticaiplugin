@@ -1,7 +1,6 @@
 ---
 description: Initialize project for AgenticAI Plugin (rules, directories, guidelines)
 disable-model-invocation: true
-model: haiku
 effort: low
 ---
 

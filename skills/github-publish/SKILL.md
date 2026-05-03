@@ -5,7 +5,6 @@ description: |
   GitHub Actions release workflow, issue templates.
   Invoke via /agenticaiplugin:github-publish.
 disable-model-invocation: true
-model: haiku
 effort: low
 ---
 

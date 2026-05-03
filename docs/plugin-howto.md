@@ -100,18 +100,20 @@ Both `effort:` and `model:` are officially documented Anthropic fields ([Skills]
 | Pattern | Typical `effort:` | Typical `model:` | Example |
 |---------|-------------------|------------------|---------|
 | Pure lookup / display | `low` | `haiku` | `help`, `markdown-converter` |
-| Thin wrapper that delegates to an agent | `low` | `haiku` | `init`, `github-publish` |
 | Single-pass mechanical action | `low` | `haiku` | `promote-perms` |
+| Thin wrapper that delegates to an agent | `low` | inherit | `init`, `github-publish` |
 | Reconciliation / structured output | `medium` | inherit | `handover` |
 | Domain-deep single-pass reasoning | `high` | inherit | `create-cli`, `git-smart-commit` |
 | Multi-phase orchestration with consolidation | `xhigh` | inherit | `code-review`, `architecture-audit`, `qa` |
 
-**Pairing rule.** When `effort: low` is set, prefer `model: haiku`. Otherwise let `model` inherit unless a specific model is needed.
+**Where each override applies (and where it does not).** This determines whether `model:` is worth setting at all:
 
-**Where the override applies.**
-- Skills without `context: fork` → applies to the main conversation while the skill is active.
-- Skills with `context: fork` → applies inside the fork (the main conversation is unaffected).
-- Skills that spawn sub-agents via the Task tool → applies to the *orchestrating* skill body, not to the spawned sub-agents (which run with their own model).
+- **Skill without `context: fork`** → `effort:` and `model:` apply to the main conversation while the skill body executes.
+- **Skill with `context: fork`** → both apply inside the fork; the main conversation is unaffected.
+- **Skill that delegates via the Task tool to a subagent** → both apply only to the *orchestrating skill body*. The spawned subagent runs with **its own** `model:`/`effort:` (subagent definition wins per the [model resolution order](https://code.claude.com/docs/en/sub-agents#choose-a-model)). So setting `model: haiku` on a *thin* wrapper skill has minimal impact — the wrapper body is too short for the model switch to outweigh the prompt-cache invalidation cost.
+- **Skill preloaded into a subagent via `skills:`** → the skill content is injected as domain knowledge. The subagent runs on its own `model:`/`effort:`. The skill's frontmatter `model:`/`effort:` is **ignored** in this path.
+
+**Pairing rule.** Set `model: haiku` only when the skill body itself does the work (pure lookup, mechanical action). For thin wrappers that delegate, leave `model` to inherit — set only `effort: low`. `effort:` is always worth setting because it shapes the reasoning budget for whatever portion of the skill body actually runs.
 
 ### Auto-Activation Patterns
 
