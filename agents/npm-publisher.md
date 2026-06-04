@@ -448,8 +448,12 @@ grep -rnE "xox[bpaorsl]-[A-Za-z0-9-]{10,}" $PKG_DIR 2>/dev/null
 # AWS access key
 grep -rnE "AKIA[0-9A-Z]{16}" $PKG_DIR 2>/dev/null
 # Generic high-entropy assignments
-grep -rinE "(api[_-]?key|password|secret|token|bearer|credential)\s*[:=]\s*['\"][^'\"]{16,}['\"]" $PKG_DIR \
-  --include="*.js" --include="*.json" 2>/dev/null
+# Scans ALL files (not just *.js/*.json): generic/prefixless credentials (DB passwords,
+# bearer tokens) also live in config files (.env, .ini, .conf, renamed variants).
+# Quotes are optional so unquoted KEY=value config lines are caught too.
+# -I skips binaries, --exclude-dir=node_modules drops dependency noise.
+grep -rinIE "(api[_-]?key|password|secret|token|bearer|credential)\s*[:=]\s*['\"]?[^'\"]{16,}['\"]?" $PKG_DIR \
+  --exclude-dir=node_modules 2>/dev/null
 ```
 
 Apply false-positive downgrades: matches in `*.test.js`, `*.spec.js`, `fixtures/`, `*.example`, `*.sample` are warnings (still report), not critical.
