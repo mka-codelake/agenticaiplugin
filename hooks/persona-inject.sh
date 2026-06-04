@@ -8,10 +8,11 @@
 # behaves exactly as without the plugin.
 #
 # State file (global, per user): ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/persona.state
-# Style snippets:                ${CLAUDE_PLUGIN_ROOT}/skills/persona/styles/<persona>.md
+# Style snippets:                <plugin>/skills/persona/styles/<persona>.md
 #
-# Portability: no absolute/developer-specific paths — only $CLAUDE_CONFIG_DIR,
-# $HOME and $CLAUDE_PLUGIN_ROOT, which Claude Code resolves per environment.
+# Portability: the state path uses only $CLAUDE_CONFIG_DIR/$HOME. The snippet
+# path is resolved by self-location ($BASH_SOURCE), NOT $CLAUDE_PLUGIN_ROOT —
+# that variable is empty in the normal tool context and unreliable here.
 
 set -euo pipefail
 
@@ -34,7 +35,10 @@ case "$persona" in
   "" | off) exit 0 ;;
 esac
 
-snippet="${CLAUDE_PLUGIN_ROOT:-.}/skills/persona/styles/${persona}.md"
+# Resolve the snippet relative to THIS script's own location — robust, does not
+# depend on $CLAUDE_PLUGIN_ROOT (empty/unreliable in this context).
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+snippet="$script_dir/../skills/persona/styles/${persona}.md"
 
 # Unknown / unreadable persona value -> fail safe, inject nothing.
 [ -r "$snippet" ] || exit 0

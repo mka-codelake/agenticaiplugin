@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.19.2
+
+- **persona: make the state write a verified action (bugfix).** The `/agenticaiplugin:persona` skill inlined the state-file write as a shell code block, which the model could treat as illustrative and **skip** — reporting "persona updated" without ever writing `persona.state`. The persona then never persisted (no SessionStart-hook injection next session, no statusline indicator), even though the confirmation claimed success. Fix: state changes now go through a dedicated **`skills/persona/persona.sh`** (`show`/`set`/`off`) with value validation, atomic write (`tmp`+`mv`), read-back verification, and a machine-readable `OK persona=<value>` line the skill must echo back — coupling the confirmation to the real action. `SKILL.md` replaces the inline code blocks with a mandatory, action-oriented script call (`{skill_dir}/persona.sh`) and forbids fabricating the output ("no `OK persona=` line seen → the change did not happen"). The SessionStart hook (`persona-inject.sh`) now resolves its style snippets via `$BASH_SOURCE` self-location instead of `${CLAUDE_PLUGIN_ROOT}` (empty in the normal tool context), so it reliably finds the snippets after the write.
+
 ## 0.19.1
 
 - **code-review & architecture-audit: specialist/analyzer model tiering raised; CR-06 split (#19).** A blind, anchoring-free re-evaluation (18 agents, each scoring one rule file without seeing the assigned model) found the tiering systematically too low — a Critical-recall risk. This release applies the cost-conscious subset of those findings.
