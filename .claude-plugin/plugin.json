@@ -1,7 +1,7 @@
 {
   "name": "agenticaiplugin",
-  "description": "Claude Code plugin with intelligent code reviews, architecture audits, license compliance checking, QA traceability, smart Git commits, and GitHub/npm repository publishing.",
-  "version": "0.18.0",
+  "description": "A Claude Code productivity toolkit: intelligent code reviews, architecture audits, license compliance checking, QA traceability, smart Git commits, GitHub/npm repository publishing, and agent communication personas.",
+  "version": "0.19.0",
   "author": {
     "name": "Michael Kagel"
   }

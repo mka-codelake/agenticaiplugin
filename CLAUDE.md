@@ -39,6 +39,7 @@ agenticaiplugin/
 │       ├── SKILL.md          # Main skill definition
 │       ├── reference.md      # Progressive disclosure (optional)
 │       └── templates/        # Jinja2 templates (optional)
+├── hooks/                     # Plugin-level lifecycle hooks (hooks.json, auto-discovered)
 ├── rules-templates/           # Rule templates installed by project-initializer
 ├── docs/                      # Internal documentation
 │   └── plugin-howto.md       # PRIMARY DEV REFERENCE
@@ -83,6 +84,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:npm-publish` | End-to-end npm release: cut release (semver bump + CHANGELOG from Conventional Commits) + pre-publish audit (package.json, version sync, tarball, secrets, license) |
 | `/agenticaiplugin:license-check` | Check license compatibility of dependencies, tools, and LLM models |
 | `/agenticaiplugin:handover` | Save/load cross-session continuity snapshot (open items, blockers, next steps) — reconciles with prior state, never auto-loads |
+| `/agenticaiplugin:persona` | Set/show the agent communication persona (writer/engineer/telegrapher/caveman) — opt-in, off by default |
 | `/agenticaiplugin:promote-perms` | Promote workspace permissions to user level |
 | `/agenticaiplugin:help` | Show overview of all plugin commands and skills |
 
