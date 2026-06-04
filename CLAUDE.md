@@ -60,6 +60,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 - `.claude-plugin/plugin.json` — Plugin metadata (name, version, author)
 - `docs/plugin-howto.md` — Primary development reference (frontmatter, patterns, conventions)
 - `docs/rules-howto.md` — Rules template development reference
+- `docs/workflow-integration-howto.md` — Binding pattern for calling repo-local `Workflow` scripts from a `SKILL.md` (spike #9; required reading before migrating a skill to the Workflow feature)
 - `skills/code-review/orchestration.md` — Multi-specialist review orchestration playbook
 - `skills/architecture-audit/orchestration.md` — Architecture audit orchestration playbook
 
