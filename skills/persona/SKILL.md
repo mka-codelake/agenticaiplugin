@@ -47,27 +47,35 @@ State file (global, per user): `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/persona.stat
 
 ## Instructions
 
-The persona takes full effect at the next session start (the hook injects it).
-For `set`/`off`, also apply the change immediately for the rest of the current
-session, so the user sees it right away.
+All state changes go through the helper script `persona.sh`. This makes the write
+a **real, verified action** instead of a code block that could be skipped.
 
-Resolve the state file path in every command:
+`{skill_dir}` = the absolute path of THIS skill's directory (resolve it the way
+the other plugin skills do). The script lives at `{skill_dir}/persona.sh`.
 
-```bash
-STATE="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/persona.state"
-```
+> **For `show`, `set`, and `off` you MUST invoke the Bash tool to run the script,
+> then report the persona from its `OK persona=<value>` output line. Do NOT merely
+> display the command, and do NOT fabricate the output: if you did not actually see
+> an `OK persona=...` line in the tool result, the change did NOT happen — say so
+> instead of reporting success.**
+
+The persona also takes effect at the next session start (the hook injects it from
+the state file). For `set`/`off`, additionally apply the change immediately for the
+rest of the current session so the user sees it right away.
 
 ### `show`
 
+Run with the Bash tool:
+
 ```bash
-{ [ -r "$STATE" ] && tr -d '[:space:]' < "$STATE"; } || true
+bash "{skill_dir}/persona.sh" show
 ```
 
-Report `⧉ persona: <value>` — or `⧉ persona: off` if the output is empty.
+From the `OK persona=<value>` line, report `⧉ persona: <value>`.
 
 ### `list`
 
-Output this table verbatim (do not run a command):
+Output this table verbatim (no command needed):
 
 | Persona | Restriction |
 |---------|-------------|
@@ -79,19 +87,25 @@ Output this table verbatim (do not run a command):
 
 ### `off` / `reset`
 
+Run with the Bash tool:
+
 ```bash
-rm -f "$STATE"
+bash "{skill_dir}/persona.sh" off
 ```
 
-Report `⧉ persona: off (updated)`. From now on in this session, respond with
-your normal communication style.
+On `OK persona=off`, report `⧉ persona: off (updated)`, then respond with your
+normal communication style for the rest of this session.
 
 ### `writer` / `engineer` / `telegrapher` / `caveman`
 
+Run with the Bash tool (substitute the chosen persona for `<persona>`):
+
 ```bash
-mkdir -p "$(dirname "$STATE")" && printf '%s\n' "<persona>" > "$STATE"
+bash "{skill_dir}/persona.sh" set <persona>
 ```
 
-Report `⧉ persona: <persona> (updated)`. From now on in this session, apply the
-`<persona>` communication style (writer = decorative/eloquent; engineer =
-concise/factual; telegrapher = brief/abbreviating; caveman = ultra-terse).
+- On `OK persona=<persona>`: report `⧉ persona: <persona> (updated)` and apply that
+  style immediately for the rest of this session (writer = decorative/eloquent;
+  engineer = concise/factual; telegrapher = brief/abbreviating; caveman = ultra-terse).
+- On `ERROR <reason>` (or no `OK` line): report the error and STOP — do not claim
+  the persona was set.
