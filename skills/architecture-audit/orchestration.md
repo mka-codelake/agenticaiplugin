@@ -147,7 +147,7 @@ Spawn **Analyzer 01** as a sub-agent. This must complete before Phase 2.
 **Spawn via Task tool:**
 ```
 subagent_type: general-purpose
-model: sonnet
+model: opus
 ```
 
 **Prompt (fill in placeholders):**
@@ -217,16 +217,18 @@ Spawn **Analyzers 02-07** in a single message (6 parallel Task calls).
 | Analyzer | Model | Rationale |
 |----------|-------|-----------|
 | 02 Component Boundaries | **sonnet** | Cross-module analysis requires multi-file reasoning |
-| 03 Dependency Direction | **sonnet** | Import chains across layers need deep context |
+| 03 Dependency Direction | **opus** | 2× rating weight; reverse-dependency and cycle detection needs a directed import graph plus role classification — errors here move the overall grade disproportionately |
 | 04 Naming Consistency | **haiku** | Rule-based pattern matching on names |
 | 05 API/Interface Boundaries | **sonnet** | Cross-module access patterns and boundary bypasses |
 | 06 Instantiation & Wiring | **sonnet** | Wiring patterns span the entire codebase |
 | 07 Structural Visibility | **haiku** | Directory structure and docs — surface-level, rule-based |
 
+(Phase-1 Analyzer 01 Pattern Recognition runs on **opus** — see Phase 1 above; it is the foundation that all Phase-2 analyzers build on and carries 2× rating weight.)
+
 **Spawn each via Task tool:**
 ```
 subagent_type: general-purpose
-model: sonnet   # or haiku — see table above
+model: opus   # or sonnet or haiku — see table above
 ```
 
 **Prompt template (same for all, fill in per analyzer):**
@@ -290,7 +292,7 @@ Read: claudedocs/adrs/*.md
 | # | analyzer_name | analyzer_file | model |
 |---|---------------|---------------|-------|
 | 02 | Component Boundaries | 02-component-boundaries.md | sonnet |
-| 03 | Dependency Direction | 03-dependency-direction.md | sonnet |
+| 03 | Dependency Direction | 03-dependency-direction.md | opus |
 | 04 | Naming Consistency | 04-naming-consistency.md | haiku |
 | 05 | API/Interface Boundaries | 05-api-interface-boundaries.md | sonnet |
 | 06 | Instantiation & Wiring | 06-instantiation-wiring.md | sonnet |
@@ -458,7 +460,7 @@ Confirm: `Report saved: claudedocs/architecture-audit-{date}.md`
 
 ## Token/Cost Optimization
 
-- **Differentiated model choice:** Analyzers requiring multi-file reasoning (01, 02, 03, 05, 06) use `sonnet`; rule-based analyzers (04, 07) use `haiku`. This balances quality for complex architectural analysis with cost efficiency for pattern-matching tasks.
+- **Differentiated model choice:** High-leverage analyzers carrying 2× rating weight (01 Pattern Recognition — the Phase-1 foundation — and 03 Dependency Direction) use `opus`, since errors there propagate to all downstream analyzers and move the overall grade disproportionately (issue #19); multi-file-reasoning analyzers (02, 05, 06) use `sonnet`; rule-based analyzers (04, 07) use `haiku`. This balances quality for complex architectural analysis with cost efficiency for pattern-matching tasks.
 - **Parallel execution:** Phase 2 analyzers run concurrently (6 Task calls in one message)
 - **Focused context:** Each analyzer reads only its own ~80-130 line rules file + ~50 line output format + ~40 line rating scale
 - **Steps 1-2 done by orchestrator:** No sub-agent overhead for project discovery and tech stack detection

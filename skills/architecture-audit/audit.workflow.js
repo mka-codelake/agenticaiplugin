@@ -93,7 +93,7 @@ const consolidationSchema = {
 // ── Analyzer registry — model choice 1:1 with orchestration.md Step 4 ──
 const ANALYZERS = [
   { key: "componentBoundaries",    id: "02", name: "Component Boundaries",     file: "02-component-boundaries.md",    model: "sonnet" },
-  { key: "dependencyDirection",    id: "03", name: "Dependency Direction",     file: "03-dependency-direction.md",    model: "sonnet" },
+  { key: "dependencyDirection",    id: "03", name: "Dependency Direction",     file: "03-dependency-direction.md",    model: "opus"   },
   { key: "namingConsistency",      id: "04", name: "Naming Consistency",       file: "04-naming-consistency.md",      model: "haiku"  },
   { key: "apiInterfaceBoundaries", id: "05", name: "API/Interface Boundaries", file: "05-api-interface-boundaries.md", model: "sonnet" },
   { key: "instantiationWiring",    id: "06", name: "Instantiation & Wiring",   file: "06-instantiation-wiring.md",    model: "sonnet" },
@@ -119,7 +119,8 @@ const ctx = { projectStructureSummary, techStackProfile, fileList, scope, skillD
 phase(PHASE.p1);
 const p1 = await safeAgent(
   buildPhase1Prompt(ctx),
-  { model: "sonnet", schema: phase1Schema, label: "01 Pattern Recognition", phase: PHASE.p1 }
+  // AA-01 on opus (issue #19): Phase-1 foundation, 2× weight; errors propagate to all Phase-2 analyzers.
+  { model: "opus", schema: phase1Schema, label: "01 Pattern Recognition", phase: PHASE.p1 }
 );
 const phase1Degraded = !p1;
 const phase1 = p1 ?? {

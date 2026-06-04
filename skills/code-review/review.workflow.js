@@ -77,16 +77,18 @@ const verdictSchema = {
 // Models 1:1 with orchestration.md "Model selection per specialist".
 const DEP_SPEC = { id: "01", name: "Dependencies & Versions", file: "01-dependencies-versions.md", model: "haiku" };
 const SPECIALISTS = [
-  { id: "02", name: "Security & Data Safety",     file: "02-security-data-safety.md",     model: "opus",   when: (c) => c.source },
-  { id: "03", name: "Architecture & Layers",      file: "03-architecture-layers.md",      model: "opus",   when: (c) => c.source && (c.layers >= 3 || c.newDeps) },
-  { id: "04", name: "Design Patterns (GoF)",      file: "04-design-patterns.md",          model: "haiku",  when: (c) => c.source },
-  { id: "05", name: "SOLID & Code Smells",        file: "05-solid-code-smells.md",        model: "sonnet", when: (c) => c.source },
-  { id: "06", name: "Code Quality & Correctness", file: "06-code-quality-correctness.md", model: "haiku",  when: (c) => c.source },
-  { id: "07", name: "Dead Code & Duplication",    file: "07-dead-code-duplication.md",    model: "haiku",  when: (c) => c.source },
-  { id: "08", name: "Cross-Cutting Concerns",     file: "08-cross-cutting-concerns.md",   model: "sonnet", when: (c) => c.source },
-  { id: "09", name: "Test Quality",               file: "09-test-quality.md",             model: "haiku",  when: (c) => c.tests },
-  { id: "10", name: "Test Completeness & Infra",  file: "10-test-completeness-infra.md",  model: "haiku",  when: (c) => c.source },
-  { id: "11", name: "Documentation & Comments",   file: "11-documentation-comments.md",   model: "haiku",  when: (c) => c.source },
+  { id: "02",  name: "Security & Data Safety",      file: "02-security-data-safety.md",       model: "opus",   when: (c) => c.source },
+  { id: "03",  name: "Architecture & Layers",       file: "03-architecture-layers.md",        model: "opus",   when: (c) => c.source && (c.layers >= 3 || c.newDeps) },
+  { id: "04",  name: "Design Patterns (GoF)",       file: "04-design-patterns.md",            model: "sonnet", when: (c) => c.source },
+  { id: "05",  name: "SOLID & Code Smells",         file: "05-solid-code-smells.md",          model: "sonnet", when: (c) => c.source },
+  // CR-06 split (issue #19): correctness/bug-hunting needs opus; style/size stays haiku.
+  { id: "06a", name: "Correctness & Bug Detection", file: "06a-correctness-bug-detection.md", model: "opus",   when: (c) => c.source },
+  { id: "06b", name: "Code Style & Size",           file: "06b-code-style-size.md",           model: "haiku",  when: (c) => c.source },
+  { id: "07",  name: "Dead Code & Duplication",     file: "07-dead-code-duplication.md",      model: "haiku",  when: (c) => c.source },
+  { id: "08",  name: "Cross-Cutting Concerns",      file: "08-cross-cutting-concerns.md",     model: "opus",   when: (c) => c.source },
+  { id: "09",  name: "Test Quality",                file: "09-test-quality.md",               model: "haiku",  when: (c) => c.tests },
+  { id: "10",  name: "Test Completeness & Infra",   file: "10-test-completeness-infra.md",    model: "sonnet", when: (c) => c.source },
+  { id: "11",  name: "Documentation & Comments",    file: "11-documentation-comments.md",     model: "haiku",  when: (c) => c.source },
 ];
 
 // ── Input (spike #9: args may be a JSON string) ──────────────────────────

@@ -127,13 +127,14 @@ skills/code-review/
 │   ├── best-practices.md       ← Review quality guidelines
 │   ├── specialist-output-format.md ← Standard output format (mirrored by the script schema)
 │   └── known-deprecations.md   ← Registry APIs, manifest detection, WebSearch patterns
-└── specialists/                ← 11 focused review rule sets (read by the subagents)
+└── specialists/                ← 12 focused review rule sets (read by the subagents)
     ├── 01-dependencies-versions.md    (Phase 1 — always)
     ├── 02-security-data-safety.md     (Phase 2 — source files)
     ├── 03-architecture-layers.md      (Phase 2 — 3+ layers / new deps)
     ├── 04-design-patterns.md          (Phase 2 — source files)
     ├── 05-solid-code-smells.md        (Phase 2 — source files)
-    ├── 06-code-quality-correctness.md (Phase 2 — source files)
+    ├── 06a-correctness-bug-detection.md (Phase 2 — source files)
+    ├── 06b-code-style-size.md         (Phase 2 — source files)
     ├── 07-dead-code-duplication.md    (Phase 2 — source files)
     ├── 08-cross-cutting-concerns.md   (Phase 2 — source files)
     ├── 09-test-quality.md             (Phase 2 — test files)

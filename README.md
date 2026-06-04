@@ -11,13 +11,13 @@ A Claude Code plugin that adds intelligent code reviews, architecture audits, qu
 
 ## Overview
 
-The AgenticAI Plugin enhances Claude Code with specialized skills and agents that activate automatically when you need them. Code reviews run 11 focused specialists in parallel, architecture audits score your codebase across 7 dimensions, and smart commits analyze your changes to create meaningful atomic commits.
+The AgenticAI Plugin enhances Claude Code with specialized skills and agents that activate automatically when you need them. Code reviews run 12 focused specialists in parallel, architecture audits score your codebase across 7 dimensions, and smart commits analyze your changes to create meaningful atomic commits.
 
 The plugin is **language-agnostic** — it works with any tech stack (Node.js, Java, Python, Rust, Go, .NET, and more). Project-specific rules and architectural decisions are stored in `claudedocs/` and always take priority over the plugin's built-in guidelines.
 
 ## Features
 
-- **Multi-Specialist Code Review** — 11 focused review specialists run in parallel, covering security, architecture, SOLID principles, code quality, test coverage, documentation, and more
+- **Multi-Specialist Code Review** — 12 focused review specialists run in parallel, covering security, architecture, SOLID principles, code quality, test coverage, documentation, and more
 - **Architecture Audit** — 7-dimension analysis with A-E ratings (boundaries, dependencies, naming, APIs, wiring, visibility, patterns)
 - **QA Traceability** — Bidirectional mapping between requirements, code, test cases, and tests ("Quality Square")
 - **Smart Git Commits** — Analyzes changes, groups them logically, creates atomic commits following project conventions
@@ -101,7 +101,7 @@ All commands are invoked with the `/agenticaiplugin:` prefix, e.g. `/agenticaipl
 /agenticaiplugin:code-review --renovate          # Dependency audit
 ```
 
-11 specialists run in parallel:
+12 specialists run in parallel:
 
 | # | Specialist | Focus |
 |---|-----------|-------|
@@ -110,7 +110,8 @@ All commands are invoked with the `/agenticaiplugin:` prefix, e.g. `/agenticaipl
 | 3 | Architecture & Layers | Pattern violations, circular deps |
 | 4 | Design Patterns (GoF) | Pattern consistency |
 | 5 | SOLID & Code Smells | OCP/LSP/ISP/DIP, God Class, Feature Envy |
-| 6 | Code Quality & Correctness | YAGNI, SRP, logic errors |
+| 6a | Correctness & Bug Detection | YAGNI, logic/off-by-one bugs, behavioral change |
+| 6b | Code Style & Size | Method/class size, magic numbers, immutability, naming |
 | 7 | Dead Code & Duplication | DRY violations, unused code, magic numbers |
 | 8 | Cross-Cutting Concerns | Error handling, logging, transactions |
 | 9 | Test Quality | AAA structure, naming, placement |

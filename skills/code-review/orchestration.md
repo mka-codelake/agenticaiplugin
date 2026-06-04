@@ -31,7 +31,8 @@ Specialists produce a structured findings report. The user decides what to fix.
 | 3 | Architecture & Layers | 2 | 3+ layers affected OR new dependencies |
 | 4 | Design Patterns (GoF) | 2 | Source files modified |
 | 5 | SOLID & Code Smells | 2 | Source files modified |
-| 6 | Code Quality & Correctness | 2 | Source files modified |
+| 6a | Correctness & Bug Detection | 2 | Source files modified |
+| 6b | Code Style & Size | 2 | Source files modified |
 | 7 | Dead Code & Duplication | 2 | Source files modified |
 | 8 | Cross-Cutting Concerns | 2 | Source files modified |
 | 9 | Test Quality | 2 | Test files modified |
@@ -97,7 +98,7 @@ Wait for completion. Capture full results.
 - **Security (2):** Known CVEs in dependencies = heightened scrutiny for related code
 - **Architecture (3):** Outdated framework version may mean legacy patterns are expected, not violations
 - **Design Patterns (4):** Modern framework version means modern patterns should be used
-- **Code Quality (6):** Deprecated API usage should be flagged if modern alternative exists
+- **Correctness (6a):** Deprecated API usage should be flagged if modern alternative exists
 - **Cross-Cutting (8):** Framework version determines which cross-cutting approaches are current
 - **Documentation (11):** Framework version determines expected documentation conventions
 
@@ -111,13 +112,14 @@ Spawn ALL applicable Phase 2 specialists in a single message using multiple Task
 |------------|-------|-----------|
 | 02 Security & Data Safety | **opus** | Subtle data-flow chains span multiple files/hops; false negatives costly; nuanced taint analysis |
 | 03 Architecture & Layers | **opus** | Layer violations are often subtle (leaking infra into domain); requires understanding intent behind code organization |
-| 04 Design Patterns | **haiku** | GoF detection is rule-based, typically single-class |
+| 04 Design Patterns | **sonnet** | GoF equivalence detection spans multiple classes; semantically equivalent solutions via different structural routes need cross-file reasoning |
 | 05 SOLID & Code Smells | **sonnet** | SRP and LSP violations are nuanced; requires understanding class responsibilities beyond syntax |
-| 06 Code Quality | **haiku** | Local checks with clear criteria |
+| 06a Correctness & Bug Detection | **opus** | Logic/algorithm/off-by-one bugs need execution simulation; behavioral-change detection traces every caller; concurrency hazards |
+| 06b Code Style & Size | **haiku** | Local style checks with clear thresholds (size, complexity, magic numbers, naming, single-threaded immutability) |
 | 07 Dead Code & Duplication | **haiku** | Pattern-matching task |
-| 08 Cross-Cutting Concerns | **sonnet** | Logging/error-handling consistency is inherently cross-file |
+| 08 Cross-Cutting Concerns | **opus** | Project-wide synthesis of a unified error/logging strategy; the absence of a consistent approach is only visible across the whole change set |
 | 09 Test Quality | **haiku** | Scoped to test files |
-| 10 Test Completeness | **haiku** | Structured cross-referencing |
+| 10 Test Completeness | **sonnet** | Cross-references prose acceptance criteria against assertions and distinguishes real integration tests from mock-only fakes |
 | 11 Documentation & Comments | **haiku** | Local, rule-based checks on comments and documentation |
 
 **Spawn each via Task tool:**
@@ -254,12 +256,12 @@ Order all findings:
 |----------|------|---------|------------|
 | CRITICAL | ApiClient.java:12 | Hardcoded API key | Security |
 | CRITICAL | UserController.java:25 | SQL injection | Security |
-| WARNING | OrderService.java:156 | Missing null check | Code Quality |
-| WARNING | PaymentService.java:23 | Method too long | Code Quality |
+| WARNING | OrderService.java:156 | Missing null check | Correctness & Bug Detection |
+| WARNING | PaymentService.java:23 | Method too long | Code Style & Size |
 | SUGGESTION | Config.java:12 | Consider @Value | Dependencies |
 
 **Summary:** 2 Critical, 2 Warnings, 1 Suggestion
-**Specialists activated:** 7/11
+**Specialists activated:** 8/12
 **Phase 1 duration:** ~30s | **Phase 2 duration:** ~45s (parallel)
 ```
 
@@ -269,7 +271,7 @@ Order all findings:
 ## Code Review Report
 
 **Files Reviewed:** {count}
-**Specialists Activated:** {activated_count}/11
+**Specialists Activated:** {activated_count}/12
 **Phase 1:** Dependencies & Versions
 **Phase 2:** {list of activated specialists}
 **Project Guidelines:** {found or "None"}
@@ -317,7 +319,8 @@ Order all findings:
 | Architecture & Layers | — | Skipped (2 layers) |
 | Design Patterns | 1W | Complete |
 | SOLID & Code Smells | 1W | Complete |
-| Code Quality | 1W, 1S | Complete |
+| Correctness & Bug Detection | 1S | Complete |
+| Code Style & Size | 1W | Complete |
 | Dead Code & Duplication | 1C, 2W | Complete |
 | Cross-Cutting Concerns | — | Complete (no findings) |
 | Test Quality | 1C, 1W | Complete |
@@ -437,7 +440,7 @@ Confirm: `Report saved: claudedocs/reports/dependency-audit-{date}.md`
 
 ## Token/Cost Optimization
 
-- **Three-tier model choice:** Specialists requiring nuanced, subtle analysis (02 Security, 03 Architecture) use `opus`; specialists needing semantic cross-file understanding (05 SOLID, 08 Cross-Cutting) use `sonnet`; rule-based specialists (01, 04, 06-07, 09-11) use `haiku`. This ensures maximum recall for the most critical/subtle reviews while keeping costs efficient for focused rule checking.
+- **Three-tier model choice:** Specialists requiring nuanced, subtle analysis (02 Security, 03 Architecture, 06a Correctness & Bug Detection, 08 Cross-Cutting) use `opus`; specialists needing semantic cross-file understanding (04 Design Patterns, 05 SOLID, 10 Test Completeness) use `sonnet`; rule-based specialists (01, 06b, 07, 09, 11) use `haiku`. The 06a/06b split (issue #19) routes execution-simulation bug-hunting to `opus` while keeping local style checks on `haiku` — better recall *and* lower cost than the former single haiku specialist. This ensures maximum recall for the most critical/subtle reviews while keeping costs efficient for focused rule checking.
 - **Selective activation:** Only applicable specialists are spawned
 - **Parallel execution:** Phase 2 specialists run concurrently
 - **Focused context:** Each specialist reads only ~150-250 lines of rules (vs. ~3,200 lines in single-agent approach)
