@@ -187,8 +187,10 @@ The most important audit. Use this regex catalog:
 | Stripe Secret | `sk_live_[A-Za-z0-9]{24,}` | Production Stripe key |
 | Google API | `AIza[0-9A-Za-z_-]{35}` | Google Cloud API key |
 | Discord Bot | `[MN][A-Za-z\d]{23}\.[\w-]{6}\.[\w-]{27}` | Discord bot token |
-| Generic high-entropy assignment | `(?i)(api[_-]?key\|password\|secret\|token\|bearer\|credential\|access[_-]?token)\s*[:=]\s*['\"][^'\"]{16,}['\"]` | Lower-confidence catch-all |
+| Generic high-entropy assignment | `(?i)(api[_-]?key\|password\|secret\|token\|bearer\|credential\|access[_-]?token)\s*[:=]\s*['\"]?[^'\"]{16,}['\"]?` | Lower-confidence catch-all. Quotes optional → also catches unquoted `KEY=value` config lines |
 | Private key headers | `-----BEGIN (RSA \|EC \|OPENSSH \|PGP \|)PRIVATE KEY-----` | SSH/PGP private keys embedded as strings |
+
+**File scope:** The named prefix patterns (JWT, npm, GitHub, OpenAI, Anthropic, AWS, …) run against **all** files — their prefixes are unambiguous everywhere. The **generic catch-all** must also run against all files (skip binaries with `-I`, exclude `node_modules`), not just `*.js`/`*.json`: prefixless credentials (DB passwords, bearer tokens) commonly live in config files (`.env`, `.ini`, `.conf`, or renamed variants that evade the dotfile-hygiene glob). Restricting it to code endings leaves those uncovered.
 
 ### 3.7 Dotfile-Hygiene (CRITICAL)
 
