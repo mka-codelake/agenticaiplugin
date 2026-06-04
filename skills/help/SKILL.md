@@ -60,6 +60,11 @@ Show the user the following overview:
 |---------|-------------|
 | **markdown-converter** | Converts files to Markdown via `uvx markitdown`. Supports PDF, Word, PowerPoint, Excel, HTML, CSV, JSON, XML, images, audio, ZIP, YouTube URLs, EPub |
 
+### Communication
+| Command | Description |
+|---------|-------------|
+| **persona** | Set or show the agent's communication persona (writer/engineer/telegrapher/caveman), trading response verbosity against token usage. Opt-in — off by default; subcommands `show`, `list`, `off`. State is global per user |
+
 ### Session
 | Command | Description |
 |---------|-------------|
