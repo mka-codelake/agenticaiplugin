@@ -1,6 +1,14 @@
 # Code Review Orchestration Playbook
 
-Detailed orchestration logic for the multi-specialist code review architecture. Referenced by SKILL.md during review execution.
+Detailed orchestration logic for the multi-specialist code review architecture.
+
+> **Primary path is the Workflow script `review.workflow.js`** (see `SKILL.md` and
+> `docs/workflow-integration-howto.md`). The script is **authoritative for control flow**:
+> activation matrix, phase sequencing, model choice, the adversarial verify pass, and
+> deterministic dedup/sort. This document remains the **single source of truth for the
+> rules and report format**, and is the **complete prompt-based fallback** used when the
+> Workflow feature is unavailable or declined. Keep the two consistent: if you change
+> activation/model/sequencing, change it in the script and reflect it here.
 
 ## Fundamental Principle: Findings Only
 
