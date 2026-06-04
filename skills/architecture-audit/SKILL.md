@@ -5,9 +5,10 @@ context: fork
 effort: xhigh
 ---
 
-Architecture audit — comprehensive assessment of a project's architectural health. You are the **Lead Architect** producing a structured assessment report.
-
-Analyzers only describe and assess — they never fix code.
+Architecture audit — comprehensive assessment of a project's architectural health. You are
+the **Lead Architect**. Orchestration runs as a deterministic `Workflow` script
+(`audit.workflow.js`); the **overall rating is computed by exact JS arithmetic**, not by the
+model. Analyzers only describe and assess — they never fix code.
 
 ## Usage
 
@@ -37,48 +38,78 @@ Report is saved as `claudedocs/architecture-audit-YYYY-MM-DD.md`.
 
 ## Execution Flow
 
-### Step 1: Project Discovery (You)
-1. Detect repository root (`git rev-parse --show-toplevel`)
-2. Generate directory tree (2-3 levels, exclude build/output/VCS directories)
-3. Categorize directories (source, test, config, docs)
-4. Count source files by type
-5. If `--scope`: restrict to the specified path
+The orchestration is a `Workflow` script. **This instruction is the opt-in** to call the
+`Workflow` tool. The script is sandboxed (no file/shell access), so YOU run discovery and
+tech-stack detection (need Bash/Glob) before the call and write the report after it. See
+`docs/workflow-integration-howto.md`.
 
-### Step 2: Tech Stack Detection (You)
-1. Detect manifest files (pom.xml, package.json, requirements.txt, go.mod, Cargo.toml, *.csproj, etc.)
-2. Determine primary language(s) from file extensions
-3. Identify framework(s) from dependencies
-4. Identify build tools and test frameworks
+### Step 1: Project Discovery (you)
+1. Detect repository root (`git rev-parse --show-toplevel`).
+2. Generate directory tree (2-3 levels, exclude build/output/VCS dirs).
+3. Categorize directories (source, test, config, docs) and count source files by type.
+4. If `--scope`: verify the path exists (else error + STOP) and restrict to it.
+5. **No source files found → error + STOP** (no report).
+6. Assemble the **Project Structure Summary** string (orchestration.md Step 1.5).
 
-### Step 3: Phase 1 — Pattern Recognition (Sequential)
-Spawn Analyzer 01 via Task tool (`general-purpose`, `model: sonnet`).
-Provides: Project Structure Summary + Tech Stack Profile.
-Returns: Detected pattern, confidence level, expected architecture rules.
+### Step 2: Tech Stack Detection (you)
+Detect manifests, primary/secondary languages, frameworks, build/test tools → assemble the
+**Tech Stack Profile** string (orchestration.md Step 2.5). Also collect a `fileList` of
+representative source files/dirs, and detect whether `claudedocs/guidelines/` and
+`claudedocs/adrs/` exist (with `*.md`).
 
-**Must complete before Phase 2** — all Phase 2 analyzers need the detected pattern.
+### Step 3: Call the Workflow
 
-### Step 4: Phase 2 — Parallel Analyzers
-Spawn Analyzers 02-07 in **one message** (6 parallel Task calls, `general-purpose`).
-Model per analyzer: `sonnet` for multi-file reasoning (02, 03, 05, 06), `haiku` for rule-based (04, 07).
-Each receives: Project Structure Summary + Tech Stack Profile + Phase 1 results.
+Resolve `{skill_dir}` = absolute path of this skill's directory. Call the `Workflow` tool with:
+- `scriptPath`: `{skill_dir}/audit.workflow.js`
+- `args`:
+  ```json
+  {
+    "skillDir": "{skill_dir}",
+    "projectStructureSummary": "…",
+    "techStackProfile": "…",
+    "fileList": ["src/...", "..."],
+    "scope": "" ,
+    "date": "YYYY-MM-DD",
+    "guidelines": false,
+    "adrs": false
+  }
+  ```
 
-### Step 5: Consolidation & Rating
-Collect all 7 analyzer outputs. Calculate weighted overall rating. Identify cross-cutting themes. Generate executive summary, consolidated strengths, concerns, and recommendations.
+### Step 4: Render & Save the Report (you — the script returned only data)
 
-### Step 6: Report
-Display the full report in the conversation. Save to `claudedocs/architecture-audit-YYYY-MM-DD.md`.
+The script returns: `{ date, scope, overallRating, overallLabel, ratings, phase1Degraded,
+phase1: {patternName, confidence, rating, summary, report}, analyzers: [{key,id,name,rating,summary,report}],
+synthesis: {crossCuttingThemes, strengths, concerns, recommendations} }`.
 
-Read `orchestration.md` for the full orchestration playbook including prompt templates, report structure, and error handling.
+Render the **exact "Report Structure"** from `orchestration.md`:
+- Executive Summary with `**Overall Rating: {overallRating}** ({overallLabel})`.
+- Rating Overview table from `ratings` + each dimension's `summary` (incl. the Pattern row from `phase1.summary`).
+- Architecture Pattern section = `phase1.report`; Detailed Findings = each analyzer's `report`.
+- Strengths / Concerns / Recommendations from `synthesis`.
+- Appendices = the Project Structure Summary and Tech Stack Profile you built in Steps 1–2.
+- If `phase1Degraded` is true, note "Phase 1 failed — analyzers evaluated against general best practices."
+
+Display the full report in the conversation **and** write it to
+`claudedocs/architecture-audit-{date}.md`. Confirm: `Report saved: claudedocs/architecture-audit-{date}.md`.
+
+Do NOT auto-fix. The audit describes and rates; the user decides next steps.
+
+### Fallback (if the Workflow feature is unavailable or declined)
+
+Fall back to the prompt-based orchestration in `orchestration.md` (Steps 3–6). It is a
+complete specification of the same sequencing, model choice, rating calculation, and report
+format.
 
 ## Skill Contents
 
 ```
 skills/architecture-audit/
 ├── SKILL.md                          ← This file (orchestrator command)
-├── orchestration.md                  ← Detailed playbook, prompt templates, report format
+├── audit.workflow.js                 ← Deterministic Workflow orchestration (primary path)
+├── orchestration.md                  ← Rules spec + prompt-based fallback, report structure
 ├── shared/
-│   ├── analyzer-output-format.md     ← Standard output format for all analyzers
-│   └── rating-scale.md              ← Rating definitions (A-E scale)
+│   ├── analyzer-output-format.md     ← Standard output format (mirrored by the script schema)
+│   └── rating-scale.md              ← Rating definitions (A-E) + weighting + rounding rule
 └── analyzers/
     ├── 01-pattern-recognition.md     (Phase 1 — sequential)
     ├── 02-component-boundaries.md    (Phase 2 — parallel)
@@ -92,10 +123,9 @@ skills/architecture-audit/
 ## Key Principles
 
 - **Audit describes, assesses, and rates** — it does not demand changes
-- **Project guidelines** (`claudedocs/guidelines/*.md`) provide context for evaluation
-- **ADRs** (`claudedocs/adrs/`) are respected as documented architecture decisions
-- **Language-agnostic** — detects stack-specific patterns but applies universal architecture principles
+- **Overall rating is exact JS math** (01 & 03 weighted 2×, N/A excluded, A=5…E=1, rounded half-up) — identical inputs always yield the identical grade
+- **Project guidelines** (`claudedocs/guidelines/*.md`) provide context; **ADRs** (`claudedocs/adrs/`) are respected
 - **Phase 1 → Phase 2** sequencing ensures analyzers know what pattern to evaluate against
-- **Parallel Phase 2** minimizes total audit time
-- If an analyzer fails, the audit continues with remaining results
-- After audit: display report, do NOT auto-fix, let user decide next steps
+- **Consolidation stage** (cross-cutting themes, deduped strengths/concerns, 3-5 recommendations) runs as a dedicated agent so the full analyzer reports never flood the orchestrator context
+- If an analyzer fails it becomes N/A and the audit continues; if Phase 1 fails, Phase 2 evaluates against general best practices
+- After audit: display + save report, do NOT auto-fix
