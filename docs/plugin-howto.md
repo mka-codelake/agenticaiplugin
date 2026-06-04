@@ -769,15 +769,15 @@ Features that are available but not prominently advertised. For power users who 
 
 ### Multi-Specialist Code Review
 
-The code review system uses a team-based architecture with 11 focused specialist agents. A "Chief Architect" orchestrator (`skills/code-review/SKILL.md`) spawns specialists via the Task tool.
+The code review system uses a team-based architecture with 12 focused specialist agents. A "Chief Architect" orchestrator (`skills/code-review/SKILL.md`) spawns specialists via the Task tool.
 
 **How it works:**
 1. Orchestrator detects changes (git diff, single file, or complete project)
 2. Phase 1: Dependencies & Versions specialist runs first (provides version context)
-3. Phase 2: All applicable specialists run in parallel (spawned as `general-purpose` sub-agents with `model: haiku`)
+3. Phase 2: All applicable specialists run in parallel (spawned as `general-purpose` sub-agents with a per-specialist `model` tier — `haiku`/`sonnet`/`opus`, see `orchestration.md`)
 4. Orchestrator consolidates, deduplicates, and sorts findings into a single report
 
-**10 Specialists:** Dependencies & Versions, Security & Data Safety, Architecture & Layers, Design Patterns (GoF), SOLID & Code Smells, Code Quality & Correctness, Dead Code & Duplication, Cross-Cutting Concerns, Test Quality, Test Completeness & Infra
+**12 Specialists:** Dependencies & Versions, Security & Data Safety, Architecture & Layers, Design Patterns (GoF), SOLID & Code Smells, Correctness & Bug Detection (06a), Code Style & Size (06b), Dead Code & Duplication, Cross-Cutting Concerns, Test Quality, Test Completeness & Infra, Documentation & Comments
 
 **Key design decisions:**
 - Specialists read only their focused rules (~100-200 lines) for thorough coverage
