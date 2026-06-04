@@ -1,6 +1,14 @@
 # Architecture Audit Orchestration Playbook
 
-Detailed orchestration logic for the multi-analyzer architecture audit. Referenced by SKILL.md during execution.
+Detailed orchestration logic for the multi-analyzer architecture audit.
+
+> **Primary path is the Workflow script `audit.workflow.js`** (see `SKILL.md` and
+> `docs/workflow-integration-howto.md`). The script is **authoritative for control flow**:
+> Phase 1 → Phase 2 sequencing, per-analyzer model choice, the **exact weighted rating math**
+> (Step 5.3 → `weightedAverage`), and the consolidation stage (Step 5.4–5.6). This document
+> remains the **single source of truth for the rules and report structure**, and is the
+> **complete prompt-based fallback** used when the Workflow feature is unavailable or declined.
+> Discovery and tech-stack detection (Steps 1–2) stay with the main model either way.
 
 ## Fundamental Principle: Describe & Assess
 

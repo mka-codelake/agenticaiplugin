@@ -42,3 +42,5 @@ The orchestrator computes the overall rating as a **weighted average**:
 | Structural Visibility (07) | 1x |
 
 **Conversion:** A=5, B=4, C=3, D=2, E=1. Compute weighted average, round to nearest letter grade. Dimensions rated N/A are excluded from the calculation.
+
+**Rounding rule (deterministic):** Round **half up** — a weighted average of exactly x.5 rounds to x+1 (e.g., 2.5 → C, 3.5 → B). This is what `Math.round` does for positive numbers and what `audit.workflow.js` (`weightedAverage`) implements, so identical inputs always produce the identical grade.
