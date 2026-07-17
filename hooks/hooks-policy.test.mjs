@@ -35,8 +35,10 @@ test('every registered hook is exec-form node targeting a .mjs script', () => {
   }
 });
 
-test('no shell scripts live under hooks/', () => {
-  const shellFiles = readdirSync(hooksDir).filter(
+test('no shell scripts live under hooks/ (recursively)', () => {
+  // Recursive so subdirectories like hooks/autoskill/ are covered — a stray
+  // .sh/.ps1 dropped anywhere under hooks/ must fail the Hook Runtime Policy.
+  const shellFiles = readdirSync(hooksDir, { recursive: true }).filter(
     (f) => f.endsWith('.sh') || f.endsWith('.ps1') || f.endsWith('.bat') || f.endsWith('.cmd')
   );
   assert.deepEqual(shellFiles, [], 'shell scripts under hooks/ violate the Hook Runtime Policy');
