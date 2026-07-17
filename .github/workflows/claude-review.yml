@@ -20,16 +20,30 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      # Both steps are skipped (job stays green) until the ANTHROPIC_API_KEY
-      # secret is configured — set it up via /install-github-app in Claude Code.
+      # The secrets context is not allowed in `if:` expressions, so detect the
+      # key via env indirection. All later steps are skipped (job stays green)
+      # until the ANTHROPIC_API_KEY secret is configured — set it up via
+      # /install-github-app in Claude Code.
+      - name: Detect API key
+        id: key
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::ANTHROPIC_API_KEY secret not set — Claude review skipped. Run /install-github-app in Claude Code to enable it."
+          fi
+
       - name: Checkout
-        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        if: steps.key.outputs.present == 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Claude Code Review
-        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        if: steps.key.outputs.present == 'true'
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
