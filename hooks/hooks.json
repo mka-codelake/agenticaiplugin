@@ -6,7 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/persona-inject.sh",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/skills/persona/persona.mjs", "inject"],
             "statusMessage": "Loading persona..."
           }
         ]

@@ -47,17 +47,29 @@ State file (global, per user): `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/persona.stat
 
 ## Instructions
 
-All state changes go through the helper script `persona.sh`. This makes the write
-a **real, verified action** instead of a code block that could be skipped.
+All state changes go through the helper script `persona.mjs` (Node, cross-platform —
+no bash/jq required). This makes the write a **real, verified action** instead of a
+code block that could be skipped.
 
 `{skill_dir}` = the absolute path of THIS skill's directory (resolve it the way
-the other plugin skills do). The script lives at `{skill_dir}/persona.sh`.
+the other plugin skills do). The script lives at `{skill_dir}/persona.mjs`.
 
 > **For `show`, `set`, and `off` you MUST invoke the Bash tool to run the script,
 > then report the persona from its `OK persona=<value>` output line. Do NOT merely
 > display the command, and do NOT fabricate the output: if you did not actually see
 > an `OK persona=...` line in the tool result, the change did NOT happen — say so
 > instead of reporting success.**
+
+**Prerequisite — Node.js:** the script requires `node` on PATH. If the command fails
+because `node` is not found, do NOT claim the persona was changed. Instead tell the
+user that the persona feature (including its SessionStart hook) requires Node.js and
+show the platform-specific install hint:
+
+| Platform | Install |
+|----------|---------|
+| Windows | `winget install OpenJS.NodeJS.LTS` (restart Claude Code afterwards — new shells only) |
+| Debian/Ubuntu | `sudo apt install nodejs` |
+| macOS | `brew install node` |
 
 The persona also takes effect at the next session start (the hook injects it from
 the state file). For `set`/`off`, additionally apply the change immediately for the
@@ -68,7 +80,7 @@ rest of the current session so the user sees it right away.
 Run with the Bash tool:
 
 ```bash
-bash "{skill_dir}/persona.sh" show
+node "{skill_dir}/persona.mjs" show
 ```
 
 From the `OK persona=<value>` line, report `⧉ persona: <value>`.
@@ -90,7 +102,7 @@ Output this table verbatim (no command needed):
 Run with the Bash tool:
 
 ```bash
-bash "{skill_dir}/persona.sh" off
+node "{skill_dir}/persona.mjs" off
 ```
 
 On `OK persona=off`, report `⧉ persona: off (updated)`, then respond with your
@@ -101,7 +113,7 @@ normal communication style for the rest of this session.
 Run with the Bash tool (substitute the chosen persona for `<persona>`):
 
 ```bash
-bash "{skill_dir}/persona.sh" set <persona>
+node "{skill_dir}/persona.mjs" set <persona>
 ```
 
 - On `OK persona=<persona>`: report `⧉ persona: <persona> (updated)` and apply that
