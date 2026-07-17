@@ -85,6 +85,8 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:license-check` | Check license compatibility of dependencies, tools, and LLM models |
 | `/agenticaiplugin:handover` | Save/load cross-session continuity snapshot (open items, blockers, next steps) — reconciles with prior state, never auto-loads |
 | `/agenticaiplugin:persona` | Set/show the agent communication persona (writer/engineer/telegrapher/caveman) — opt-in, off by default |
+| `/agenticaiplugin:learn` | Distill a source or the current session into one reusable learned skill (autoskill) |
+| `/agenticaiplugin:curator` | Curate the learned-skill library: lifecycle maintenance + overlap report (autoskill) |
 | `/agenticaiplugin:promote-perms` | Promote workspace permissions to user level |
 | `/agenticaiplugin:help` | Show overview of all plugin commands and skills |
 

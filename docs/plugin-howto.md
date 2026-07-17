@@ -257,10 +257,51 @@ Node itself — a portable non-Node warning hook is structurally impossible
 PowerShell 5.1). That case is covered by the init/update-time check plus README;
 do not attempt polyglot inline hooks.
 
+A registry entry may carry a `requiredWhen` gate
+(`{ "config": "<dotted path in agenticaiplugin.config.json>", "equals": <value> }`)
+so a prerequisite for an **opt-in** feature is only probed when that feature is
+enabled — otherwise the SessionStart check would nag every user about a tool
+they never opted into (missing/unreadable config means the gate is NOT
+satisfied, matching the opt-in default). Example: the `claude` CLI is only
+required when `autoskill.enabled` is `true`.
+
 **Portability note:** GitHub Copilot CLI hooks use the same shell-command +
 JSON-stdin/stdout model — Node hook scripts port 1:1. OpenCode plugins run
 in-process under Bun; keep hook logic in importable functions so a thin adapter
 can reuse it.
+
+### Autoskill (self-learning skills, `hooks/autoskill/`)
+
+Autoskill is a self-learning mechanism (Hermes-agent pattern) that watches
+sessions and distills reusable skills into the user-level library. It is
+**opt-in** (`agenticaiplugin.config.json` → `"autoskill": { "enabled": true }`,
+default `false`) because it spawns background `claude -p` runs, which cost
+tokens.
+
+- **Hook chain** (all Node exec-form, all fail-safe, all inert when disabled or
+  in the reviewer's own session via the `AUTOSKILL_REVIEWER` env guard):
+  - `count.mjs` (PostToolUse) — per-session tool-call counter + learned-skill
+    usage telemetry; the counter resets on skill work.
+  - `maybe-review.mjs` (Stop) — at `threshold` tool calls, spawns the review
+    worker **detached** (`spawn(..., { detached: true }).unref()` — the
+    Windows-safe replacement for `nohup`/`disown`); also fires the lazy curator
+    on its interval. Returns immediately.
+  - `nudge.mjs` (UserPromptSubmit) — surfaces a finished review's summary as a
+    `systemMessage` (💾) and injects a periodic learn nudge (model-only).
+  - `run-review.mjs` — the detached worker: builds a digest from the transcript,
+    runs the headless reviewer, and installs staged skills. Also the curator.
+  - `read-guard.mjs` (PreToolUse, reviewer session only) — path cage + read-
+    before-write, fail-closed.
+- **State lives OUTSIDE the plugin dir** (a marketplace copy, overwritten on
+  update): `${CLAUDE_CONFIG_DIR:-~/.claude}/agenticaiplugin.autoskill/`.
+- **Reviewer sandbox:** the worker generates its reviewer settings file at
+  runtime (a static JSON cannot resolve the plugin path) with the read-guard in
+  exec form; the reviewer may only write into `staging/`, and the deterministic
+  install step in `run-review.mjs` is the ONLY code that touches the library —
+  enforcing the `learned-` prefix, `user-invocable: false`, and manifest-based
+  protection of non-learned skills.
+- **User commands:** `/agenticaiplugin:learn` (targeted distillation) and
+  `/agenticaiplugin:curator` (lifecycle + overlap report).
 
 ### User Invocability (`user-invocable`)
 

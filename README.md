@@ -35,9 +35,11 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed and configured
 - Access to a local marketplace directory
 - [Node.js](https://nodejs.org/) 18 LTS or later on PATH — required by hook-based features
-  (currently: `persona`). The Claude Code native installer does not bundle Node,
+  (`persona`, `autoskill`). The Claude Code native installer does not bundle Node,
   so it must be installed separately. Without it, those features degrade with a
   visible error instead of working; all other plugin features are unaffected.
+- The `claude` CLI on PATH — only required if you enable `autoskill` (its
+  background reviewer runs `claude -p`).
 
 ### Steps
 
@@ -186,12 +188,36 @@ directory (`$CLAUDE_CONFIG_DIR`, default `~/.claude`).
 | Key | Values | Default | Effect |
 |-----|--------|---------|--------|
 | `prereqNotice` | `"on-change"` \| `"every-session"` | `"on-change"` | How often the session-start prerequisite check notifies about unmet feature prerequisites: only when the situation changes, or on every session start |
+| `autoskill.enabled` | `true` \| `false` | `false` | Enable the self-learning skill mechanism (see [Autoskill](#autoskill-self-learning-skills)). Off by default because it spawns background `claude -p` runs |
+| `autoskill.threshold` | integer | `10` | Tool calls per session before a background skill review is triggered |
+| `autoskill.reviewerModel` | model alias | `"sonnet"` | Model used for the background reviewer/curator |
+| `autoskill.nudgeInterval` | integer | `10` | Inject a silent learn reminder every N prompts (`0` disables it) |
+| `autoskill.curator.enabled` | `true` \| `false` | `true` | Enable the lazy curator (lifecycle maintenance of learned skills) |
+| `autoskill.curator.intervalDays` | integer | `7` | Days between curator runs |
+
+### Autoskill (self-learning skills)
+
+Opt-in mechanism that watches your sessions and distills reusable **learned
+skills** into your user-level library (`~/.claude/skills/learned-*`), so a
+technique or correction from one session is available in the next. It is
+**disabled by default** — enable it with `"autoskill": { "enabled": true }` in
+the config file above.
+
+- After enough tool activity in a session, a background reviewer (a headless
+  `claude -p` run — this is why it is opt-in and costs tokens) proposes a skill
+  create/patch; the result surfaces as a 💾 note on your next prompt.
+- `/agenticaiplugin:learn` distills a source (a directory, URL, notes, or the
+  current conversation) into one skill on demand.
+- `/agenticaiplugin:curator` runs lifecycle maintenance (stale > 30 days,
+  archive > 90 days, never deletes) plus an overlap report.
+- **Requires the `claude` CLI on PATH** for the background reviewer (only
+  checked when autoskill is enabled).
 
 ### Feature Prerequisites
 
 `prerequisites.json` (plugin root) is the central registry of external
-requirements per feature (currently: Node.js for hook-based features). It is
-checked at three points:
+requirements per feature (Node.js for hook-based features; the `claude` CLI for
+autoskill). It is checked at three points:
 
 1. **`/agenticaiplugin:init` and `/agenticaiplugin:update-plugin`** — warns with
    install hints; this also covers the case where Node itself is missing.
