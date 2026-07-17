@@ -79,6 +79,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:git-smart-commit` | Atomic commits with meaningful messages |
 | `/agenticaiplugin:gitme` | Short alias for git-smart-commit |
 | `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
+| `/agenticaiplugin:grill-me` | Stress-test a plan/decision via a relentless interview |
 | `/agenticaiplugin:markdown-converter` | Convert files to Markdown via markitdown |
 | `/agenticaiplugin:github-publish` | Prepare repo for public GitHub release (README, badges, logo, license, etc.) |
 | `/agenticaiplugin:npm-publish` | End-to-end npm release: cut release (semver bump + CHANGELOG from Conventional Commits) + pre-publish audit (package.json, version sync, tarball, secrets, license) |

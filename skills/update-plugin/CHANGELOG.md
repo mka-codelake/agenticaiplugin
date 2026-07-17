@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.23.0
+
+- **New: `grill-me` skill — relentless plan/decision stress-test.** New user-invoked command `/agenticaiplugin:grill-me [<topic>]` that interviews you one question at a time, walking the decision tree branch by branch and recommending an answer for each, until you reach shared understanding. Facts are looked up from the environment; decisions are put to you. Stateless (writes nothing) and manual-only (`disable-model-invocation: true`). Registered in the help overview and the CLAUDE.md command table.
+
 ## 0.22.0
 
 - **New: autoskill — self-learning skills, migrated into the plugin from a standalone Bash prototype.** Autoskill watches your sessions and distills reusable **learned skills** into the user-level library (`~/.claude/skills/learned-*`), so a technique or correction from one session is available in the next. The prototype was Bash+jq (the exact stack that breaks on Windows per #23/#24); this port is Node stdlib only, under the Hook Runtime Policy, so it works on all platforms. **Opt-in by design** (`agenticaiplugin.config.json` → `"autoskill": { "enabled": true }`, default `false`) because the background reviewer spawns headless `claude -p` runs that cost tokens.

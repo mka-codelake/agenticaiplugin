@@ -53,6 +53,7 @@ Show the user the following overview:
 | **architecture-audit** | Comprehensive architecture audit: detects patterns, evaluates 7 dimensions (Boundaries, Dependencies, Naming, APIs, Wiring, Visibility), produces a scored report (A-E scale). Options: `--scope <path>` for partial audits |
 | **qa** | Quality Assurance: manages bidirectional traceability between requirements, code, test cases, and tests ("Quality Square"). Analyzes code, extracts requirements, derives test cases, produces gap analysis. Option: `--force-rebuild` |
 | **create-cli** | Designs CLI interfaces: arguments, flags, subcommands, help text, output formats, exit codes, prompts. Produces a compact spec for implementation |
+| **grill-me** | Relentless one-question-at-a-time interview to stress-test a plan or decision until you reach shared understanding. Stateless, manual-only |
 | **license-check** | Checks license compatibility of all dependencies, tools, scripts, and LLM models against the project license. Modes: standard (full scan including transitive deps) or `--quick` (direct dependencies only). Report saved to `claudedocs/license-check-result.md` |
 
 ### Tools

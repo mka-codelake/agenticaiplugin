@@ -88,6 +88,7 @@ Initialization creates:
 | `architecture-audit` | 7-dimension architecture assessment with A-E ratings |
 | `qa` | Quality Square traceability (requirements, code, test cases, tests) |
 | `create-cli` | Design CLI parameters, flags, and UX |
+| `grill-me` | Stress-test a plan or decision via a relentless one-question-at-a-time interview |
 | `license-check` | Check dependency license compatibility (full scan or `--quick`) |
 | `markdown-converter` | Convert files to Markdown (PDF, Word, images, audio, etc.) |
 | `handover` | Save/load cross-session continuity snapshot (open items, blockers, next steps) with reconciliation against prior state |
@@ -252,6 +253,7 @@ agenticaiplugin/
 │   ├── architecture-audit/      # 7-dimension architecture assessment
 │   ├── code-review/             # 11-specialist code review
 │   ├── create-cli/              # CLI interface design
+│   ├── grill-me/                # Plan/decision stress-test interview
 │   ├── git-smart-commit/        # Intelligent commit creation
 │   ├── github-publish/          # Public release preparation
 │   ├── gitme/                   # Smart commit command alias
