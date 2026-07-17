@@ -1,0 +1,59 @@
+name: Claude Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+# One review run per PR at a time; a new push cancels the outdated run.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # Both steps are skipped (job stays green) until the ANTHROPIC_API_KEY
+      # secret is configured — set it up via /install-github-app in Claude Code.
+      - name: Checkout
+        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Claude Code Review
+        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Review this pull request and post your findings as a PR review with
+            inline comments where possible. This repository is a Claude Code
+            plugin (markdown skills/agents, Node .mjs hooks) — judge it by its
+            own rules:
+
+            - Hook Runtime Policy (docs/plugin-howto.md): plugin hooks must be
+              Node ESM (.mjs) registered in exec form; no bash/jq, no shell-form
+              hooks, no absolute or developer-specific paths anywhere.
+            - Cross-file consistency: SKILL.md usage sections, skills/help
+              overview, CHANGELOG, README, and prerequisites.json must stay in
+              sync with behavior changes.
+            - Contracts: script CLI contracts (e.g. "OK persona=<value>") and
+              hook JSON output (hookSpecificOutput) must not drift; changed
+              behavior needs matching *.test.mjs coverage (node --test).
+            - Versioning: user-facing changes need a CHANGELOG section matching
+              .claude-plugin/plugin.json's version.
+
+            Classify findings as Critical / Warning / Suggestion. Be concise;
+            skip nitpicks that a linter would catch. If everything is fine, say
+            so briefly instead of inventing findings.
+          claude_args: |
+            --max-turns 10
+            --model claude-sonnet-5
