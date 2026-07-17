@@ -60,6 +60,7 @@ Check for these items:
 1. `.claude/rules/` directory and existing `agenticaiplugin-*.md` rules
 2. `claudedocs/guidelines/` directory
 3. `claudedocs/adrs/` directory
+4. **Feature prerequisites** — see "Prerequisite Check" in Shared Notes below
 
 Display format:
 ```
@@ -70,7 +71,14 @@ Current Status:
     ✓ .claude/rules/ - Already exists (contains 2 plugin rules)   (or: ✗ Not found)
     ✗ claudedocs/guidelines/ - Not found                          (or: ✓ Already exists)
     ✗ claudedocs/adrs/ - Not found                                (or: ✓ Already exists)
+
+  Prerequisites:
+    ✓ node - Found (v24.x)          (or: ⚠ node - NOT FOUND, see warning below)
 ```
+
+If any prerequisite is unmet, show the warning block from "Prerequisite Check"
+(Shared Notes) after the status display. Setup continues regardless — the check
+warns, it never blocks.
 
 ## Init Step 2: Show What Will Be Done
 
@@ -140,7 +148,12 @@ Read and execute: `{plugin_root}/agents/project-initializer/update-agenticai.md`
 
 This handles installation detection, CLAUDE.md migration, version comparison, and rule updates.
 
-## Update Step 3: Aggregated Summary
+## Update Step 3: Prerequisite Check
+
+Run the "Prerequisite Check" from Shared Notes below. If anything is unmet,
+append the warning block to the summary in Step 4. Never block the update.
+
+## Update Step 4: Aggregated Summary
 
 Combine results from all update tasks into a single summary:
 
@@ -161,6 +174,35 @@ Include the "What's New" changelog delta from the AgenticAI update task (if appl
 # ═══════════════════════════════════════════════════════════════
 # SHARED NOTES
 # ═══════════════════════════════════════════════════════════════
+
+## Prerequisite Check
+
+The central registry `{plugin_root}/prerequisites.json` declares every external
+requirement of plugin features (single source of truth — never hardcode
+prerequisite knowledge here or in skills).
+
+**This init/update-time check is the primary coverage for the bootstrap case:**
+the SessionStart checker hook (`hooks/check-prereqs.mjs`) runs under Node, so it
+can never report Node itself as missing. YOU run in an active session with the
+Bash tool and can — so this check works even when Node is absent.
+
+Procedure:
+1. Read `{plugin_root}/prerequisites.json`.
+2. For each entry with `check.type == "binary"`: run `<name> <versionArg>` via
+   the Bash tool (e.g. `node --version`). Command fails/not found → unmet. If
+   `minMajor` is set, compare the reported major version.
+3. For each unmet entry, show a warning naming the prerequisite, the affected
+   `features`, and the install hint for the user's platform from `hints`
+   (detect platform via the shell; when unsure, show all hints):
+
+```
+⚠ Prerequisite missing: node
+  Affected features (they will not work until installed): persona (communication styles), all plugin SessionStart hooks
+  Install: winget install OpenJS.NodeJS.LTS  — new shells only: restart Claude Code afterwards
+  All other plugin features work normally.
+```
+
+**Never block** on unmet prerequisites — warn and continue.
 
 ## Important Notes
 

@@ -1,0 +1,15 @@
+{
+  "$comment": "Central registry of feature prerequisites (issue #25). Consumed by hooks/check-prereqs.mjs (SessionStart notice), the project-initializer agent (init/update-time check), and skills that need install hints. Add an entry here whenever a feature gains an external requirement — never hardcode prerequisite checks in individual skills or hooks.",
+  "prerequisites": [
+    {
+      "id": "node",
+      "check": { "type": "binary", "name": "node", "versionArg": "--version", "minMajor": 18 },
+      "features": ["persona (communication styles)", "all plugin SessionStart hooks"],
+      "hints": {
+        "win32": "winget install OpenJS.NodeJS.LTS  — new shells only: restart Claude Code afterwards",
+        "linux": "sudo apt install nodejs",
+        "darwin": "brew install node"
+      }
+    }
+  ]
+}

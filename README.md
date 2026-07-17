@@ -34,7 +34,7 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed and configured
 - Access to a local marketplace directory
-- [Node.js](https://nodejs.org/) (LTS) on PATH — required by hook-based features
+- [Node.js](https://nodejs.org/) 18 LTS or later on PATH — required by hook-based features
   (currently: `persona`). The Claude Code native installer does not bundle Node,
   so it must be installed separately. Without it, those features degrade with a
   visible error instead of working; all other plugin features are unaffected.
@@ -177,6 +177,30 @@ claudedocs/guidelines/
 ```
 
 Project guidelines **always override** plugin skill guidelines when conflicts occur.
+
+### Plugin Configuration File
+
+Optional, global per user: `agenticaiplugin.config.json` in the Claude config
+directory (`$CLAUDE_CONFIG_DIR`, default `~/.claude`).
+
+| Key | Values | Default | Effect |
+|-----|--------|---------|--------|
+| `prereqNotice` | `"on-change"` \| `"every-session"` | `"on-change"` | How often the session-start prerequisite check notifies about unmet feature prerequisites: only when the situation changes, or on every session start |
+
+### Feature Prerequisites
+
+`prerequisites.json` (plugin root) is the central registry of external
+requirements per feature (currently: Node.js for hook-based features). It is
+checked at three points:
+
+1. **`/agenticaiplugin:init` and `/agenticaiplugin:update-plugin`** — warns with
+   install hints; this also covers the case where Node itself is missing.
+2. **Session start** — a hook injects a short notice when prerequisites are
+   unmet (frequency per `prereqNotice` above). Known limitation: if Node itself
+   is missing, this hook cannot run; you then see a plain hook error at session
+   start — run `/agenticaiplugin:init` for guided diagnosis.
+3. **Skills** — feature skills reference the same registry for their error
+   guidance.
 
 ### Architectural Decision Records
 
