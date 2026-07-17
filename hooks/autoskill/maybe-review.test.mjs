@@ -13,7 +13,10 @@ import { fileURLToPath } from 'node:url';
 const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), 'maybe-review.mjs');
 const SID = 'stop-1';
 
-function fixture(config = { enabled: true, threshold: 3 }) {
+// Default config disables the lazy curator so the review-trigger tests are not
+// perturbed by it (curator defaults to ON now); the dedicated curator test
+// passes its own config that enables it.
+function fixture(config = { enabled: true, threshold: 3, curator: { enabled: false } }) {
   const configDir = mkdtempSync(join(tmpdir(), 'autoskill-stop-'));
   writeFileSync(
     join(configDir, 'agenticaiplugin.config.json'),

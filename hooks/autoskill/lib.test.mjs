@@ -34,6 +34,15 @@ test('explicit false values survive (no truthiness traps)', () => {
   assert.equal(c.curator.enabled, false);
 });
 
+test('the documented README config enables autoskill AND keeps the curator on', () => {
+  // exactly what the README tells users to write — the curator key is omitted
+  write({ autoskill: { enabled: true } });
+  const c = readConfig();
+  assert.equal(c.enabled, true);
+  assert.equal(c.curator.enabled, true, 'lazy curator must stay on by default');
+  assert.equal(c.curator.intervalDays, 7);
+});
+
 test('user values win; non-integer/negative numbers fall back', () => {
   write({ autoskill: { enabled: true, threshold: 3, nudgeInterval: 0, curator: { intervalDays: 14 } } });
   const c = readConfig();
@@ -41,6 +50,7 @@ test('user values win; non-integer/negative numbers fall back', () => {
   assert.equal(c.threshold, 3);
   assert.equal(c.nudgeInterval, 0);
   assert.equal(c.curator.intervalDays, 14);
+  assert.equal(c.curator.enabled, true, 'curator.enabled defaults to true when the key is omitted');
 
   write({ autoskill: { threshold: -5, nudgeInterval: 2.5 } });
   const bad = readConfig();

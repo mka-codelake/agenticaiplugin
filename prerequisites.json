@@ -15,7 +15,7 @@
       "id": "claude",
       "check": { "type": "binary", "name": "claude", "versionArg": "--version" },
       "requiredWhen": { "config": "autoskill.enabled", "equals": true },
-      "features": ["autoskill background reviewer (learn/curator)"],
+      "features": ["autoskill automatic background skill review and the curator's LLM overlap analysis (the manual /agenticaiplugin:learn and the curator's deterministic lifecycle still work without it)"],
       "hints": {
         "win32": "npm install -g @anthropic-ai/claude-code  (the Claude Code CLI must be on PATH for the background reviewer)",
         "linux": "npm install -g @anthropic-ai/claude-code",

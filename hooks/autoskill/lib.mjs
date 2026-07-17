@@ -60,7 +60,11 @@ export function readConfig() {
         : DEFAULTS.reviewerModel,
     nudgeInterval: num(section.nudgeInterval, DEFAULTS.nudgeInterval),
     curator: {
-      enabled: section.curator?.enabled === true,
+      // Default TRUE (unlike top-level `enabled`, which is opt-in/false): only
+      // an explicit `false` disables the lazy curator. `=== true` would wrongly
+      // disable it for the documented `{"autoskill":{"enabled":true}}` config,
+      // which omits the curator key.
+      enabled: section.curator?.enabled !== false,
       intervalDays: num(section.curator?.intervalDays, DEFAULTS.curator.intervalDays),
     },
   };
