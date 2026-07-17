@@ -52,6 +52,11 @@ function probe(check) {
       encoding: 'utf8',
       timeout: PROBE_TIMEOUT_MS,
       windowsHide: true,
+      // On Windows, npm-installed CLIs (e.g. `claude`) are `.cmd` shims that a
+      // direct (non-shell) spawn cannot resolve — it would report a present
+      // tool as missing. `check.name`/`versionArg` come from the plugin's own
+      // registry (never user input), so the shell carries no injection surface.
+      shell: process.platform === 'win32',
     });
   } catch {
     return { ok: false, reason: 'not found' };
@@ -67,6 +72,20 @@ function probe(check) {
     }
   }
   return { ok: true };
+}
+
+// Resolve a dotted path (e.g. "autoskill.enabled") against the config object.
+function configPath(config, dotted) {
+  return dotted.split('.').reduce((acc, key) => (acc == null ? undefined : acc[key]), config);
+}
+
+// An entry with a `requiredWhen` gate is only probed when the referenced config
+// value matches — so a prerequisite for an opt-in feature (default off) does not
+// nag users who never enabled it. Missing/unreadable config -> gate is NOT
+// satisfied (opt-in default), so the entry is skipped.
+function gateSatisfied(gate, config) {
+  if (!gate || typeof gate.config !== 'string') return true;
+  return configPath(config, gate.config) === gate.equals;
 }
 
 function writeMarker(unmetIds) {
@@ -118,8 +137,11 @@ function main() {
   const registry = readJson(REGISTRY_FILE);
   if (!registry || !Array.isArray(registry.prerequisites)) return;
 
+  const config = readJson(CONFIG_FILE);
+
   const unmet = [];
   for (const entry of registry.prerequisites) {
+    if (!gateSatisfied(entry.requiredWhen, config)) continue;
     const result = probe(entry.check);
     if (!result.ok) unmet.push({ ...entry, reason: result.reason });
   }
@@ -132,7 +154,6 @@ function main() {
   if (changed) writeMarker(unmetIds);
   if (unmet.length === 0) return;
 
-  const config = readJson(CONFIG_FILE);
   const everySession = config?.prereqNotice === 'every-session';
   if (!everySession && !changed) return;
 
