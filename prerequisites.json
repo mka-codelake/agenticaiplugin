@@ -1,14 +1,25 @@
 {
-  "$comment": "Central registry of feature prerequisites (issue #25). Consumed by hooks/check-prereqs.mjs (SessionStart notice), the project-initializer agent (init/update-time check), and skills that need install hints. Add an entry here whenever a feature gains an external requirement — never hardcode prerequisite checks in individual skills or hooks.",
+  "$comment": "Central registry of feature prerequisites (issue #25). Consumed by hooks/check-prereqs.mjs (SessionStart notice), the project-initializer agent (init/update-time check), and skills that need install hints. Add an entry here whenever a feature gains an external requirement — never hardcode prerequisite checks in individual skills or hooks. An entry may carry a `requiredWhen` gate {config: <dotted path in agenticaiplugin.config.json>, equals: <value>} so a prerequisite for an opt-in feature is only probed when that feature is enabled.",
   "prerequisites": [
     {
       "id": "node",
       "check": { "type": "binary", "name": "node", "versionArg": "--version", "minMajor": 18 },
-      "features": ["persona (communication styles)", "all plugin SessionStart hooks"],
+      "features": ["persona (communication styles)", "autoskill (self-learning skills)", "all plugin hooks (SessionStart, PostToolUse, Stop, UserPromptSubmit)"],
       "hints": {
         "win32": "winget install OpenJS.NodeJS.LTS  — new shells only: restart Claude Code afterwards",
         "linux": "sudo apt install nodejs",
         "darwin": "brew install node"
+      }
+    },
+    {
+      "id": "claude",
+      "check": { "type": "binary", "name": "claude", "versionArg": "--version" },
+      "requiredWhen": { "config": "autoskill.enabled", "equals": true },
+      "features": ["autoskill automatic background skill review and the curator's LLM overlap analysis (the manual /agenticaiplugin:learn and the curator's deterministic lifecycle still work without it)"],
+      "hints": {
+        "win32": "npm install -g @anthropic-ai/claude-code  (the Claude Code CLI must be on PATH for the background reviewer)",
+        "linux": "npm install -g @anthropic-ai/claude-code",
+        "darwin": "npm install -g @anthropic-ai/claude-code"
       }
     }
   ]

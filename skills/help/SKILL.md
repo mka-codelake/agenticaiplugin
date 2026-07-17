@@ -65,6 +65,12 @@ Show the user the following overview:
 |---------|-------------|
 | **persona** | Set or show the agent's communication persona (writer/engineer/telegrapher/caveman), trading response verbosity against token usage. Opt-in — off by default; subcommands `show`, `list`, `off`. State is global per user. Requires Node.js on PATH (state script + SessionStart hook) |
 
+### Self-Learning (Autoskill)
+| Command | Description |
+|---------|-------------|
+| **learn** | Distill a source (directory, URL, notes, or the current conversation) into exactly one reusable learned skill in the user-level library. Manual counterpart to the background reviewer |
+| **curator** | Curate the learned-skill library: deterministic lifecycle (stale > 30d, archive > 90d, never delete) plus an overlap/quality report. Opt-in `autoskill` feature — off by default; requires Node.js and the `claude` CLI on PATH |
+
 ### Session
 | Command | Description |
 |---------|-------------|

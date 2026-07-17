@@ -165,3 +165,27 @@ test('marker file records the current unmet set', () => {
   const marker = JSON.parse(readFileSync(join(fx.configDir, 'agenticaiplugin.prereqs.state'), 'utf8'));
   assert.deepEqual(marker.unmet, ['ghost']);
 });
+
+test('requiredWhen gate: unmet entry is skipped unless its feature is enabled', () => {
+  const gated = {
+    ...unmetEntry,
+    requiredWhen: { config: 'autoskill.enabled', equals: true },
+  };
+  const writeConfig = (fx, obj) => {
+    mkdirSync(fx.configDir, { recursive: true });
+    writeFileSync(join(fx.configDir, 'agenticaiplugin.config.json'), JSON.stringify(obj));
+  };
+
+  // no config at all -> gate not satisfied -> silent
+  assert.equal(run(makeFixture(registryWith(gated))).stdout, '');
+
+  // feature disabled -> gate not satisfied -> silent
+  const off = makeFixture(registryWith(gated));
+  writeConfig(off, { autoskill: { enabled: false } });
+  assert.equal(run(off).stdout, '');
+
+  // feature enabled -> gate satisfied -> the unmet prerequisite is reported
+  const on = makeFixture(registryWith(gated));
+  writeConfig(on, { autoskill: { enabled: true } });
+  assert.match(run(on).stdout, /`ghost`/);
+});
