@@ -196,6 +196,60 @@ hooks:
 **Options:**
 - `once: true` - Execute only on first occurrence
 
+### Hook Runtime Policy (plugin-level hooks, `hooks/hooks.json`)
+
+**All plugin lifecycle hooks MUST be Node ESM scripts (`.mjs`) registered in
+exec form. No bash, no jq, no external dependencies (Node stdlib only).**
+
+```json
+{
+  "type": "command",
+  "command": "node",
+  "args": ["${CLAUDE_PLUGIN_ROOT}/path/to/script.mjs", "subcommand"]
+}
+```
+
+**Why (issues #23/#24 — do not regress this):**
+
+- Shell-form hooks (`"command": "<script>.sh"`) are broken on Windows: Git Bash
+  detection is unreliable (per-user installs are missed; PATH `bash` can resolve
+  to WSL), and the PowerShell fallback fails *parsing* the `.sh` file
+  (`ParserError`) **before any script line runs** — in-script guards or warnings
+  can never fire. Anthropic closed the upstream issue (anthropics/claude-code#18610)
+  as "not planned".
+- Exec form (`args` set) spawns the binary directly — no shell selection, no
+  tokenization, no path-quoting issues. `node` is a real executable on every
+  platform. Exec form is also the documented requirement when the command
+  references path placeholders like `${CLAUDE_PLUGIN_ROOT}`.
+- jq is absent on most Windows installs; Node parses JSON natively
+  (`JSON.parse` on stdin).
+
+**Script rules:**
+
+- Use `os.homedir()`, `os.tmpdir()`, `path.join()` — never `$HOME`, `/tmp`, or
+  string-concatenated paths.
+- Resolve files shipped with the plugin relative to the script itself
+  (`import.meta.url`), not `${CLAUDE_PLUGIN_ROOT}` (empty in tool contexts).
+- Fail safe: a hook must never break the session — on unexpected state, emit
+  nothing and exit 0.
+- `.gitattributes` pins `*.mjs`/`*.js` to LF; keep it that way.
+- Exec form cannot spawn Windows `.cmd`/`.bat` shims (npm/npx wrappers) — always
+  target a `.js`/`.mjs` file with `node` directly.
+- The policy is enforced by `hooks/hooks-policy.test.mjs` (exec-form check on
+  every `hooks.json` entry + no shell scripts under `hooks/`). Run all script
+  tests from the repo root with `node --test`.
+
+**Caveat:** Node is NOT bundled by Claude Code (the native installer needs no
+Node). It is a documented plugin prerequisite (README). Missing Node produces a
+visible exec error at session start instead of a silent no-op — acceptable, but
+skills invoking Node scripts must catch the failure and show install hints (see
+`skills/persona/SKILL.md` for the pattern).
+
+**Portability note:** GitHub Copilot CLI hooks use the same shell-command +
+JSON-stdin/stdout model — Node hook scripts port 1:1. OpenCode plugins run
+in-process under Bun; keep hook logic in importable functions so a thin adapter
+can reuse it.
+
 ### User Invocability (`user-invocable`)
 
 Control visibility in slash command menu:

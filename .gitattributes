@@ -1,0 +1,5 @@
+# Hook/skill scripts must keep LF line endings on every platform —
+# CRLF corrupts script execution when checked out on Windows.
+*.mjs text eol=lf
+*.js text eol=lf
+*.sh text eol=lf

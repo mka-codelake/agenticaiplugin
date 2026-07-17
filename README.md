@@ -34,6 +34,10 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed and configured
 - Access to a local marketplace directory
+- [Node.js](https://nodejs.org/) (LTS) on PATH — required by hook-based features
+  (currently: `persona`). The Claude Code native installer does not bundle Node,
+  so it must be installed separately. Without it, those features degrade with a
+  visible error instead of working; all other plugin features are unaffected.
 
 ### Steps
 

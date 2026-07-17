@@ -63,7 +63,7 @@ Show the user the following overview:
 ### Communication
 | Command | Description |
 |---------|-------------|
-| **persona** | Set or show the agent's communication persona (writer/engineer/telegrapher/caveman), trading response verbosity against token usage. Opt-in — off by default; subcommands `show`, `list`, `off`. State is global per user |
+| **persona** | Set or show the agent's communication persona (writer/engineer/telegrapher/caveman), trading response verbosity against token usage. Opt-in — off by default; subcommands `show`, `list`, `off`. State is global per user. Requires Node.js on PATH (state script + SessionStart hook) |
 
 ### Session
 | Command | Description |
