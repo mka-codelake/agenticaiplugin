@@ -58,17 +58,30 @@ function log(text) {
   }
 }
 
-// Headless Claude call. `shell: true` on Windows resolves the `claude.cmd`
-// npm shim; the AUTOSKILL_REVIEWER env (inherited from maybe-review.mjs, set
-// again here for direct invocations) keeps the plugin's own hooks inert in
-// the reviewer session.
-function runClaude(args) {
-  const result = spawnSync('claude', args, {
+// Headless Claude call. The PROMPT — which embeds `buildDigest(transcript)`,
+// i.e. unsanitized session content — is passed via STDIN, never argv. This is
+// the security boundary: `shell: true` is required on Windows to resolve the
+// `claude.cmd` npm shim, and under a shell any argv element is re-parsed by
+// cmd.exe, so a `"` or `&|<>^` in the transcript would be a command-injection
+// vector if the prompt lived in argv. On stdin it cannot reach the shell.
+// Only static, plugin-controlled flags go in argv (model is whitelist-
+// validated in lib.readConfig); on Windows they are defensively quoted so a
+// settings path under a home dir with spaces stays a single argument.
+// The AUTOSKILL_REVIEWER env keeps the plugin's own hooks inert in the
+// reviewer session.
+function runClaude(prompt, args) {
+  const win = process.platform === 'win32';
+  const argv = win
+    ? args.map((a) => (/[\s"&|<>^()]/.test(a) ? `"${a.replace(/"/g, '\\"')}"` : a))
+    : args;
+  const result = spawnSync('claude', ['-p', ...argv], {
     encoding: 'utf8',
     timeout: CLAUDE_TIMEOUT_MS,
     windowsHide: true,
-    shell: process.platform === 'win32',
+    shell: win,
     cwd: homedir(),
+    input: prompt,
+    maxBuffer: 1024 * 1024 * 64,
     env: { ...process.env, AUTOSKILL_REVIEWER: '1' },
   });
   if (result.error) return { rc: -1, out: String(result.error.message || result.error) };
@@ -217,8 +230,7 @@ paths. Staged files are installed into the library after you finish; staged
 directories without a SKILL.md are only installed if the skill already exists.`;
 
   const settingsFile = writeReviewerSettings();
-  const { rc, out } = runClaude([
-    '-p', prompt,
+  const { rc, out } = runClaude(prompt, [
     '--model', model,
     '--output-format', 'text',
     '--permission-mode', 'acceptEdits',
@@ -337,8 +349,7 @@ function curatorMode(model) {
 --- CONTEXT ---
 Skill library directory: ${SKILLS_DIR}
 Learned skills (only these are subject to lifecycle/merge proposals): ${learned.join(' ')}`;
-    const { out } = runClaude([
-      '-p', prompt,
+    const { out } = runClaude(prompt, [
       '--model', model,
       '--output-format', 'text',
       '--allowedTools', 'Read,Glob,Grep',

@@ -50,9 +50,14 @@ export function readConfig() {
   return {
     enabled: section.enabled === true,
     threshold: num(section.threshold, DEFAULTS.threshold),
-    reviewerModel: typeof section.reviewerModel === 'string' && section.reviewerModel
-      ? section.reviewerModel
-      : DEFAULTS.reviewerModel,
+    // Whitelist the model alias: it is placed on the reviewer's argv, so
+    // restricting it to a safe charset keeps a hand-edited config from ever
+    // carrying shell metacharacters into the spawn (defense in depth — the
+    // untrusted transcript already goes via stdin, not argv).
+    reviewerModel:
+      typeof section.reviewerModel === 'string' && /^[a-zA-Z0-9._-]+$/.test(section.reviewerModel)
+        ? section.reviewerModel
+        : DEFAULTS.reviewerModel,
     nudgeInterval: num(section.nudgeInterval, DEFAULTS.nudgeInterval),
     curator: {
       enabled: section.curator?.enabled === true,

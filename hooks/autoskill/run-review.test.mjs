@@ -157,7 +157,8 @@ test('review mode e2e: stub claude stages a skill, worker installs it and leaves
     `#!/usr/bin/env node
 const fs = require('node:fs');
 const path = require('node:path');
-const prompt = process.argv[process.argv.indexOf('-p') + 1] || '';
+// The worker passes the prompt via STDIN (not argv) — read it from fd 0.
+const prompt = fs.readFileSync(0, 'utf8');
 const m = /Staging directory \\(the ONLY writable location\\): (.+)/.exec(prompt);
 if (m) {
   const dir = path.join(m[1].trim(), 'stub-technique');
