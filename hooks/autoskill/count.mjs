@@ -14,6 +14,7 @@
 
 import { join } from 'node:path';
 import {
+  SKILLS_DIR,
   STATE_DIR,
   counterFile,
   ensureStateDirs,
@@ -27,9 +28,14 @@ import {
   writeFileAtomic,
 } from './lib.mjs';
 
+// Anchor the skill-path check on the real (CONFIG_DIR-aware) skills directory,
+// NOT a hardcoded "/.claude/skills/" substring — under a non-default
+// CLAUDE_CONFIG_DIR the library lives elsewhere, and a hardcoded match would
+// silently stop resetting the counter and recording usage telemetry.
+const SKILLS_ANCHOR = `${normPath(SKILLS_DIR)}/`;
+
 function skillFromPath(np) {
-  const rest = np.split('/.claude/skills/')[1] || '';
-  return rest.split('/')[0];
+  return np.slice(SKILLS_ANCHOR.length).split('/')[0];
 }
 
 function bumpUsage(skill) {
@@ -54,7 +60,7 @@ function main() {
   const tool = typeof input.tool_name === 'string' ? input.tool_name : '';
   const fpath = typeof input.tool_input?.file_path === 'string' ? input.tool_input.file_path : '';
   const np = fpath ? normPath(fpath) : '';
-  const inSkills = np.includes('/.claude/skills/');
+  const inSkills = np.startsWith(SKILLS_ANCHOR);
 
   ensureStateDirs();
   const cfile = counterFile(sid, 'count');

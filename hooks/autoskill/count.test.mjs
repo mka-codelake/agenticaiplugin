@@ -44,17 +44,30 @@ test('increments the counter per tool call', () => {
   assert.equal(counterOf(fx), '3');
 });
 
-test('resets the counter on Write/Edit under .claude/skills/', () => {
+// The skills library is <CLAUDE_CONFIG_DIR>/skills — NOT a hardcoded
+// ".claude/skills". These tests build paths from the fixture's own config dir,
+// so they exercise the CONFIG_DIR-aware anchor (a hardcoded substring would
+// fail here — that was the blind spot a code review caught).
+const skillFile = (fx, ...seg) => join(fx.configDir, 'skills', ...seg);
+
+test('resets the counter on Write/Edit under the skills library (CONFIG_DIR-aware)', () => {
   const fx = fixture();
   fx.run({ session_id: SID, tool_name: 'Bash', tool_input: {} });
   fx.run({ session_id: SID, tool_name: 'Bash', tool_input: {} });
-  const r = fx.run({
-    session_id: SID,
-    tool_name: 'Write',
-    tool_input: { file_path: 'C:\\Users\\X\\.claude\\skills\\learned-foo\\SKILL.md' },
-  });
+  // feed the path with Windows-style separators to also exercise normalization
+  const winStyle = skillFile(fx, 'learned-foo', 'SKILL.md').replace(/\//g, '\\');
+  const r = fx.run({ session_id: SID, tool_name: 'Write', tool_input: { file_path: winStyle } });
   assert.equal(r.status, 0, r.stderr);
-  assert.equal(counterOf(fx), '0', 'backslash paths (Windows) must be normalized');
+  assert.equal(counterOf(fx), '0', 'backslash paths (Windows) must be normalized and matched');
+});
+
+test('a non-default CLAUDE_CONFIG_DIR path still counts as skill work', () => {
+  const fx = fixture();
+  // sanity: the fixture config dir is a temp path with no ".claude/skills" in it
+  assert.doesNotMatch(fx.configDir, /\.claude[\\/]skills/);
+  fx.run({ session_id: SID, tool_name: 'Bash', tool_input: {} });
+  fx.run({ session_id: SID, tool_name: 'Edit', tool_input: { file_path: skillFile(fx, 'learned-bar', 'reference.md') } });
+  assert.equal(counterOf(fx), '0', 'reset must not depend on a hardcoded .claude/skills substring');
 });
 
 test('bumps usage for Read on a learned skill file and for Skill tool calls', () => {
@@ -64,7 +77,7 @@ test('bumps usage for Read on a learned skill file and for Skill tool calls', ()
   fx.run({
     session_id: SID,
     tool_name: 'Read',
-    tool_input: { file_path: '/home/x/.claude/skills/learned-foo/SKILL.md' },
+    tool_input: { file_path: skillFile(fx, 'learned-foo', 'SKILL.md') },
   });
   fx.run({ session_id: SID, tool_name: 'Skill', tool_input: { skill: 'learned-foo' } });
   fx.run({ session_id: SID, tool_name: 'Skill', tool_input: { skill: 'not-learned' } });

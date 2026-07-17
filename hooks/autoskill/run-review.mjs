@@ -94,7 +94,7 @@ function writeReviewerSettings() {
   const settings = {
     permissions: {
       allow: ['Read', 'Glob', 'Grep', 'Write', 'Edit'],
-      deny: ['Bash', 'WebFetch', 'WebSearch', 'Agent', 'Workflow', 'NotebookEdit'],
+      deny: ['Bash', 'WebFetch', 'WebSearch', 'Agent', 'Task', 'Skill', 'Workflow', 'NotebookEdit'],
     },
     hooks: {
       PreToolUse: [
