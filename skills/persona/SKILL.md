@@ -62,14 +62,10 @@ the other plugin skills do). The script lives at `{skill_dir}/persona.mjs`.
 
 **Prerequisite — Node.js:** the script requires `node` on PATH. If the command fails
 because `node` is not found, do NOT claim the persona was changed. Instead tell the
-user that the persona feature (including its SessionStart hook) requires Node.js and
-show the platform-specific install hint:
-
-| Platform | Install |
-|----------|---------|
-| Windows | `winget install OpenJS.NodeJS.LTS` (restart Claude Code afterwards — new shells only) |
-| Debian/Ubuntu | `sudo apt install nodejs` |
-| macOS | `brew install node` |
+user that the persona feature (including its SessionStart hook) requires Node.js,
+and show the install hint for their platform read from the central prerequisite
+registry at `{skill_dir}/../../prerequisites.json` (entry `id: "node"`, field
+`hints` — the registry is the single source of truth for install guidance).
 
 The persona also takes effect at the next session start (the hook injects it from
 the state file). For `set`/`off`, additionally apply the change immediately for the
