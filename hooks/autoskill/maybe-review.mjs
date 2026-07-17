@@ -7,7 +7,17 @@
 //
 // Fail-safe: enabled=false or any unexpected state -> do nothing, exit 0.
 
-import { existsSync, openSync, readFileSync, readdirSync, rmSync, statSync, unlinkSync } from 'node:fs';
+import {
+  closeSync,
+  existsSync,
+  openSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  unlinkSync,
+  writeSync,
+} from 'node:fs';
 import { spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,27 +36,33 @@ const LOCK_FILE = join(STATE_DIR, 'review.lock');
 const LOCK_STALE_SECONDS = 600;
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 
-// Lock free? Stale locks (crashed worker) are cleaned up after 10 min.
-function lockFree() {
-  let raw;
+// Atomically acquire the lock. First clear a stale lock (crashed worker, older
+// than 10 min), then O_EXCL-create the lock file: exactly one caller can create
+// it, so the check-and-acquire is a single atomic step. Returns true only for
+// that caller — closes the race where two Stop hooks both see "free" and each
+// spawn a worker that then collides on staging/ and learned.list.
+function tryTakeLock(mode) {
   try {
-    raw = readFileSync(LOCK_FILE, 'utf8');
+    const raw = readFileSync(LOCK_FILE, 'utf8');
+    const ts = Number.parseInt(raw.trim().split(/\s+/)[1], 10);
+    if (nowEpoch() - (Number.isInteger(ts) ? ts : 0) >= LOCK_STALE_SECONDS) {
+      rmSync(LOCK_FILE, { force: true });
+    }
   } catch {
-    return true;
+    // no lock file (or unreadable) -> the create below decides
   }
-  const ts = Number.parseInt(raw.trim().split(/\s+/)[1], 10);
-  const age = nowEpoch() - (Number.isInteger(ts) ? ts : 0);
-  if (age < LOCK_STALE_SECONDS) return false;
+  let fd;
   try {
-    rmSync(LOCK_FILE, { force: true });
+    fd = openSync(LOCK_FILE, 'wx'); // O_EXCL: throws if the lock already exists
   } catch {
-    return false;
+    return false; // another worker holds it
+  }
+  try {
+    writeSync(fd, `${process.pid} ${nowEpoch()} ${mode}\n`);
+  } finally {
+    closeSync(fd);
   }
   return true;
-}
-
-function takeLock(mode) {
-  writeFileAtomic(LOCK_FILE, `${process.pid} ${nowEpoch()} ${mode}\n`);
 }
 
 // Detached worker spawn — Windows-compatible replacement for nohup/disown.
@@ -81,9 +97,8 @@ function main() {
   // ── review trigger ────────────────────────────────────────────────────────
   const cfile = counterFile(sid, 'count');
   const count = readCount(cfile);
-  if (count >= config.threshold && transcript && existsSync(transcript) && lockFree()) {
+  if (count >= config.threshold && transcript && existsSync(transcript) && tryTakeLock('review')) {
     writeFileAtomic(cfile, '0\n');
-    takeLock('review');
     spawnWorker('review', transcript, sid);
     return;
   }
@@ -99,9 +114,8 @@ function main() {
       last = 0;
     }
     const now = nowEpoch();
-    if (now - last >= config.curator.intervalDays * 86400 && lockFree()) {
+    if (now - last >= config.curator.intervalDays * 86400 && tryTakeLock('curator')) {
       writeFileAtomic(lastFile, `${now}\n`);
-      takeLock('curator');
       spawnWorker('curator', '', sid);
     }
   }
