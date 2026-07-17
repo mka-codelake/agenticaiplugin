@@ -201,3 +201,21 @@ console.log('SUMMARY: Created stub-technique.');
   assert.equal(existsSync(join(STATE_DIR, 'staging')), false, 'staging cleaned up');
   assert.match(readFileSync(join(STATE_DIR, 'review.log'), 'utf8'), /mode=review session=e2e rc=0/);
 });
+
+test('curator mode degrades gracefully when claude is absent (no raw ENOENT in the report)', () => {
+  writeFileSync(LEARNED_LIST, 'learned-x\n');
+  const skillsDir = join(CONFIG_DIR, 'skills');
+  mkdirSync(join(skillsDir, 'learned-x'), { recursive: true });
+  writeFileSync(join(skillsDir, 'learned-x', 'SKILL.md'), '---\nname: learned-x\n---\n');
+
+  const emptyBin = mkdtempSync(join(tmpdir(), 'empty-bin-')); // a PATH with no `claude`
+  const r = spawnSync(process.execPath, [join(SCRIPT_DIR, 'run-review.mjs'), 'curator'], {
+    encoding: 'utf8',
+    env: { ...process.env, CLAUDE_CONFIG_DIR: CONFIG_DIR, AUTOSKILL_REVIEWER: '1', PATH: emptyBin },
+  });
+  assert.equal(r.status, 0, r.stderr);
+  const report = readFileSync(join(STATE_DIR, 'curator-report.md'), 'utf8');
+  assert.match(report, /## Lifecycle/, 'deterministic lifecycle report is still produced');
+  assert.match(report, /Skipped — the `claude` CLI is unavailable or failed/);
+  assert.doesNotMatch(report, /ENOENT/, 'raw spawn error must not leak into the user-facing report');
+});

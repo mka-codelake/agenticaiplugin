@@ -349,12 +349,20 @@ function curatorMode(model) {
 --- CONTEXT ---
 Skill library directory: ${SKILLS_DIR}
 Learned skills (only these are subject to lifecycle/merge proposals): ${learned.join(' ')}`;
-    const { out } = runClaude(prompt, [
+    const { rc, out } = runClaude(prompt, [
       '--model', model,
       '--output-format', 'text',
       '--allowedTools', 'Read,Glob,Grep',
     ]);
-    lines.push('', '## LLM analysis (overlaps / consolidation proposals)', out);
+    // Graceful degradation (as documented in skills/curator/SKILL.md): if the
+    // claude CLI is missing or errored, keep the deterministic lifecycle report
+    // and skip the analysis section — never embed raw spawn errors (e.g.
+    // "spawn claude ENOENT") in the user-facing report.
+    if (rc === 0 && out.trim()) {
+      lines.push('', '## LLM analysis (overlaps / consolidation proposals)', out);
+    } else {
+      lines.push('', '## LLM analysis', '_Skipped — the `claude` CLI is unavailable or failed._');
+    }
   }
 
   writeFileAtomic(report, `${lines.join('\n')}\n`);

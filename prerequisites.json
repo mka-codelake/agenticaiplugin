@@ -4,7 +4,7 @@
     {
       "id": "node",
       "check": { "type": "binary", "name": "node", "versionArg": "--version", "minMajor": 18 },
-      "features": ["persona (communication styles)", "all plugin SessionStart hooks"],
+      "features": ["persona (communication styles)", "autoskill (self-learning skills)", "all plugin hooks (SessionStart, PostToolUse, Stop, UserPromptSubmit)"],
       "hints": {
         "win32": "winget install OpenJS.NodeJS.LTS  — new shells only: restart Claude Code afterwards",
         "linux": "sudo apt install nodejs",

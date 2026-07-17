@@ -8,9 +8,12 @@
 //      deterministic install step in run-review.mjs, never by the LLM)
 //   2. read-before-write: existing files must be Read before Write/Edit
 //
-// Unlike the session hooks this guard is FAIL-CLOSED: input present but not
+// Unlike the session hooks this guard is FAIL-CLOSED: input PRESENT but not
 // parseable -> deny instead of allow. (A guard that allows on broken input is
-// no guard.)
+// no guard.) The one deliberate exception is EMPTY stdin: no tool call was
+// described, so there is nothing to guard — returning without a decision lets
+// Claude Code fall back to its own permission handling (which the reviewer's
+// allow/deny lists still constrain). PreToolUse always sends JSON in practice.
 
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
