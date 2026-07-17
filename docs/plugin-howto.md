@@ -245,6 +245,18 @@ visible exec error at session start instead of a silent no-op — acceptable, bu
 skills invoking Node scripts must catch the failure and show install hints (see
 `skills/persona/SKILL.md` for the pattern).
 
+**Prerequisite registry (issue #25):** every external feature requirement is
+declared once in `<plugin_root>/prerequisites.json` — never hardcode prerequisite
+checks or install hints in skills/hooks. Consumers: `hooks/check-prereqs.mjs`
+(SessionStart notice, frequency configurable via `agenticaiplugin.config.json`
+in the Claude config dir), the `project-initializer` agent (init/update-time
+check), and skill error guidance. **Bootstrap limitation (by design):** the
+SessionStart checker runs under Node and can check everything EXCEPT a missing
+Node itself — a portable non-Node warning hook is structurally impossible
+(hooks.json has no OS matcher, and no inline command is valid in both bash and
+PowerShell 5.1). That case is covered by the init/update-time check plus README;
+do not attempt polyglot inline hooks.
+
 **Portability note:** GitHub Copilot CLI hooks use the same shell-command +
 JSON-stdin/stdout model — Node hook scripts port 1:1. OpenCode plugins run
 in-process under Bun; keep hook logic in importable functions so a thin adapter
