@@ -252,7 +252,7 @@ directories without a SKILL.md are only installed if the skill already exists.`;
   if (summary && !/nothing to save/i.test(summary)) {
     writeFileAtomic(
       join(STATE_DIR, 'pending_notice.txt'),
-      `Hintergrund-Skill-Review (autoskill, ${nowIso()}): ${summary}\n`
+      `Background skill review (autoskill, ${nowIso()}): ${summary}\n`
     );
   }
 
@@ -277,7 +277,7 @@ export function lifecyclePass({ skillsDir = SKILLS_DIR, now = nowEpoch(), logFn 
     const dir = join(skillsDir, name);
     if (!existsSync(dir)) {
       removeLearned(name);
-      lines.push(`- ${name}: Verzeichnis fehlt — aus Manifest entfernt`);
+      lines.push(`- ${name}: directory missing — removed from the manifest`);
       continue;
     }
     const skillMd = join(dir, 'SKILL.md');
@@ -288,7 +288,7 @@ export function lifecyclePass({ skillsDir = SKILLS_DIR, now = nowEpoch(), logFn 
       frontmatter = '';
     }
     if (/^pinned:\s*true/im.test(frontmatter)) {
-      lines.push(`- ${name}: gepinnt — von Auto-Übergängen ausgenommen`);
+      lines.push(`- ${name}: pinned — exempt from automatic transitions`);
       continue;
     }
     let lastEpoch = now;
@@ -308,9 +308,9 @@ export function lifecyclePass({ skillsDir = SKILLS_DIR, now = nowEpoch(), logFn 
         mkdirSync(ARCHIVE_DIR, { recursive: true });
         renameSync(dir, join(ARCHIVE_DIR, name));
         removeLearned(name);
-        lines.push(`- ${name}: ${ageDays}d ungenutzt → ARCHIVIERT (wiederherstellbar: ${join(ARCHIVE_DIR, name)})`);
+        lines.push(`- ${name}: unused for ${ageDays}d → ARCHIVED (recoverable: ${join(ARCHIVE_DIR, name)})`);
       } catch {
-        lines.push(`- ${name}: Archivierung fehlgeschlagen`);
+        lines.push(`- ${name}: archiving failed`);
       }
     } else if (ageDays >= 30) {
       const entry = usage[name] && typeof usage[name] === 'object' ? usage[name] : {};
@@ -321,12 +321,12 @@ export function lifecyclePass({ skillsDir = SKILLS_DIR, now = nowEpoch(), logFn 
       } catch {
         /* best effort */
       }
-      lines.push(`- ${name}: ${ageDays}d ungenutzt → stale`);
+      lines.push(`- ${name}: unused for ${ageDays}d → stale`);
     } else {
-      lines.push(`- ${name}: aktiv (zuletzt vor ${ageDays}d)`);
+      lines.push(`- ${name}: active (last used ${ageDays}d ago)`);
     }
   }
-  if (lines.length === 0) lines.push('(keine gelernten Skills im Manifest)');
+  if (lines.length === 0) lines.push('(no learned skills in the manifest)');
   return lines;
 }
 
@@ -334,9 +334,9 @@ function curatorMode(model) {
   if (!existsSync(LEARNED_LIST)) writeFileAtomic(LEARNED_LIST, '');
   const report = join(STATE_DIR, 'curator-report.md');
   const lines = [
-    `# Curator-Lauf ${nowIso()}`,
+    `# Curator run ${nowIso()}`,
     '',
-    '## Lifecycle (deterministisch: stale >30d, Archiv >90d, nie löschen)',
+    '## Lifecycle (deterministic: stale >30d, archive >90d, never delete)',
     ...lifecyclePass(),
   ];
 
@@ -354,7 +354,7 @@ Learned skills (only these are subject to lifecycle/merge proposals): ${learned.
       '--output-format', 'text',
       '--allowedTools', 'Read,Glob,Grep',
     ]);
-    lines.push('', '## LLM-Analyse (Überlappungen / Konsolidierungs-Vorschläge)', out);
+    lines.push('', '## LLM analysis (overlaps / consolidation proposals)', out);
   }
 
   writeFileAtomic(report, `${lines.join('\n')}\n`);

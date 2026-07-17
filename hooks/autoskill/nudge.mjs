@@ -21,12 +21,12 @@ import {
 } from './lib.mjs';
 
 const NUDGE_TEXT =
-  'Reminder (autoskill): Falls diese Session eine übertragbare Technik, einen ' +
-  'Workaround oder eine Nutzer-Korrektur enthielt, sichere sie mit dem ' +
-  '/agenticaiplugin:learn-Skill (oder direkt unter ~/.claude/skills/learned-<name>/ ' +
-  'plus Eintrag in der learned.list im autoskill-State-Verzeichnis ' +
-  '${CLAUDE_CONFIG_DIR:-~/.claude}/agenticaiplugin.autoskill/) — bestehende ' +
-  'gelernte Skills (learned-*) patchen bevorzugt vor Neuanlage.';
+  'Reminder (autoskill): if this session contained a transferable technique, a ' +
+  'workaround, or a user correction, capture it with the /agenticaiplugin:learn ' +
+  'skill (or directly under ~/.claude/skills/learned-<name>/ plus an entry in ' +
+  'learned.list in the autoskill state dir ' +
+  '${CLAUDE_CONFIG_DIR:-~/.claude}/agenticaiplugin.autoskill/) — prefer patching ' +
+  'an existing learned skill (learned-*) over creating a new one.';
 
 function main() {
   if (process.env.AUTOSKILL_REVIEWER) return;

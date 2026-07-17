@@ -126,11 +126,11 @@ test('lifecyclePass: missing dir -> manifest cleanup; pinned exempt; stale/archi
   );
 
   const report = lifecyclePass({ skillsDir, now, logFn: noLog }).join('\n');
-  assert.match(report, /learned-active: aktiv/);
-  assert.match(report, /learned-stale: 45d ungenutzt → stale/);
-  assert.match(report, /learned-old: 120d ungenutzt → ARCHIVIERT/);
-  assert.match(report, /learned-pinned: gepinnt/);
-  assert.match(report, /learned-gone: Verzeichnis fehlt/);
+  assert.match(report, /learned-active: active/);
+  assert.match(report, /learned-stale: unused for 45d → stale/);
+  assert.match(report, /learned-old: unused for 120d → ARCHIVED/);
+  assert.match(report, /learned-pinned: pinned/);
+  assert.match(report, /learned-gone: directory missing/);
 
   assert.equal(existsSync(join(skillsDir, 'learned-old')), false);
   assert.equal(existsSync(join(STATE_DIR, 'archive', 'learned-old')), true);
