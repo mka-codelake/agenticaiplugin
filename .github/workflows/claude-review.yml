@@ -93,13 +93,17 @@ jobs:
             `claudedocs/adrs/`) — they override generic best practices.
 
             ## Output — POST THE REVIEW AS A PR COMMENT
-            You MUST post your review as a single pull-request comment using:
+            You MUST post your review as a single pull-request comment. First
+            write the comment body with the Write tool to a file in the current
+            working directory (the CI sandbox only permits writes there — NOT to
+            `/tmp`), then post it:
 
+                # write the body to ./review-comment.md via the Write tool, then:
                 gh pr comment ${{ github.event.pull_request.number }} \
-                  --body-file /tmp/review.md
+                  --body-file review-comment.md
 
-            The comment body (written to `/tmp/review.md` first) MUST follow
-            this markdown structure exactly:
+            The comment body (written to `review-comment.md` in the working
+            directory first) MUST follow this markdown structure exactly:
 
             ```
             ## 🤖 Claude Code Review
@@ -133,5 +137,5 @@ jobs:
 
             Do not invent findings. Be concise. One bullet per issue.
           claude_args: |
-            --allowed-tools "Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh api repos/:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(node --test:*)"
+            --allowed-tools "Read,Grep,Glob,Write,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh api repos/:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(node --test:*)"
             --max-turns 25
