@@ -61,6 +61,21 @@ jobs:
             #${{ github.event.pull_request.number }} in
             ${{ github.repository }}.
 
+            ## Sandbox constraints (read FIRST — ignoring these stalls the run)
+            This CI sandbox only permits the exact tools in the allow-list, and
+            each Bash call must be a SINGLE simple command. Do NOT use pipes
+            (`|`), command chaining (`&&`, `||`, `;`), command substitution
+            (`$(...)`), or output redirection (`>`, `>>`) — a compound command
+            triggers an interactive approval that never arrives here and burns
+            your turn budget until the run fails. Instead:
+            - Read files with the Read/Grep/Glob tools, not `cat`/`grep` in a
+              pipe.
+            - Get the diff/metadata with the single `gh pr diff` / `gh pr view`
+              commands shown below.
+            - Write the review comment body with the **Write** tool (to a file
+              in the working directory), then post it with one `gh pr comment`
+              call. Do NOT assemble the body via shell redirection.
+
             ## Context to load FIRST
             1. Read `CLAUDE.md` at the repo root — development rules for this
                Claude Code plugin (structure, change checklist, versioning).
@@ -138,4 +153,4 @@ jobs:
             Do not invent findings. Be concise. One bullet per issue.
           claude_args: |
             --allowed-tools "Read,Grep,Glob,Write,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh api repos/:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(node --test:*)"
-            --max-turns 25
+            --max-turns 40
