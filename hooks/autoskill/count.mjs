@@ -39,7 +39,7 @@ function skillFromPath(np) {
 }
 
 function bumpUsage(skill) {
-  if (!skill || skill === '.archive') return;
+  if (!skill) return;
   const usageFile = join(STATE_DIR, 'usage.json');
   const usage = readJson(usageFile) || {};
   const entry = usage[skill] && typeof usage[skill] === 'object' ? usage[skill] : {};
