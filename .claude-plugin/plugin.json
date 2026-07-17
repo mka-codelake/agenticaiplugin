@@ -1,7 +1,7 @@
 {
   "name": "agenticaiplugin",
   "description": "A Claude Code productivity toolkit: intelligent code reviews, architecture audits, license compliance checking, QA traceability, smart Git commits, GitHub/npm repository publishing, agent communication personas, and self-learning skills.",
-  "version": "0.22.0",
+  "version": "0.23.0",
   "author": {
     "name": "Michael Kagel"
   }
