@@ -349,6 +349,12 @@ function curatorMode(model) {
 --- CONTEXT ---
 Skill library directory: ${SKILLS_DIR}
 Learned skills (only these are subject to lifecycle/merge proposals): ${learned.join(' ')}`;
+    // Intentionally lighter sandbox than reviewMode: the curator is READ-ONLY
+    // (no Write/Edit in the allowlist), so it needs neither the staging path
+    // cage / read-before-write guard nor an explicit deny list — its output
+    // only feeds the report, it never touches the skill library. reviewMode
+    // gets the extra --settings/read-guard/acceptEdits layers precisely
+    // because it is allowed to Write.
     const { rc, out } = runClaude(prompt, [
       '--model', model,
       '--output-format', 'text',

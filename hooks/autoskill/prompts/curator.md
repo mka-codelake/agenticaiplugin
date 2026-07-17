@@ -3,7 +3,9 @@ the CONTEXT section below. You have READ-ONLY access — do not attempt writes.
 
 Tasks:
 
-1. Glob the library for `*/SKILL.md` and Read each one (skip `.archive/`).
+1. Glob the library for `*/SKILL.md` and Read each one. (Archived skills live
+   outside the library, under the autoskill state dir, so they never appear
+   here.)
 2. Identify OVERLAPS: skills that cover the same class of task, duplicate
    guidance, or should be one umbrella skill with support files.
 3. Identify QUALITY issues: descriptions over 60 characters, session-artifact
