@@ -1,0 +1,26 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Runs all *.test.mjs suites: script contracts (skills/persona) and the
+      # hook runtime policy guard (hooks/hooks-policy.test.mjs).
+      - name: Run test suites
+        run: node --test
