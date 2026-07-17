@@ -2,12 +2,12 @@ name: Claude Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, ready_for_review, reopened]
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
+  pull-requests: write # post review comments on the PR
+  issues: write # post general PR conversation comments
   id-token: write
 
 # One review run per PR at a time; a new push cancels the outdated run.
@@ -19,55 +19,119 @@ jobs:
   review:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       # The secrets context is not allowed in `if:` expressions, so detect the
-      # key via env indirection. All later steps are skipped (job stays green)
-      # until the ANTHROPIC_API_KEY secret is configured — set it up via
-      # /install-github-app in Claude Code.
-      - name: Detect API key
-        id: key
+      # token via env indirection. All later steps are skipped (job stays
+      # green) until the CLAUDE_CODE_OAUTH_TOKEN secret is configured
+      # (subscription-based auth, same setup as aiknowledgedb: token from
+      # `claude setup-token`, stored via `gh secret set CLAUDE_CODE_OAUTH_TOKEN`).
+      - name: Detect OAuth token
+        id: token
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
-          if [ -n "$ANTHROPIC_API_KEY" ]; then
+          if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
             echo "present=true" >> "$GITHUB_OUTPUT"
           else
             echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::ANTHROPIC_API_KEY secret not set — Claude review skipped. Run /install-github-app in Claude Code to enable it."
+            echo "::notice::CLAUDE_CODE_OAUTH_TOKEN secret not set — Claude review skipped. Generate a token with 'claude setup-token' and store it via 'gh secret set CLAUDE_CODE_OAUTH_TOKEN'."
           fi
 
       - name: Checkout
-        if: steps.key.outputs.present == 'true'
+        if: steps.token.outputs.present == 'true'
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Claude Code Review
-        if: steps.key.outputs.present == 'true'
+        if: steps.token.outputs.present == 'true'
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Show SDK output in CI logs so tool-use failures are debuggable
+          # (the default hides them).
+          show_full_output: true
+          # Prompt-driven review with explicit posting via `gh pr comment` —
+          # deterministic and visible even when inline-comment flows fail
+          # (pattern proven in the aiknowledgedb repo).
           prompt: |
-            Review this pull request and post your findings as a PR review with
-            inline comments where possible. This repository is a Claude Code
-            plugin (markdown skills/agents, Node .mjs hooks) — judge it by its
-            own rules:
+            You are the automated code reviewer for pull request
+            #${{ github.event.pull_request.number }} in
+            ${{ github.repository }}.
 
-            - Hook Runtime Policy (docs/plugin-howto.md): plugin hooks must be
-              Node ESM (.mjs) registered in exec form; no bash/jq, no shell-form
-              hooks, no absolute or developer-specific paths anywhere.
-            - Cross-file consistency: SKILL.md usage sections, skills/help
-              overview, CHANGELOG, README, and prerequisites.json must stay in
-              sync with behavior changes.
-            - Contracts: script CLI contracts (e.g. "OK persona=<value>") and
-              hook JSON output (hookSpecificOutput) must not drift; changed
-              behavior needs matching *.test.mjs coverage (node --test).
-            - Versioning: user-facing changes need a CHANGELOG section matching
-              .claude-plugin/plugin.json's version.
+            ## Context to load FIRST
+            1. Read `CLAUDE.md` at the repo root — development rules for this
+               Claude Code plugin (structure, change checklist, versioning).
+            2. Read the "Hook Runtime Policy" section in `docs/plugin-howto.md`.
+            3. Fetch the PR metadata:
+                 `gh pr view ${{ github.event.pull_request.number }} --json title,body,files`
+            4. Fetch the full diff:
+                 `gh pr diff ${{ github.event.pull_request.number }}`
 
-            Classify findings as Critical / Warning / Suggestion. Be concise;
-            skip nitpicks that a linter would catch. If everything is fine, say
-            so briefly instead of inventing findings.
+            ## Review task
+            This repository is a Claude Code plugin (markdown skills/agents,
+            Node .mjs hooks). Review the diff with these priorities, in order:
+
+            1. **Critical** — bugs, security issues, or violations of the hard
+               plugin rules: Hook Runtime Policy (hooks must be Node ESM `.mjs`
+               in exec form; no bash/jq, no shell-form hooks), no absolute or
+               developer-specific paths (portability), script CLI contracts
+               (e.g. `OK persona=<value>`) and hook JSON output
+               (`hookSpecificOutput`) must not drift.
+            2. **Warning** — cross-file consistency gaps (SKILL.md usage
+               sections, `skills/help` overview, CHANGELOG, README,
+               `prerequisites.json` out of sync with behavior changes), missing
+               `*.test.mjs` coverage for changed script behavior, user-facing
+               changes without a CHANGELOG section matching
+               `.claude-plugin/plugin.json`'s version.
+            3. **Suggestion** — optional improvements you would make if you
+               owned the code, but are not blocking.
+
+            Respect project guidelines if present (`claudedocs/guidelines/`,
+            `claudedocs/adrs/`) — they override generic best practices.
+
+            ## Output — POST THE REVIEW AS A PR COMMENT
+            You MUST post your review as a single pull-request comment using:
+
+                gh pr comment ${{ github.event.pull_request.number }} \
+                  --body-file /tmp/review.md
+
+            The comment body (written to `/tmp/review.md` first) MUST follow
+            this markdown structure exactly:
+
+            ```
+            ## 🤖 Claude Code Review
+
+            **Files reviewed:** <count>
+            **Verdict:** <✅ Ship it | ⚠️ Has concerns | 🛑 Blocking issues>
+
+            ### Critical (<count>)
+            <findings as a bullet list, each: `- **<file>:<line>** — <one-line> — _<rule reference>_`>
+            _or_
+            _None_
+
+            ### Warnings (<count>)
+            <same format>
+            _or_
+            _None_
+
+            ### Suggestions (<count>)
+            <same format>
+            _or_
+            _None_
+
+            ### Summary
+            <2–3 sentences on overall impression and any follow-ups>
+            ```
+
+            Even if you find **no issues at all**, you MUST still post the
+            comment with `Verdict: ✅ Ship it` and all three sections marked
+            `_None_`. A silent run is a bug — the comment is the only way
+            the human reviewer knows the action did its job.
+
+            Do not invent findings. Be concise. One bullet per issue.
           claude_args: |
-            --max-turns 10
-            --model claude-sonnet-5
+            --allowed-tools Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh api repos/:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(node --test:*)
+            --max-turns 25
