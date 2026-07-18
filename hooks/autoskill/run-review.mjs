@@ -6,9 +6,10 @@
 // Invocation: node run-review.mjs <review|curator> [transcript_path] [session_id]
 //
 // The reviewer must NOT write into the skill library directly: it writes into
-// <stateDir>/staging/ (enforced by read-guard.mjs via a runtime-generated
-// settings file — a static settings JSON cannot resolve the plugin install
-// path), and THIS script installs staged skills deterministically. Only here
+// STAGING_DIR (lib.mjs — deliberately OUTSIDE the Claude config dir, which
+// Claude Code hard-blocks for writes; enforced by read-guard.mjs via a
+// runtime-generated settings file — a static settings JSON cannot resolve the
+// staging path), and THIS script installs staged skills deterministically. Only here
 // is the library touched: `learned-` prefix and `user-invocable: false` are
 // enforced, non-learned skills are protected via the manifest.
 
@@ -16,6 +17,7 @@ import {
   cpSync,
   existsSync,
   mkdirSync,
+  mkdtempSync,
   readFileSync,
   readdirSync,
   renameSync,
@@ -24,7 +26,7 @@ import {
   appendFileSync,
 } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { homedir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -194,26 +196,30 @@ export function installStaged(stagingDir, { skillsDir = SKILLS_DIR, logFn = log 
 
 // ── review mode ─────────────────────────────────────────────────────────────
 
-function reviewMode(transcript, sid, model) {
-  if (!transcript || !existsSync(transcript)) return;
-
-  let digest = '';
-  try {
-    digest = buildDigest(transcript);
-  } catch {
-    return;
+// Fresh, unpredictable, owner-only (0700) staging dir OUTSIDE the config dir.
+// mkdtemp gives per-run isolation — no cross-user collision on the shared temp
+// root (a single machine-global path breaks the second user with EACCES and
+// lets a local attacker read or pre-plant staged skills) and no world-readable
+// content. An explicit AUTOSKILL_STAGING_DIR override (tests / a write-
+// restricted temp dir) is honored and recreated clean. The chosen path is
+// exported via the env so the reviewer's read-guard child cages the very same
+// directory. Exported for tests.
+export function prepareStaging() {
+  let staging = process.env.AUTOSKILL_STAGING_DIR;
+  if (staging) {
+    rmSync(staging, { recursive: true, force: true });
+    mkdirSync(staging, { recursive: true, mode: 0o700 });
+  } else {
+    staging = mkdtempSync(join(tmpdir(), 'agenticaiplugin-autoskill-'));
+    process.env.AUTOSKILL_STAGING_DIR = staging;
   }
-  if (!digest) return;
-  const digestFile = join(STATE_DIR, 'tmp', `digest-${sid}-${process.pid}.txt`);
-  writeFileAtomic(digestFile, `${digest}\n`);
+  return staging;
+}
 
-  const staging = join(STATE_DIR, 'staging');
-  rmSync(staging, { recursive: true, force: true });
-  mkdirSync(staging, { recursive: true });
-
+function buildReviewPrompt(staging, digestFile) {
   const learnedNames = readLearnedList().join(' ');
   const basePrompt = readFileSync(join(SCRIPT_DIR, 'prompts', 'review.md'), 'utf8');
-  const prompt = `${basePrompt}
+  return `${basePrompt}
 
 --- CONTEXT ---
 Skill library directory (READ-ONLY — read existing skills here): ${SKILLS_DIR}
@@ -228,6 +234,23 @@ To MODIFY a learned skill: Read the original from the library, then Write the
 complete updated file(s) under ${join(staging, '<skill-name>')}/ using the same relative
 paths. Staged files are installed into the library after you finish; staged
 directories without a SKILL.md are only installed if the skill already exists.`;
+}
+
+function reviewMode(transcript, sid, model) {
+  if (!transcript || !existsSync(transcript)) return;
+
+  let digest = '';
+  try {
+    digest = buildDigest(transcript);
+  } catch {
+    return;
+  }
+  if (!digest) return;
+  const digestFile = join(STATE_DIR, 'tmp', `digest-${sid}-${process.pid}.txt`);
+  writeFileAtomic(digestFile, `${digest}\n`);
+
+  const staging = prepareStaging();
+  const prompt = buildReviewPrompt(staging, digestFile);
 
   const settingsFile = writeReviewerSettings();
   const { rc, out } = runClaude(prompt, [

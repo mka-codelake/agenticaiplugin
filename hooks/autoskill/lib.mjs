@@ -13,7 +13,7 @@
 // runs, so it is strictly opt-in.
 
 import { appendFileSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 export const CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude');
@@ -24,6 +24,20 @@ export const STATE_DIR = join(CONFIG_DIR, 'agenticaiplugin.autoskill');
 export const SKILLS_DIR = join(CONFIG_DIR, 'skills');
 export const LEARNED_LIST = join(STATE_DIR, 'learned.list');
 export const ARCHIVE_DIR = join(STATE_DIR, 'archive');
+// The reviewer LLM stages files here via the Write tool — so this MUST live
+// OUTSIDE the Claude config dir. Claude Code hard-blocks Write/Edit to anything
+// under ~/.claude/ as a "sensitive file", independent of --permission-mode or
+// --allowedTools; staging under CONFIG_DIR silently makes every reviewer write
+// fail (the standalone autoskill kept staging in its own state dir for exactly
+// this reason). Everything else — counters, learned.list, logs, and the install
+// target ~/.claude/skills/ — is written with Node fs (no guard) and stays under
+// CONFIG_DIR. In a real review the worker (run-review.prepareStaging) creates a
+// fresh per-run mkdtemp dir (0700, unpredictable) and exports it via
+// AUTOSKILL_STAGING_DIR, so the reviewer and its read-guard child both resolve
+// that exact path here; the fixed default below is only a fallback / test
+// isolation point. Staging is pure scratch: wiped at the start and end of a run.
+export const STAGING_DIR =
+  process.env.AUTOSKILL_STAGING_DIR || join(tmpdir(), 'agenticaiplugin-autoskill', 'staging');
 
 const DEFAULTS = {
   enabled: false,

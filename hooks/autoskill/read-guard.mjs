@@ -3,9 +3,12 @@
 // session (wired via the runtime-generated reviewer settings file).
 //
 // Enforces two Hermes invariants hard:
-//   1. Path cage: writes only inside the staging directory
-//      (<stateDir>/staging/ — the skill library itself is written by the
-//      deterministic install step in run-review.mjs, never by the LLM)
+//   1. Path cage: writes only inside the staging directory (STAGING_DIR from
+//      lib.mjs — outside the Claude config dir; the skill library itself is
+//      written by the deterministic install step in run-review.mjs, never by
+//      the LLM). Paths are CANONICALIZED before comparison: a lexical prefix
+//      check alone lets a prompt-injected `<staging>/../../etc` slip through
+//      (the raw string starts with the anchor, yet the write escapes the cage).
 //   2. read-before-write: existing files must be Read before Write/Edit
 //
 // Unlike the session hooks this guard is FAIL-CLOSED: input PRESENT but not
@@ -16,8 +19,16 @@
 // allow/deny lists still constrain). PreToolUse always sends JSON in practice.
 
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { STATE_DIR, normPath, readHookInput } from './lib.mjs';
+import { join, resolve, sep } from 'node:path';
+import { STAGING_DIR, STATE_DIR } from './lib.mjs';
+
+// Canonical, comparable absolute path: resolve() collapses `.`/`..` segments so
+// a traversal cannot masquerade as a staging-prefixed string; case is folded
+// only on case-insensitive Windows (POSIX paths are case-sensitive).
+const canon = (p) => {
+  const r = resolve(p);
+  return process.platform === 'win32' ? r.toLowerCase() : r;
+};
 
 function deny(reason) {
   process.stdout.write(
@@ -57,42 +68,43 @@ function main() {
     : 'unknown';
   const fpath = typeof input.tool_input?.file_path === 'string' ? input.tool_input.file_path : '';
   const readsFile = join(STATE_DIR, `reviewer-reads-${sid}.txt`);
-  const stagingAnchor = `${normPath(join(STATE_DIR, 'staging'))}/`;
+  const stagingRoot = canon(STAGING_DIR);
+  const stagingAnchor = stagingRoot.endsWith(sep) ? stagingRoot : stagingRoot + sep;
 
-  const markRead = (np) => {
+  const markRead = (key) => {
     try {
-      appendFileSync(readsFile, `${np}\n`);
+      appendFileSync(readsFile, `${key}\n`);
     } catch {
       /* best effort */
     }
   };
-  const wasRead = (np) => {
+  const wasRead = (key) => {
     try {
-      return readFileSync(readsFile, 'utf8').split('\n').includes(np);
+      return readFileSync(readsFile, 'utf8').split('\n').includes(key);
     } catch {
       return false;
     }
   };
 
   if (tool === 'Read') {
-    if (fpath) markRead(normPath(fpath));
+    if (fpath) markRead(canon(fpath));
     return;
   }
 
   if (tool === 'Write' || tool === 'Edit') {
     if (!fpath) return;
-    const np = normPath(fpath);
-    if (!np.startsWith(stagingAnchor)) {
+    const cp = canon(fpath);
+    if (cp !== stagingRoot && !cp.startsWith(stagingAnchor)) {
       deny(
-        `autoskill reviewer may only write inside the staging directory (${join(STATE_DIR, 'staging')}) — got: ${fpath}`
+        `autoskill reviewer may only write inside the staging directory (${STAGING_DIR}) — got: ${fpath}`
       );
     }
-    if (existsSync(fpath) && !wasRead(np)) {
+    if (existsSync(fpath) && !wasRead(cp)) {
       deny(`read-before-write: Read ${fpath} before modifying it (autoskill invariant)`);
     }
     // Own writes count as read — the reviewer may refine its freshly staged
     // file with a follow-up Edit.
-    markRead(np);
+    markRead(cp);
   }
 }
 
