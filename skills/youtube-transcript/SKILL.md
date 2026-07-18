@@ -49,6 +49,13 @@ not** transcribe audio — if a video has no captions, there is no transcript.
    script's error message plainly. Do not retry with a different tool unless the
    user asks.
 
+**Prerequisite — Node.js:** the script requires `node` on PATH. If the Bash call
+fails because `node` is not found (not a "no transcript" result), do NOT report a
+caption failure — tell the user this skill requires Node.js (≥ 22) and show the
+install hint for their platform read from the central registry at
+`{skill_dir}/../../prerequisites.json` (entry `id: "node"`, field `hints` — the
+single source of truth for install guidance).
+
 ## Notes
 
 - **Requirements:** Node ≥ 22 (global `fetch`; matches the plugin's Node 22 LTS
@@ -61,3 +68,6 @@ not** transcribe audio — if a video has no captions, there is no transcript.
   (manual before auto-generated).
 - **Scope:** existing captions only. Audio-to-text (Whisper etc.) is out of
   scope by design.
+- **Related:** `markdown-converter` also accepts YouTube URLs (via `uvx
+  markitdown`, i.e. Python). Prefer `youtube-transcript` when you only need the
+  caption text and want no Python/uvx dependency.

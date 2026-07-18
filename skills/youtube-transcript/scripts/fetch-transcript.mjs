@@ -54,6 +54,7 @@ const CLIENTS = [
 ];
 const RETRY_ROUNDS = 3;
 const RETRY_DELAY_MS = 700;
+const REQUEST_TIMEOUT_MS = 15000; // abort a stalled request → retry loop / fallback, never hang
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function fail(msg, code = 1) {
@@ -128,6 +129,7 @@ async function queryClient(cl, videoId) {
       method: "POST",
       headers: { "Content-Type": "application/json", "User-Agent": cl.ua },
       body: JSON.stringify({ context: { client: cl.client }, videoId }),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     }
   );
   if (!res.ok) throw new Error(`player API HTTP ${res.status}`);
@@ -163,6 +165,7 @@ async function fetchInnerTube(videoId) {
 async function fetchTrackText(track, ua) {
   const res = await fetch(track.baseUrl + "&fmt=json3", {
     headers: { "User-Agent": ua },
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`caption fetch HTTP ${res.status}`);
   const body = await res.text();
