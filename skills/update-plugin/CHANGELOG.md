@@ -5,6 +5,15 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.24.0
+
+- **New: `youtube-transcript` skill — fetch a YouTube video's captions as plain text.** New user-invoked command `/agenticaiplugin:youtube-transcript <url|videoId> [--lang=xx] [--out[=path]]` that returns a video's **existing** captions as plain text. Existing captions only — no audio transcription (Whisper etc.) by design.
+  - **Pure Node, no Python/yt-dlp.** The primary path calls the YouTube InnerTube player API directly and parses the caption track — no external tools. Because YouTube returns an intermittent `LOGIN_REQUIRED` per client (rate-limit-like), the script tries complementary **iOS and Android** clients across a few retry rounds, which is reliable in practice (verified). Watch-page caption URLs are PO-token-gated and return empty, so those are deliberately not used. An **optional yt-dlp fallback** runs only if `yt-dlp` is already in `PATH` — never a hard dependency. Works identically on Linux and Windows; requires Node ≥ 20 (global `fetch`).
+  - **Options:** `--lang=xx` (preferred language; manual tracks win over auto-generated), `--out[=path]` (also save as `.txt`, filename derived from the video title). Any URL form (`watch?v=`, `youtu.be/`, `/shorts/`, `/embed/`, `/live/`) or a bare 11-char video ID.
+  - **Security:** the yt-dlp fallback is invoked with a **canonical watch URL built from the validated videoId** (plus an end-of-options `--`), so no raw caller-supplied string ever reaches yt-dlp as a positional argument — closing a flag-injection vector (`--config-locations`/`--exec`).
+  - **Tests:** black-box CLI coverage (`node --test`) for argument handling and video-id validation, matching the repo's existing test convention (no internals exported for testing).
+  - Registered in the help overview, the README (features, command table, project structure), and the CLAUDE.md command table.
+
 ## 0.23.1
 
 - **autoskill: fix the background reviewer being unable to save anything (staging sat inside the write-blocked config dir).** The v0.22.0 port moved autoskill state under `${CLAUDE_CONFIG_DIR:-~/.claude}/`, which inadvertently placed the reviewer's `staging/` directory inside it — and Claude Code hard-blocks `Write`/`Edit` to anything under `~/.claude/` as a "sensitive file", independent of `--permission-mode`/`--allowedTools`. Every background review therefore ran to completion but silently saved nothing (each staging write hit a "sensitive file" error). The standalone prototype had kept staging outside `.claude` on purpose; this restores that.
