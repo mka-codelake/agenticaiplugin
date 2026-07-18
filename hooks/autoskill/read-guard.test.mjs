@@ -24,7 +24,9 @@ function fixture() {
       return spawnSync(process.execPath, [SCRIPT], {
         encoding: 'utf8',
         input: typeof input === 'string' ? input : JSON.stringify(input),
-        env: { ...process.env, CLAUDE_CONFIG_DIR: configDir },
+        // Point STAGING_DIR at the fixture: production staging lives outside the
+        // config dir, so the guard no longer derives it from CLAUDE_CONFIG_DIR.
+        env: { ...process.env, CLAUDE_CONFIG_DIR: configDir, AUTOSKILL_STAGING_DIR: staging },
       });
     },
   };
@@ -52,6 +54,18 @@ test('Write outside staging is denied (path cage)', () => {
   });
   const d = decision(r);
   assert.equal(d.permissionDecision, 'deny');
+  assert.match(d.permissionDecisionReason, /staging/);
+});
+
+test('REGRESSION: path traversal is denied — a ".." escape prefixed with staging must not pass the cage', () => {
+  const fx = fixture();
+  // A raw (un-normalized) file_path that STARTS WITH the staging anchor yet
+  // resolves outside it. A lexical startsWith() check would wrongly allow this;
+  // canonicalization must catch it. Forward slashes: path.resolve handles both.
+  const escape = `${fx.staging}/../../../../etc/passwd`;
+  const r = fx.run({ session_id: 's1', tool_name: 'Write', tool_input: { file_path: escape } });
+  const d = decision(r);
+  assert.equal(d.permissionDecision, 'deny', 'traversal out of the cage must be denied');
   assert.match(d.permissionDecisionReason, /staging/);
 });
 

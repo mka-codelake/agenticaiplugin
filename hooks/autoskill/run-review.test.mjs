@@ -15,6 +15,7 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -26,7 +27,7 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const CONFIG_DIR = mkdtempSync(join(tmpdir(), 'autoskill-worker-'));
 process.env.CLAUDE_CONFIG_DIR = CONFIG_DIR;
 
-const { installStaged, lifecyclePass } = await import('./run-review.mjs');
+const { installStaged, lifecyclePass, prepareStaging } = await import('./run-review.mjs');
 const STATE_DIR = join(CONFIG_DIR, 'agenticaiplugin.autoskill');
 mkdirSync(join(STATE_DIR, 'tmp'), { recursive: true });
 
@@ -39,6 +40,36 @@ function stageSkill(stagingDir, name, frontmatter) {
   writeFileSync(join(dir, 'SKILL.md'), frontmatter);
   return dir;
 }
+
+test('REGRESSION: prepareStaging yields a fresh 0700 temp dir outside the config dir; override honored & wiped clean', () => {
+  const saved = process.env.AUTOSKILL_STAGING_DIR;
+  try {
+    // Default: no override -> per-run mkdtemp, exported to the env so the
+    // read-guard child cages the same dir. Not a fixed, world-readable, shared
+    // path (that broke multi-user hosts and allowed pre-planting staged skills).
+    delete process.env.AUTOSKILL_STAGING_DIR;
+    const s = prepareStaging();
+    assert.ok(existsSync(s), 'staging created');
+    assert.ok(!s.startsWith(CONFIG_DIR), `must live outside the config dir: ${s}`);
+    assert.equal(process.env.AUTOSKILL_STAGING_DIR, s, 'exported for the read-guard child');
+    if (process.platform !== 'win32') {
+      assert.equal(statSync(s).mode & 0o777, 0o700, 'owner-only perms (no world read / pre-plant)');
+    }
+    rmSync(s, { recursive: true, force: true });
+
+    // Override: honored, and any stale content from a prior run is wiped.
+    const override = join(mkdtempSync(join(tmpdir(), 'ovr-')), 'staging');
+    mkdirSync(override, { recursive: true });
+    writeFileSync(join(override, 'stale.txt'), 'old');
+    process.env.AUTOSKILL_STAGING_DIR = override;
+    assert.equal(prepareStaging(), override, 'override honored');
+    assert.equal(existsSync(join(override, 'stale.txt')), false, 'stale content wiped');
+    rmSync(override, { recursive: true, force: true });
+  } finally {
+    if (saved === undefined) delete process.env.AUTOSKILL_STAGING_DIR;
+    else process.env.AUTOSKILL_STAGING_DIR = saved;
+  }
+});
 
 test('installStaged: enforces learned- prefix, patches frontmatter, updates manifest', () => {
   writeFileSync(LEARNED_LIST, '');
@@ -174,6 +205,10 @@ console.log('SUMMARY: Created stub-technique.');
   writeFileSync(transcript, `${JSON.stringify({ type: 'user', message: { content: 'hi' } })}\n`);
   writeFileSync(join(STATE_DIR, 'review.lock'), '1 1 review\n');
 
+  // Staging lives OUTSIDE the config dir in production (sensitive-zone guard);
+  // isolate it per fixture so the run is hermetic and the cleanup check is exact.
+  const stagingScratch = join(mkdtempSync(join(tmpdir(), 'autoskill-e2e-')), 'staging');
+
   const r = spawnSync(
     process.execPath,
     [join(SCRIPT_DIR, 'run-review.mjs'), 'review', transcript, 'e2e'],
@@ -182,6 +217,7 @@ console.log('SUMMARY: Created stub-technique.');
       env: {
         ...process.env,
         CLAUDE_CONFIG_DIR: CONFIG_DIR,
+        AUTOSKILL_STAGING_DIR: stagingScratch,
         AUTOSKILL_REVIEWER: '1',
         PATH: `${binDir}:${process.env.PATH}`,
       },
@@ -198,7 +234,8 @@ console.log('SUMMARY: Created stub-technique.');
     /Created stub-technique\./
   );
   assert.equal(existsSync(join(STATE_DIR, 'review.lock')), false, 'lock released');
-  assert.equal(existsSync(join(STATE_DIR, 'staging')), false, 'staging cleaned up');
+  assert.equal(existsSync(stagingScratch), false, 'staging cleaned up');
+  assert.equal(existsSync(join(STATE_DIR, 'staging')), false, 'no staging left under the config dir');
   assert.match(readFileSync(join(STATE_DIR, 'review.log'), 'utf8'), /mode=review session=e2e rc=0/);
 });
 

@@ -5,6 +5,13 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.23.1
+
+- **autoskill: fix the background reviewer being unable to save anything (staging sat inside the write-blocked config dir).** The v0.22.0 port moved autoskill state under `${CLAUDE_CONFIG_DIR:-~/.claude}/`, which inadvertently placed the reviewer's `staging/` directory inside it — and Claude Code hard-blocks `Write`/`Edit` to anything under `~/.claude/` as a "sensitive file", independent of `--permission-mode`/`--allowedTools`. Every background review therefore ran to completion but silently saved nothing (each staging write hit a "sensitive file" error). The standalone prototype had kept staging outside `.claude` on purpose; this restores that.
+  - **Fix:** staging now lives in a fresh per-run `mkdtemp` directory under the OS temp dir (`STAGING_DIR` in `hooks/autoskill/lib.mjs`, `prepareStaging()` in `run-review.mjs`), created `0700` and unpredictable — outside the sensitive zone, per-run isolated (no machine-global path that breaks a second user with `EACCES` or lets a local user read / pre-plant staged skills, CWE-377), and exported via `AUTOSKILL_STAGING_DIR` so the reviewer's read-guard child cages the same directory. Persistent state, `learned.list`, logs, and the install target `~/.claude/skills/` stay under the config dir (written with Node `fs`, no guard).
+  - **Hardening:** the read-guard path cage now **canonicalizes** paths (`path.resolve` + separator-anchored prefix, case-folded on Windows) before the containment check, closing a path-traversal hole — `<staging>/../../…` previously passed the lexical `startsWith`, and once staging left `~/.claude` that could escape to real targets (home dotfiles, project files).
+  - **Tests:** regression coverage for all three invariants — staging never under the config dir, traversal denied, per-run `0700` staging honoring the env override. Discovered on the first real rollout; fix verified end-to-end (a real reviewer `Write` into the new staging location now succeeds where the old location was blocked).
+
 ## 0.23.0
 
 - **New: `grill-me` skill — relentless plan/decision stress-test.** New user-invoked command `/agenticaiplugin:grill-me [<topic>]` that interviews you one question at a time, walking the decision tree branch by branch and recommending an answer for each, until you reach shared understanding. Facts are looked up from the environment; decisions are put to you. Stateless (writes nothing) and manual-only (`disable-model-invocation: true`). Registered in the help overview and the CLAUDE.md command table.
