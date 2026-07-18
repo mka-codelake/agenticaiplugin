@@ -26,6 +26,9 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 - **License Check** — Scans dependencies, tools, scripts, and LLM model references for license compatibility issues across 7 ecosystems
 - **Markdown Converter** — Converts PDF, Word, PowerPoint, Excel, images, audio, and more to Markdown
 - **Handover** — Cross-session continuity snapshots: capture open items, blockers, and next steps; resume cleanly after a break with a freshness check
+- **Self-Learning Skills (Autoskill)** — Opt-in: a background reviewer distills reusable "learned skills" from your sessions into your user library; `/learn` distills on demand, `/curator` maintains the library lifecycle
+- **Communication Personas** — Switch the agent's response style (writer / engineer / telegrapher / caveman) to trade verbosity against token usage; opt-in, off by default
+- **Plan & Decision Stress-Test** — `grill-me` interviews you one question at a time to surface every implicit assumption before you commit to a plan
 - **Modular Rules System** — Plugin rules installed per-project, selectively updatable
 
 ## Installation
@@ -89,6 +92,9 @@ Initialization creates:
 | `qa` | Quality Square traceability (requirements, code, test cases, tests) |
 | `create-cli` | Design CLI parameters, flags, and UX |
 | `grill-me` | Stress-test a plan or decision via a relentless one-question-at-a-time interview |
+| `persona` | Set the agent's communication style (writer/engineer/telegrapher/caveman); opt-in, off by default |
+| `learn` | Distill a source or the current conversation into one reusable learned skill (autoskill) |
+| `curator` | Curate the learned-skill library: lifecycle maintenance + overlap report (autoskill) |
 | `license-check` | Check dependency license compatibility (full scan or `--quick`) |
 | `markdown-converter` | Convert files to Markdown (PDF, Word, images, audio, etc.) |
 | `handover` | Save/load cross-session continuity snapshot (open items, blockers, next steps) with reconciliation against prior state |
@@ -251,21 +257,26 @@ agenticaiplugin/
 ├── rules-templates/             # Rule templates for project installation
 ├── skills/
 │   ├── architecture-audit/      # 7-dimension architecture assessment
-│   ├── code-review/             # 11-specialist code review
+│   ├── code-review/             # 12-specialist code review
 │   ├── create-cli/              # CLI interface design
-│   ├── grill-me/                # Plan/decision stress-test interview
+│   ├── curator/                 # Learned-skill library curation (autoskill)
 │   ├── git-smart-commit/        # Intelligent commit creation
 │   ├── github-publish/          # Public release preparation
 │   ├── gitme/                   # Smart commit command alias
+│   ├── grill-me/                # Plan/decision stress-test interview
 │   ├── handover/                # Cross-session continuity snapshots
-│   ├── license-check/           # License compatibility checking
-│   ├── npm-publisher/           # npm pre-publish audit
 │   ├── help/                    # Plugin help overview
 │   ├── init/                    # Project initialization
+│   ├── learn/                   # On-demand skill distillation (autoskill)
+│   ├── license-check/           # License compatibility checking
 │   ├── markdown-converter/      # File-to-Markdown conversion
+│   ├── npm-publisher/           # npm release cut + pre-publish audit
+│   ├── persona/                 # Agent communication personas
 │   ├── promote-perms/           # Permission promotion
 │   ├── qa/                      # Quality Square traceability
 │   └── update-plugin/           # Plugin update management
+├── hooks/                       # Lifecycle hooks (autoskill, persona, prereq check)
+├── prerequisites.json           # Feature prerequisite registry
 ├── docs/
 │   ├── plugin-howto.md          # Plugin development reference
 │   └── rules-howto.md           # Rules template reference
