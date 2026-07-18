@@ -40,7 +40,7 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 // than 10 min), then O_EXCL-create the lock file: exactly one caller can create
 // it, so the check-and-acquire is a single atomic step. Returns true only for
 // that caller — closes the race where two Stop hooks both see "free" and each
-// spawn a worker that then collides on staging/ and learned.list.
+// spawn a worker that then collides on the staging dir and learned.list.
 function tryTakeLock(mode) {
   try {
     const raw = readFileSync(LOCK_FILE, 'utf8');

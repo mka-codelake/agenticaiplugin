@@ -296,10 +296,14 @@ tokens.
   update): `${CLAUDE_CONFIG_DIR:-~/.claude}/agenticaiplugin.autoskill/`.
 - **Reviewer sandbox:** the worker generates its reviewer settings file at
   runtime (a static JSON cannot resolve the plugin path) with the read-guard in
-  exec form; the reviewer may only write into `staging/`, and the deterministic
-  install step in `run-review.mjs` is the ONLY code that touches the library —
-  enforcing the `learned-` prefix, `user-invocable: false`, and manifest-based
-  protection of non-learned skills.
+  exec form. The reviewer may only write into a **per-run staging directory that
+  lives OUTSIDE the config dir** — a fresh `0700` `mkdtemp` under the OS temp dir
+  (`prepareStaging()` in `run-review.mjs`), because Claude Code hard-blocks
+  `Write`/`Edit` under `~/.claude/` as a "sensitive file". Do NOT move staging
+  back under `agenticaiplugin.autoskill/` — that silently re-breaks every
+  reviewer write. The deterministic install step in `run-review.mjs` is the ONLY
+  code that touches the library — enforcing the `learned-` prefix,
+  `user-invocable: false`, and manifest-based protection of non-learned skills.
 - **User commands:** `/agenticaiplugin:learn` (targeted distillation) and
   `/agenticaiplugin:curator` (lifecycle + overlap report).
 

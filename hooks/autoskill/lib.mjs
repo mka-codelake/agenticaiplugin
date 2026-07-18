@@ -34,8 +34,14 @@ export const ARCHIVE_DIR = join(STATE_DIR, 'archive');
 // CONFIG_DIR. In a real review the worker (run-review.prepareStaging) creates a
 // fresh per-run mkdtemp dir (0700, unpredictable) and exports it via
 // AUTOSKILL_STAGING_DIR, so the reviewer and its read-guard child both resolve
-// that exact path here; the fixed default below is only a fallback / test
-// isolation point. Staging is pure scratch: wiped at the start and end of a run.
+// that exact path here. Staging is pure scratch: wiped at the start and end of a
+// run.
+//
+// WARNING: do NOT write to this fixed fallback default directly — always obtain
+// a staging dir from run-review.prepareStaging(). The fixed path is only what
+// the read-guard child resolves to (via the env the worker sets) and a test
+// isolation point; used un-prepared it is a predictable, world-readable, multi-
+// user-shared path (CWE-377) — exactly the weakness prepareStaging() eliminates.
 export const STAGING_DIR =
   process.env.AUTOSKILL_STAGING_DIR || join(tmpdir(), 'agenticaiplugin-autoskill', 'staging');
 
