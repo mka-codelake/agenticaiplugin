@@ -81,6 +81,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
 | `/agenticaiplugin:grill-me` | Stress-test a plan/decision via a relentless interview |
 | `/agenticaiplugin:markdown-converter` | Convert files to Markdown via markitdown |
+| `/agenticaiplugin:youtube-transcript` | Fetch a YouTube video's captions as plain text (pure Node, no Python/yt-dlp) |
 | `/agenticaiplugin:github-publish` | Prepare repo for public GitHub release (README, badges, logo, license, etc.) |
 | `/agenticaiplugin:npm-publish` | End-to-end npm release: cut release (semver bump + CHANGELOG from Conventional Commits) + pre-publish audit (package.json, version sync, tarball, secrets, license) |
 | `/agenticaiplugin:license-check` | Check license compatibility of dependencies, tools, and LLM models |
