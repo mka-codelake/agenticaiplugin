@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// YouTube transcript fetcher — pure Node (Node >= 20, global fetch), no Python / npm deps.
+// YouTube transcript fetcher — pure Node (Node >= 22, global fetch), no Python / npm deps.
 // Primary path: iOS/Android InnerTube player API (returns working caption baseUrls even
 // when the watch-page URLs are PO-token-gated). Optional fallback: yt-dlp, if in PATH.
 //
@@ -282,7 +282,7 @@ async function main() {
     process.exit(2);
   }
   if (typeof fetch !== "function") {
-    fail("Node >= 20 required (global fetch unavailable).");
+    fail("Node >= 22 required (global fetch unavailable).");
   }
 
   const videoId = extractVideoId(args.source);

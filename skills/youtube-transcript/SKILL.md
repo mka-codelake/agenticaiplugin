@@ -51,9 +51,9 @@ not** transcribe audio — if a video has no captions, there is no transcript.
 
 ## Notes
 
-- **Requirements:** Node ≥ 20 (global `fetch`, current LTS). No Python, no npm
-  packages, no yt-dlp needed for the primary path. Works identically on Linux and
-  Windows.
+- **Requirements:** Node ≥ 22 (global `fetch`; matches the plugin's Node 22 LTS
+  baseline). No Python, no npm packages, no yt-dlp needed for the primary path.
+  Works identically on Linux and Windows.
 - **Reliability:** YouTube intermittently returns `LOGIN_REQUIRED` per client;
   the script tries multiple InnerTube clients across a few retry rounds, so
   transient failures self-heal.
