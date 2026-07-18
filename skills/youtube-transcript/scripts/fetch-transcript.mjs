@@ -176,9 +176,12 @@ function ytDlpAvailable() {
 }
 
 function buildYtDlpArgs(videoId, wantLang, outDir) {
+  // sub-langs is treated as regex by yt-dlp. With no --lang, ".*-orig" matches the
+  // original auto-caption track in ANY language (not just English), with en as a
+  // safety net — mirroring the InnerTube path's "original / first" default.
   const langSel = wantLang
     ? `${wantLang}-orig,${wantLang},${wantLang}.*`
-    : "en-orig,en";
+    : ".*-orig,en-orig,en";
   // Canonical URL from the already-validated videoId — never the raw user source.
   // Prefixed with "--" (end-of-options) so nothing is ever parsed as a yt-dlp flag.
   const canonicalUrl = `https://www.youtube.com/watch?v=${videoId}`;
@@ -217,12 +220,11 @@ function fetchViaYtDlp(videoId, wantLang) {
 }
 
 function safeFilename(title) {
-  return (
-    title
-      .replace(/[/\\?%*:|"<>]/g, "")
-      .replace(/\s+/g, "_")
-      .slice(0, MAX_FILENAME_LENGTH) || "transcript"
-  );
+  const cleaned = [...title.replace(/[/\\?%*:|"<>]/g, "").replace(/\s+/g, "_")]
+    .slice(0, MAX_FILENAME_LENGTH) // spread → code points, so we never split a surrogate pair
+    .join("")
+    .replace(/[.\s]+$/, ""); // Windows: a filename component may not end in "." or a space
+  return cleaned || "transcript";
 }
 
 // Orchestrate the two fetch strategies (InnerTube primary, yt-dlp fallback) and

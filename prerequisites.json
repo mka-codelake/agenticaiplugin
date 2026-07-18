@@ -4,7 +4,7 @@
     {
       "id": "node",
       "check": { "type": "binary", "name": "node", "versionArg": "--version", "minMajor": 22 },
-      "features": ["persona (communication styles)", "autoskill (self-learning skills)", "all plugin hooks (SessionStart, PostToolUse, Stop, UserPromptSubmit)"],
+      "features": ["persona (communication styles)", "autoskill (self-learning skills)", "youtube-transcript (YouTube caption fetcher)", "all plugin hooks (SessionStart, PostToolUse, Stop, UserPromptSubmit)"],
       "hints": {
         "win32": "winget install OpenJS.NodeJS.LTS  — new shells only: restart Claude Code afterwards",
         "linux": "distro packages often lag behind LTS — install Node 22+ via nvm ('nvm install 22') or NodeSource (https://github.com/nodesource/distributions)",
