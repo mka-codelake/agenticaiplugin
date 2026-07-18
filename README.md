@@ -25,6 +25,7 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 - **CLI Design** — Designs CLI interfaces: arguments, flags, subcommands, help text, output formats, exit codes
 - **License Check** — Scans dependencies, tools, scripts, and LLM model references for license compatibility issues across 7 ecosystems
 - **Markdown Converter** — Converts PDF, Word, PowerPoint, Excel, images, audio, and more to Markdown
+- **YouTube Transcript** — Fetches a YouTube video's existing captions as plain text (pure Node, no Python/yt-dlp); any URL form, optional language selection and file export
 - **Handover** — Cross-session continuity snapshots: capture open items, blockers, and next steps; resume cleanly after a break with a freshness check
 - **Self-Learning Skills (Autoskill)** — Opt-in: a background reviewer distills reusable "learned skills" from your sessions into your user library; `/learn` distills on demand, `/curator` maintains the library lifecycle
 - **Communication Personas** — Switch the agent's response style (writer / engineer / telegrapher / caveman) to trade verbosity against token usage; opt-in, off by default
@@ -97,6 +98,7 @@ Initialization creates:
 | `curator` | Curate the learned-skill library: lifecycle maintenance + overlap report (autoskill) |
 | `license-check` | Check dependency license compatibility (full scan or `--quick`) |
 | `markdown-converter` | Convert files to Markdown (PDF, Word, images, audio, etc.) |
+| `youtube-transcript` | Fetch a YouTube video's captions as plain text (pure Node; `--lang`, `--out`) |
 | `handover` | Save/load cross-session continuity snapshot (open items, blockers, next steps) with reconciliation against prior state |
 | `init` | Initialize plugin in a project |
 | `update-plugin` | Update plugin rules to latest version |
@@ -274,7 +276,8 @@ agenticaiplugin/
 │   ├── persona/                 # Agent communication personas
 │   ├── promote-perms/           # Permission promotion
 │   ├── qa/                      # Quality Square traceability
-│   └── update-plugin/           # Plugin update management
+│   ├── update-plugin/           # Plugin update management
+│   └── youtube-transcript/      # YouTube caption fetcher (pure Node)
 ├── hooks/                       # Lifecycle hooks (autoskill, persona, prereq check)
 ├── prerequisites.json           # Feature prerequisite registry
 ├── docs/

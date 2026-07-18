@@ -60,6 +60,7 @@ Show the user the following overview:
 | Command | Description |
 |---------|-------------|
 | **markdown-converter** | Converts files to Markdown via `uvx markitdown`. Supports PDF, Word, PowerPoint, Excel, HTML, CSV, JSON, XML, images, audio, ZIP, YouTube URLs, EPub |
+| **youtube-transcript** | Fetches a YouTube video's existing captions as plain text (pure Node, no Python/yt-dlp needed). Any URL form or video ID. Options: `--lang=xx` (preferred language), `--out[=path]` (also save as `.txt`). Existing captions only — no audio transcription |
 
 ### Communication
 | Command | Description |
@@ -119,6 +120,7 @@ Skills are knowledge modules that Claude loads automatically when certain keywor
 
 ### Tools
 - **markdown-converter** - File-to-Markdown conversion via markitdown (Command: `/agenticaiplugin:markdown-converter`)
+- **youtube-transcript** - Fetch a YouTube video's captions as plain text, pure Node (Command: `/agenticaiplugin:youtube-transcript`)
 
 ---
 
