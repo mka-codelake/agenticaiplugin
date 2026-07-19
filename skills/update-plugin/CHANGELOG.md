@@ -5,6 +5,15 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.26.0
+
+- **Retired the copied-rules mechanism; the plugin now provides always-on behavior itself — no per-project rule files, no drift, no sync.** Claude Code has no plugin-native rules mechanism, and copying rule files into every project (via `/init`) was the sole source of version drift. The 3 rules (`core`, `code-review`, `git-commit`) are gone as copied files and re-expressed plugin-side:
+  - **Doctrine via a SessionStart hook** (`hooks/inject-doctrine.mjs` + `hooks/doctrine/{core,code-review}.md`): ask-before-assuming, explain WHAT/WHY before changes, surgical minimal scope, honesty, and automatic code review after a task. Injected as `additionalContext` on **every** SessionStart source including `compact`, so it survives compaction. Per-block opt-out: `{"doctrine":{"core":"off","codeReview":"off"}}`.
+  - **Enforcement via a PreToolUse hook** (`hooks/guard-git-commit.mjs`): raw `git commit` is hard-blocked (steering to `/agenticaiplugin:gitme`); the git-smart-commit skill commits with an inert `git -c agenticai.gitme=1 commit` marker the guard allow-lists. Fail-open; opt-out `{"gitCommitGuard":"off"}`.
+- **`/agenticaiplugin:update-plugin` is now a one-time transition.** It removes legacy copied rules (`remove-legacy-rules.mjs`, generic glob so historically-removed rules like `protected-dirs` are swept too) and completes the `claudedocs/{guidelines,adrs}` → `.claude/` relocation. The migration is now complete: it also appends `.gitignore` negations when `.claude` is ignored via a `.claude/*` form (flagging a whole-tree `.claude/` for manual fix, since git cannot re-include a child of an excluded directory) and rewrites stale `claudedocs/…` path tokens in the project's `CLAUDE.md`. After the one-time transition, future updates need only `/plugin marketplace update`.
+- **Removed the rule-versioning subsystem** (`sync-rules.mjs`, `parse-rule-header.mjs`, `rules-templates/`) and repurposed the SessionStart notice into `check-transition-pending.mjs` (warns while a project still carries legacy copied rules or a `claudedocs/` layout; config key `transitionNotice`, legacy alias `rulesUpdateNotice`). `/init` no longer copies rules — it only scaffolds `.claude/{guidelines,adrs}`.
+- No new dependency (Node stdlib only; Node ≥ 22 already required).
+
 ## 0.25.0
 
 - **Slimmed the always-on rule set from 5 to 3.** A rule now has to *change* default behavior to earn its always-on cost; two did not:

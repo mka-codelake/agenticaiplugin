@@ -1,5 +1,5 @@
 ---
-description: Initialize project for AgenticAI Plugin (rules, directories, guidelines)
+description: Initialize a project for AgenticAI Plugin (scaffolds .claude/ guidelines and adrs directories)
 disable-model-invocation: true
 effort: low
 ---
@@ -27,11 +27,15 @@ No parameters required.
 
 Invoke the `agenticaiplugin:project-initializer` agent in **init** mode.
 
-**IMPORTANT:** Pass the plugin root path so the agent can read rule templates.
+Init scaffolds the `.claude/guidelines/` and `.claude/adrs/` directories. It does **not**
+copy any rule files — the plugin provides always-on behavior itself via its doctrine
+(SessionStart) and enforcement (PreToolUse) hooks.
+
+**IMPORTANT:** Pass the plugin root path so the agent can run the setup scripts.
 The plugin root is this skill's base directory, two levels up (i.e., `../../` from `skills/init/`).
 Include it in the agent prompt as `plugin_root: <absolute_path>`.
 
 ## Related
 
-- **/agenticaiplugin:update-plugin** - Update rules to latest version
+- **/agenticaiplugin:update-plugin** - One-time transition for an existing installation
 - **/agenticaiplugin:code-review** - Review code quality

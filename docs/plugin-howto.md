@@ -270,6 +270,32 @@ JSON-stdin/stdout model — Node hook scripts port 1:1. OpenCode plugins run
 in-process under Bun; keep hook logic in importable functions so a thin adapter
 can reuse it.
 
+### Doctrine injection & enforcement hooks
+
+The plugin provides its always-on behavior via hooks instead of copying `.claude/rules/`
+files into projects (Claude Code has no plugin-native rules mechanism, and copying drifts):
+
+- **Doctrine — `hooks/inject-doctrine.mjs` (SessionStart).** Emits the behavioral doctrine
+  (`hooks/doctrine/*.md`) as `hookSpecificOutput.additionalContext`. It fires on **every**
+  SessionStart `source` — `startup`, `resume`, `clear`, and crucially `compact` — and never
+  gates on `source`, so the doctrine is re-injected after each compaction (SessionStart fires
+  with `source:"compact"` after a compaction and its `additionalContext` lands in the
+  compacted context). This is the only reliable way to keep injected instructions present
+  across `/compact`; `PreCompact` is observe/block-only and cannot preserve context. Caveat:
+  `additionalContext` is a post-system-prompt context message — softer than a first-class rule,
+  which is the accepted trade-off for zero per-project drift. Per-block opt-out via
+  `agenticaiplugin.config.json` `{"doctrine":{"core":"off","codeReview":"off"}}`.
+- **Enforcement — `hooks/guard-git-commit.mjs` (PreToolUse, matcher `Bash`).** Returns
+  `permissionDecision:"deny"` for a raw `git commit`, steering to `/agenticaiplugin:gitme`. The
+  git-smart-commit skill signals a sanctioned commit with an inert `git -c agenticai.gitme=1
+  commit` marker the guard allow-lists. The guard tokenizes the command (never regexes the raw
+  string) and is **fail-open** (broken input → allow) — the opposite of the autoskill
+  read-guard's fail-closed cage, because a commit guard that failed closed would block every
+  commit. Disable via `{"gitCommitGuard":"off"}`.
+
+Both must satisfy `hooks/hooks-policy.test.mjs` (exec-form `node ${CLAUDE_PLUGIN_ROOT}/….mjs`,
+no shell scripts). `hooks/doctrine/*.md` are data files, not registered hooks.
+
 ### Autoskill (self-learning skills, `hooks/autoskill/`)
 
 Autoskill is a self-learning mechanism (Hermes-agent pattern) that watches

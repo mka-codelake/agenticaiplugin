@@ -31,7 +31,7 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 - **Communication Personas** — Switch the agent's response style (writer / engineer / telegrapher / caveman) to trade verbosity against token usage; opt-in, off by default
 - **Plan & Decision Stress-Test** — `grill-me` interviews you one question at a time to surface every implicit assumption before you commit to a plan
 - **Test-Writing & Dependency Guidance** — task-triggered skills capturing what's easy to get wrong: writing good tests (public-API-only, no test-only API widening) and managing dependencies (verify the current version from the registry, no unrequested deps)
-- **Modular Rules System** — 3 focused rules installed per-project via a deterministic sync (create / update / remove), with a SessionStart notice when they fall out of date
+- **Always-On Doctrine & Enforcement** — the plugin's behavior (ask-before-assuming, automatic code review, minimal-scope changes) is injected into every session by a SessionStart hook (re-injected after compaction) and the commit workflow is enforced by a PreToolUse hook — nothing is copied into your project, so there is nothing to keep in sync
 
 ## Installation
 
@@ -78,9 +78,11 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 ```
 
 Initialization creates:
-- `.claude/rules/agenticaiplugin-*.md` — Plugin rules (3 rule files)
 - `.claude/guidelines/` — For your project-specific code review rules
 - `.claude/adrs/` — For Architectural Decision Records
+
+No rule files are copied into your project — the plugin's always-on behavior comes from its
+own doctrine (SessionStart) and enforcement (PreToolUse) hooks.
 
 > **Tip:** `.claude/` is often gitignored. If you want your guidelines and ADRs committed and shared with your team, un-ignore `.claude/guidelines/` and `.claude/adrs/`.
 
@@ -104,7 +106,7 @@ Initialization creates:
 | `youtube-transcript` | Fetch a YouTube video's captions as plain text (pure Node; `--lang`, `--out`) |
 | `handover` | Save/load cross-session continuity snapshot (open items, blockers, next steps) with reconciliation against prior state |
 | `init` | Initialize plugin in a project |
-| `update-plugin` | Update plugin rules to latest version |
+| `update-plugin` | One-time transition of an existing installation off copied rules |
 | `promote-perms` | Promote workspace permissions to user level |
 | `help` | Show overview of all commands and skills |
 
@@ -259,7 +261,6 @@ agenticaiplugin/
 │   │   ├── update-agenticai.md
 │   │   └── cleanup-deprecated.md
 │   └── project-initializer.md   # Project setup and updates (entry point)
-├── rules-templates/             # Rule templates for project installation
 ├── skills/
 │   ├── architecture-audit/      # 7-dimension architecture assessment
 │   ├── code-review/             # 12-specialist code review
@@ -281,11 +282,12 @@ agenticaiplugin/
 │   ├── qa/                      # Quality Square traceability
 │   ├── update-plugin/           # Plugin update management
 │   └── youtube-transcript/      # YouTube caption fetcher (pure Node)
-├── hooks/                       # Lifecycle hooks (autoskill, persona, prereq check)
+├── hooks/                       # Lifecycle hooks (doctrine injection, git-commit guard, autoskill, persona, prereq check)
+│   └── doctrine/                # Always-on doctrine markdown (injected at SessionStart)
 ├── prerequisites.json           # Feature prerequisite registry
 ├── docs/
 │   ├── plugin-howto.md          # Plugin development reference
-│   └── rules-howto.md           # Rules template reference
+│   └── rules-howto.md           # Rules & doctrine reference
 └── CLAUDE.md                    # Development instructions
 ```
 

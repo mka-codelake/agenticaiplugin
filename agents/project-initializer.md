@@ -1,6 +1,6 @@
 ---
 name: project-initializer
-description: Performs interactive project setup and updates for AgenticAI Plugin. Use when user runs /agenticaiplugin:init (fresh setup) or /agenticaiplugin:update-plugin (update existing installation). Creates/updates rules in .claude/rules/, handles CLAUDE.md migration.
+description: Performs interactive project setup and updates for AgenticAI Plugin. Use when user runs /agenticaiplugin:init (fresh setup) or /agenticaiplugin:update-plugin (one-time transition of an existing installation). Scaffolds .claude/ project directories; the plugin no longer copies rule files.
 tools: Read, Write, Edit, Bash, Glob, AskUserQuestion
 model: sonnet
 effort: medium
@@ -22,16 +22,15 @@ Check the prompt/context to determine the mode:
 
 **Important:** Execute ONLY the workflow for the detected mode. Do not mix workflows.
 
-## Rule Templates
+## No copied rules
 
-Rule templates are stored in `rules-templates/` within the plugin directory. The
-invoking skill provides the `plugin_root` path. **The template SET is the single source
-of truth** — there is no hardcoded rule list in this coordinator.
-
-Installing/updating/removing rules is done deterministically by
-`{plugin_root}/agents/project-initializer/scripts/sync-rules.mjs`, which diffs the
-installed `.claude/rules/agenticaiplugin-*.md` against `rules-templates/` and
-create/update/deletes accordingly. The init and update task files call it.
+The plugin does **not** copy rule files into a project. Always-on behavior is provided by
+the plugin itself — doctrine via a SessionStart hook (`hooks/inject-doctrine.mjs`) and
+enforcement via a PreToolUse hook (`hooks/guard-git-commit.mjs`) — so there is nothing
+per-project to install or keep in sync. INIT only scaffolds `.claude/` directories; UPDATE
+runs a one-time transition that removes any legacy copied rules and completes the
+`claudedocs/` → `.claude/` relocation. The task files use deterministic Node scripts under
+`{plugin_root}/agents/project-initializer/scripts/`; the invoking skill provides `plugin_root`.
 
 ## Dispatch Mechanism
 
@@ -51,10 +50,9 @@ Use this workflow when mode = INIT (fresh setup).
 Check the current setup status and display it visually:
 
 Check for these items:
-1. `.claude/rules/` directory and existing `agenticaiplugin-*.md` rules
-2. `.claude/guidelines/` directory
-3. `.claude/adrs/` directory
-4. **Feature prerequisites** — see "Prerequisite Check" in Shared Notes below
+1. `.claude/guidelines/` directory
+2. `.claude/adrs/` directory
+3. **Feature prerequisites** — see "Prerequisite Check" in Shared Notes below
 
 Display format:
 ```
@@ -62,7 +60,6 @@ AgenticAI Plugin - Project Setup
 
 Current Status:
   AgenticAI:
-    ✓ .claude/rules/ - Already exists (contains 2 plugin rules)   (or: ✗ Not found)
     ✗ .claude/guidelines/ - Not found                          (or: ✓ Already exists)
     ✗ .claude/adrs/ - Not found                                (or: ✓ Already exists)
 
@@ -90,7 +87,8 @@ If user chooses "No, cancel" → Stop.
 
 Read and execute: `{plugin_root}/agents/project-initializer/init-agenticai.md`
 
-This installs the current plugin rules (via the sync-rules script) and creates the project directories.
+This creates the project directories. No rule files are copied — the plugin provides
+always-on behavior itself via its doctrine and enforcement hooks.
 
 ## Init Step 5: Final Summary
 
@@ -100,22 +98,16 @@ Display a completion message:
 Setup complete! Your project is ready for AgenticAI Plugin.
 
 AgenticAI:
-  ✓ Plugin rules created: [count from the sync-rules report]
   ✓ Directories created: [count]
 
-  Plugin Rules (in .claude/rules/) — list the rules the sync-rules report created:
-    - agenticaiplugin-core.md - Ask before assuming
-    - agenticaiplugin-code-review.md - Automatic reviews
-    - agenticaiplugin-git-commit.md - Use git-smart-commit skill
+The plugin's always-on behavior (ask-before-assuming, automatic code review, commit via
+git-smart-commit) is provided by the plugin itself — nothing is installed in your project.
 
 Next steps:
-1. Add project-specific coding rules to .claude/guidelines/
+1. Add project-specific coding rules to .claude/guidelines/ and ADRs to .claude/adrs/
 2. Start using plugin features:
    - /agenticaiplugin:code-review - Review code quality
    - /agenticaiplugin:gitme - Smart git commits
-
-To update rules after plugin updates:
-   /agenticaiplugin:update-plugin
 
 Happy coding with AgenticAI!
 ```
@@ -126,19 +118,23 @@ Happy coding with AgenticAI!
 # UPDATE WORKFLOW
 # ═══════════════════════════════════════════════════════════════
 
-Use this workflow when mode = UPDATE (update existing installation).
+Use this workflow when mode = UPDATE. This is the **one-time transition** of an existing
+installation off the old copied-rules model. After it has run once, future plugin updates
+are just `/plugin marketplace update` — there is nothing per-project left to sync.
 
-## Update Step 1: Deprecated Cleanup (ALWAYS FIRST)
+## Update Step 1: Transition & Deprecated Cleanup (ALWAYS FIRST)
 
 Read and execute: `{plugin_root}/agents/project-initializer/cleanup-deprecated.md`
 
-**This step is NOT optional.** Execute it BEFORE anything else, even if all rules are up to date.
+**This step is NOT optional.** It removes any legacy copied rules, completes the
+`claudedocs/` → `.claude/` relocation, and clears deprecated files.
 
-## Update Step 2: AgenticAI Rules Update
+## Update Step 2: Legacy CLAUDE.md Cleanup
 
 Read and execute: `{plugin_root}/agents/project-initializer/update-agenticai.md`
 
-This handles installation detection, CLAUDE.md migration, version comparison, and rule updates.
+This strips obsolete plugin-injected sections from a very old CLAUDE.md (no-op for modern
+installations).
 
 ## Update Step 3: Prerequisite Check
 
@@ -147,19 +143,20 @@ append the warning block to the summary in Step 4. Never block the update.
 
 ## Update Step 4: Aggregated Summary
 
-Combine results from all update tasks into a single summary:
+Combine results from both tasks into a single summary:
 
 ```
-Plugin Update Complete!
+Plugin Transition Complete!
 
-Deprecated Cleanup:
+Transition & Cleanup:
   [results from cleanup task]
 
-AgenticAI Rules:
-  [results from agenticai update task]
-```
+CLAUDE.md:
+  [results from legacy CLAUDE.md task]
 
-Include the "What's New" changelog delta from the AgenticAI update task (if applicable).
+Your project no longer carries copied plugin rules — the plugin provides always-on behavior
+itself. Future updates need only `/plugin marketplace update`.
+```
 
 ---
 
@@ -198,10 +195,10 @@ Procedure:
 
 ## Important Notes
 
-**Rule Templates:**
-- Templates are stored in `{plugin_root}/rules-templates/`
+**Scripts:**
+- The transition scripts live in `{plugin_root}/agents/project-initializer/scripts/`
 - The `plugin_root` path is provided by the invoking skill
-- Read each template file before writing to the user's project
+- All are deterministic and non-destructive (preview via `--dry-run`, apply via `--apply`)
 
 **Directory Paths:**
 - All paths are relative to the current working directory (project root)
@@ -213,6 +210,6 @@ Procedure:
 - If Bash commands fail, report which directories couldn't be created
 - Errors in one task do not block other tasks
 
-**Overwriting Rules:**
-- Plugin rules (agenticaiplugin-*.md) can be safely overwritten
-- User's own rules (without plugin prefixes) are NEVER touched
+**Legacy rule removal:**
+- The transition removes only `agenticaiplugin-*.md` rules from `.claude/rules/`
+- The user's own rules (without the plugin prefix) are NEVER touched

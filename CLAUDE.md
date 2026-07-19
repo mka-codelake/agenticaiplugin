@@ -40,7 +40,7 @@ agenticaiplugin/
 │       ├── reference.md      # Progressive disclosure (optional)
 │       └── templates/        # Jinja2 templates (optional)
 ├── hooks/                     # Plugin-level lifecycle hooks (hooks.json, auto-discovered)
-├── rules-templates/           # Rule templates installed by project-initializer
+│   └── doctrine/              # Always-on doctrine (markdown) injected by the SessionStart hook
 ├── docs/                      # Internal documentation
 │   └── plugin-howto.md       # PRIMARY DEV REFERENCE
 └── CLAUDE.md                 # This file
@@ -75,7 +75,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:code-review` | Multi-specialist code review |
 | `/agenticaiplugin:architecture-audit` | Multi-analyzer architecture audit |
 | `/agenticaiplugin:init` | Set up plugin in a new project |
-| `/agenticaiplugin:update-plugin` | Update plugin rules in existing project |
+| `/agenticaiplugin:update-plugin` | One-time transition of an existing installation off copied rules (removes legacy `.claude/rules/`, migrates `claudedocs/`→`.claude/`) |
 | `/agenticaiplugin:git-smart-commit` | Atomic commits with meaningful messages |
 | `/agenticaiplugin:gitme` | Short alias for git-smart-commit |
 | `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
@@ -109,7 +109,7 @@ Changes are immediately available after marketplace update.
 
 When making feature changes, new commands, or directory changes, check:
 
-1. **Rule template versions** (`rules-templates/*.md`) — If a rule template was modified, bump the `Rule vX.Y` **and** `Plugin-Version` in its HTML comment header. Without this, `/agenticaiplugin:update-plugin` won't detect the change and existing projects stay on the old version. **This has been overlooked repeatedly — always check.**
+1. **Doctrine / enforcement** (`hooks/doctrine/*.md`, `hooks/guard-git-commit.mjs`) — If always-on behavior changed, update the doctrine markdown (injected live by the SessionStart hook — no version headers, no per-project sync). Changing the git-commit sentinel means updating both the guard and `skills/git-smart-commit/SKILL.md`.
 2. **Help-Skill** (`skills/help/SKILL.md`) — Is the overview still current?
 3. **CHANGELOG** (`skills/update-plugin/CHANGELOG.md`) — Entry added?
 4. **Per-Skill `--help`** — Usage section in affected skills up to date?
@@ -147,7 +147,7 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 ## Gotchas
 
 - **Skills = progressive disclosure** — only a SKILL.md's frontmatter `description` is always in context; the body loads on demand when the skill is invoked (not every session). Keep descriptions sharp (they drive auto-activation); bodies can be longer without a per-session token cost. Agents have isolated context and can be more detailed.
-- **`rules-templates/` vs `.claude/rules/`** — `rules-templates/` contains the source templates. The `project-initializer` agent copies them to `.claude/rules/` in the target project. `.claude/` is gitignored in the plugin repo.
+- **No copied rules** — the plugin does NOT install rule files into projects. Always-on behavior comes from the plugin itself: doctrine markdown (`hooks/doctrine/*.md`) injected as `additionalContext` by the SessionStart hook `hooks/inject-doctrine.mjs`, and enforcement via the PreToolUse hook `hooks/guard-git-commit.mjs`. The SessionStart hook fires on every source (incl. `compact`), so the doctrine survives compaction. `.claude/rules/` in a project is the user's own space; `/update-plugin` only removes *legacy* `agenticaiplugin-*.md` copies.
 - **Marketplace update required** — File changes in the plugin directory are NOT immediately active. Always run `/plugin marketplace update` after changes.
 - **Progressive disclosure** — Put details in `reference.md`, not `SKILL.md`. Claude loads reference.md only when explicitly needed, saving tokens.
 
