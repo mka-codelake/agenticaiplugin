@@ -138,4 +138,4 @@ skills/qa/
 - **Lazy loading** — root catalogs reference groups only; detail files loaded on demand
 - **Max 5 convergence rounds** per phase — bounded cost
 - **Phase isolation** — each phase runs in its own agent, only summaries return to orchestrator
-- **claudedocs/guidelines/ and adrs/ are READ-ONLY** — read for context, never modify
+- **.claude/guidelines/ and adrs/ are READ-ONLY** — read for context, never modify

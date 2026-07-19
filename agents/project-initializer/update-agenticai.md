@@ -198,44 +198,43 @@ All rules will be marked as "New" (to be created).
 
 Skip to Step 5 with all rules marked for creation.
 
-### 3.2 Scan Modern Installation
+### 3.2 Scan Modern Installation (via sync-rules script)
 
-List all `agenticaiplugin-*.md` files in `.claude/rules/`:
+Run the deterministic rule-sync script in **dry-run** mode. It compares the installed
+`.claude/rules/agenticaiplugin-*.md` against the plugin's `rules-templates/` (the single
+source of truth) and classifies each rule — no hardcoded version table to maintain.
 
-For each file found:
-1. Read the file
-2. Extract version from header comment (e.g., `AgenticAI Plugin Rule v1.0`)
-3. Store filename and version
+**Prerequisite:** the script needs `node` on PATH. If `node` is missing, report the Node.js
+prerequisite (see `prerequisites.json`, `id: "node"`, field `hints`) and STOP — the sync
+cannot run without it.
 
-**Expected files:**
-- `agenticaiplugin-core.md`
-- `agenticaiplugin-code-review.md`
-- `agenticaiplugin-protected-dirs.md`
-- `agenticaiplugin-git-commit.md`
-- `agenticaiplugin-engineering.md`
+```bash
+node "{plugin_root}/agents/project-initializer/scripts/sync-rules.mjs" . "{plugin_root}" --dry-run
+```
+
+Parse the JSON report:
+
+```
+{ "applied": false, "actions": [ {
+    "id", "file", "action",              // action ∈ create | update | delete | up-to-date
+    "installedRuleVersion", "templateRuleVersion",
+    "installedPluginVersion"             // observed BEFORE apply — used by Step 8 "What's New"
+} ] }
+```
+
+- **create** — template present, not installed.
+- **update** — both present, rule version differs.
+- **delete** — installed but no template (deprecated rule → will be removed).
+- **up-to-date** — same rule version.
+
+Use `action` for Steps 5–7; keep `installedPluginVersion` for the Step 8 delta.
 
 ---
 
-## Step 4: Compare Versions
+## Step 4: Version comparison — handled by the script
 
-Compare each installed rule version (from Step 3) against the **latest version from this table**.
-
-**⚠️ IMPORTANT: This table is the SINGLE SOURCE OF TRUTH for latest versions. Do NOT use versions from examples or output templates.**
-
-**Current Plugin Rule Versions (LATEST):**
-
-| Rule File | Latest Version |
-|-----------|----------------|
-| agenticaiplugin-core.md | v1.0 |
-| agenticaiplugin-code-review.md | v1.1 |
-| agenticaiplugin-protected-dirs.md | v1.1 |
-| agenticaiplugin-git-commit.md | v1.0 |
-| agenticaiplugin-engineering.md | v1.0 |
-
-For each rule, compare the installed version against the Latest Version above:
-- If file missing: Mark as "New"
-- If installed version matches latest: Mark as "Up to date"
-- If installed version differs from latest: Mark as "Update available"
+`sync-rules.mjs` reads each template's `AgenticAI Plugin Rule vX.Y` header directly, so the
+latest versions are never hardcoded here. Nothing to do in this step.
 
 ---
 
@@ -246,15 +245,13 @@ For each rule, compare the installed version against the Latest Version above:
 ```
 Legacy Migration Preview:
 
-Migrating from CLAUDE.md to .claude/rules/:
+Migrating from CLAUDE.md to .claude/rules/ (one line per rule the sync-rules dry-run marks "create"):
   agenticaiplugin-core.md - will be created (v1.0)
-  agenticaiplugin-code-review.md - will be created (v1.1)
-  agenticaiplugin-protected-dirs.md - will be created (v1.1)
-  agenticaiplugin-git-commit.md - will be created (v1.0)
-  agenticaiplugin-engineering.md - will be created (v1.0)
+  agenticaiplugin-code-review.md - will be created (v1.2)
+  ... (all current templates)
 
 Actions:
-- 5 rules will be created
+- [N] rules will be created
 - Plugin sections will be removed from CLAUDE.md
 ```
 
@@ -263,15 +260,17 @@ Actions:
 ```
 Rules Update Preview:
 
-Current rules in .claude/rules/:
+Rendered from the sync-rules dry-run report (one line per action):
   agenticaiplugin-core.md - v1.0 (up to date)
-  agenticaiplugin-code-review.md - v0.9 -> v1.1 (update available)
-  agenticaiplugin-protected-dirs.md - missing (will be created)
+  agenticaiplugin-code-review.md - v0.9 -> v1.2 (update available)
+  agenticaiplugin-git-commit.md - missing (will be created)
+  agenticaiplugin-<deprecated>.md - v1.0 (deprecated -> will be REMOVED)
 
 Actions:
 - 1 rule up to date
 - 1 rule will be updated
 - 1 rule will be created
+- 1 rule will be removed (no longer part of the plugin)
 ```
 
 **If all rules are up to date:**
@@ -282,13 +281,13 @@ Rules Status:
 All plugin rules are up to date.
 ```
 
-**If nothing to update (rules current, no CLAUDE.md migration):** Show summary and STOP.
+**If nothing to update, create, or delete (all rules current, no CLAUDE.md migration):** Show summary and STOP.
 
 ---
 
 ## Step 6: Ask for Confirmation
 
-Only if there are rules to update or create. Use the AskUserQuestion tool:
+Only if there are rules to update, create, **or delete**. Use the AskUserQuestion tool:
 - Question: "Proceed with plugin update?"
 - Options: "Yes, update now" / "No, cancel"
 
@@ -298,17 +297,21 @@ If user chooses "No, cancel" → Stop.
 
 ## Step 7: Apply Updates
 
-For each rule that needs updating or creating:
+Re-run the sync script in **apply** mode. It creates/updates/deletes the rule files
+deterministically (create/update = copy template; delete = remove the deprecated file):
 
-1. Read the rule template from `{plugin_root}/rules-templates/`
-2. Write the content to `.claude/rules/`
-3. Report each change
+```bash
+node "{plugin_root}/agents/project-initializer/scripts/sync-rules.mjs" . "{plugin_root}" --apply
+```
+
+Report each change from the returned report, e.g.:
 
 ```
 Updating rules...
 
-✓ agenticaiplugin-code-review.md - Updated (v0.9 -> v1.1)
-✓ agenticaiplugin-protected-dirs.md - Created (v1.1)
+✓ agenticaiplugin-code-review.md - Updated (v1.1 -> v1.2)
+✓ agenticaiplugin-git-commit.md - Created (v1.1)
+✓ agenticaiplugin-<deprecated>.md - Removed (no longer part of the plugin)
 ```
 
 ---
@@ -320,7 +323,7 @@ Updating rules...
 **Before** showing the summary, determine the changelog delta:
 
 1. **Read the plugin CHANGELOG** from `skills/update-plugin/CHANGELOG.md` (relative to the plugin installation, use Glob to find it)
-2. **Detect installed (old) version:** Read any existing `agenticaiplugin-*.md` rule from `.claude/rules/` and extract the `Plugin-Version:` comment. If no `Plugin-Version:` line exists (pre-0.5.1 installation), treat as `unknown`.
+2. **Detect installed (old) version:** Use `installedPluginVersion` from the **dry-run** report (Step 3.2) — it was captured **before** apply, so it survives the rule rewrite/removal (do NOT re-read a rule file after apply). Take the highest non-null value across the report's actions. If all are null (pre-0.5.1 installation), treat as `unknown`.
 3. **Detect new version:** Parse the first `## X.Y.Z` heading in the CHANGELOG — that's the current plugin version.
 4. **Collect delta entries:** All `## X.Y.Z` sections where `X.Y.Z` is newer than the old version. If old version is `unknown`, include all entries.
 
@@ -338,8 +341,8 @@ CLAUDE.md Migration:
 
 Rules Created:
   ✓ agenticaiplugin-core.md (v1.0)
-  ✓ agenticaiplugin-code-review.md (v1.1)
-  ✓ agenticaiplugin-protected-dirs.md (v1.1)
+  ✓ agenticaiplugin-code-review.md (v1.2)
+  ✓ agenticaiplugin-git-commit.md (v1.1)
 
 Your project is now using the new rules-based configuration.
 Project-specific content was preserved.

@@ -384,10 +384,10 @@ function buildSpecialistPrompt(spec, c) {
     `Severity definitions: ${skillDir}/shared/issue-classification.md`,
     ``,
     ctx.guidelines
-      ? `## Project Guidelines (OVERRIDE skill rules on conflict)\nRead and apply: claudedocs/guidelines/*.md`
+      ? `## Project Guidelines (OVERRIDE skill rules on conflict)\nRead and apply: .claude/guidelines/*.md`
       : ``,
     ctx.adrs
-      ? `## Architectural Decision Records\nRead and respect: claudedocs/adrs/*.md — treat ADRs as authoritative; flag code that contradicts documented decisions, and do NOT flag code that conforms to an ADR.`
+      ? `## Architectural Decision Records\nRead and respect: .claude/adrs/*.md — treat ADRs as authoritative; flag code that contradicts documented decisions, and do NOT flag code that conforms to an ADR.`
       : ``,
     ``,
     `## Files to Review`,
@@ -431,8 +431,8 @@ function buildVerifierPrompt(f, c) {
     `## How to verify`,
     `1. Read the actual code at ${f.file} (around line ${f.line}); you have file tools.`,
     `2. Check the claim against the real code, the diff, and the tech stack.`,
-    ctx.guidelines ? `3. Check claudedocs/guidelines/*.md — a finding that contradicts a project guideline is refuted (or its severity corrected).` : ``,
-    ctx.adrs ? `4. Check claudedocs/adrs/*.md — if the code conforms to a documented ADR, the finding is refuted (false positive).` : ``,
+    ctx.guidelines ? `3. Check .claude/guidelines/*.md — a finding that contradicts a project guideline is refuted (or its severity corrected).` : ``,
+    ctx.adrs ? `4. Check .claude/adrs/*.md — if the code conforms to a documented ADR, the finding is refuted (false positive).` : ``,
     `   Severity reference: ${skillDir}/shared/issue-classification.md.`,
     mode === "diff" && diff ? `\n## Diff context\n\`\`\`diff\n${diff}\n\`\`\`` : ``,
     ``,

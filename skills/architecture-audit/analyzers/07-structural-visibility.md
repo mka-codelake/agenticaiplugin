@@ -43,7 +43,7 @@ You evaluate how easily a developer can understand the project's architecture ju
 - Does architecture documentation exist?
   - `ARCHITECTURE.md` at project root
   - `docs/architecture/` directory
-  - `claudedocs/adrs/` (Architectural Decision Records)
+  - `.claude/adrs/` (Architectural Decision Records)
   - Inline architecture comments in key files
 - Does the documentation match the actual code structure?
 
@@ -71,7 +71,7 @@ You evaluate how easily a developer can understand the project's architecture ju
 2. **Assess naming clarity** of each directory
 3. **Determine co-location vs. scattering** strategy
 4. **Find the entry point** — how long does it take?
-5. **Search for architecture documentation** (`ARCHITECTURE.md`, `docs/`, `claudedocs/adrs/`)
+5. **Search for architecture documentation** (`ARCHITECTURE.md`, `docs/`, `.claude/adrs/`)
 6. **Measure navigation depth** to source files
 
 ---

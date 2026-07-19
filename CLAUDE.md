@@ -21,7 +21,7 @@ The `docs/plugin-howto.md` file contains curated, plugin-specific knowledge that
 
 ❌ **NEVER use:** Absolute paths, developer-specific paths (Windows drives, WSL mounts, home dirs), hardcoded paths that won't work when installed elsewhere
 
-✅ **ALWAYS use:** Generic placeholders (`/path/to/your/marketplace`, `<your-project-root>`), relative paths within user's project (`claudedocs/guidelines/`), platform-agnostic examples
+✅ **ALWAYS use:** Generic placeholders (`/path/to/your/marketplace`, `<your-project-root>`), relative paths within user's project (`.claude/guidelines/`), platform-agnostic examples
 
 Users install this plugin on Windows, Linux, macOS, and WSL with different directory structures. The plugin cannot and should not reference its own installation path.
 
@@ -146,7 +146,7 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 
 ## Gotchas
 
-- **Skills = shared context** — every SKILL.md is loaded into every session → token-expensive, keep them short. Agents have isolated context and can be more detailed.
+- **Skills = progressive disclosure** — only a SKILL.md's frontmatter `description` is always in context; the body loads on demand when the skill is invoked (not every session). Keep descriptions sharp (they drive auto-activation); bodies can be longer without a per-session token cost. Agents have isolated context and can be more detailed.
 - **`rules-templates/` vs `.claude/rules/`** — `rules-templates/` contains the source templates. The `project-initializer` agent copies them to `.claude/rules/` in the target project. `.claude/` is gitignored in the plugin repo.
 - **Marketplace update required** — File changes in the plugin directory are NOT immediately active. Always run `/plugin marketplace update` after changes.
 - **Progressive disclosure** — Put details in `reference.md`, not `SKILL.md`. Claude loads reference.md only when explicitly needed, saving tokens.

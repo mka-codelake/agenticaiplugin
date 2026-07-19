@@ -38,7 +38,7 @@ You check dependency currency, framework modernization, and deprecations.
 - NEVER flag without verifying the actual latest stable version
 - Only consider stable/GA releases (not alpha, beta, RC, milestone)
 - Check project guidelines for intentional version pins
-- If `claudedocs/guidelines/` documents version constraints, respect them
+- If `.claude/guidelines/` documents version constraints, respect them
 
 ### 1.2 Framework Modernization
 

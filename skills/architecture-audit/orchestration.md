@@ -178,12 +178,12 @@ skills/architecture-audit/shared/rating-scale.md
 
 {IF project_guidelines_exist}
 ## Project Guidelines (Context)
-Read: claudedocs/guidelines/*.md
+Read: .claude/guidelines/*.md
 {ENDIF}
 
 {IF adrs_exist}
 ## Architectural Decision Records
-Read: claudedocs/adrs/*.md
+Read: .claude/adrs/*.md
 {ENDIF}
 
 ## Source Files to Examine
@@ -265,12 +265,12 @@ your dimension.
 
 {IF project_guidelines_exist}
 ## Project Guidelines (Context)
-Read: claudedocs/guidelines/*.md
+Read: .claude/guidelines/*.md
 {ENDIF}
 
 {IF adrs_exist}
 ## Architectural Decision Records
-Read: claudedocs/adrs/*.md
+Read: .claude/adrs/*.md
 {ENDIF}
 
 ## Source Files to Examine

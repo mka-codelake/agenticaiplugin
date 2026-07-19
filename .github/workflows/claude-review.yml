@@ -104,8 +104,8 @@ jobs:
             3. **Suggestion** — optional improvements you would make if you
                owned the code, but are not blocking.
 
-            Respect project guidelines if present (`claudedocs/guidelines/`,
-            `claudedocs/adrs/`) — they override generic best practices.
+            Respect project guidelines if present (`.claude/guidelines/`,
+            `.claude/adrs/`) — they override generic best practices.
 
             ## Output — POST THE REVIEW AS A PR COMMENT
             You MUST post your review as a single pull-request comment. First

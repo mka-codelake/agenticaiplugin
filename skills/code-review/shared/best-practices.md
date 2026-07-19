@@ -28,7 +28,7 @@ The controller has a security issue.
 
 **Always reference:**
 - Specialist rules and project guidelines
-- Project guidelines (claudedocs/guidelines/exception-handling.md)
+- Project guidelines (.claude/guidelines/exception-handling.md)
 - Skill sources
 
 **Bad Example:**
@@ -39,7 +39,7 @@ This violates best practices.
 **Good Example:**
 ```markdown
 **Rule:** Code Quality → YAGNI (Rule 6.1)
-**Source:** claudedocs/guidelines/coding-standards.md → Section 2.3
+**Source:** .claude/guidelines/coding-standards.md → Section 2.3
 ```
 
 ### Verify Before Flagging
@@ -280,8 +280,8 @@ You clearly don't understand Spring Boot.
 ### Project Guidelines Override Skills
 
 **Always prioritize:**
-1. **Highest:** `claudedocs/guidelines/*.md` (project-specific rules)
-2. **High:** `claudedocs/adrs/*.md` (documented architecture decisions)
+1. **Highest:** `.claude/guidelines/*.md` (project-specific rules)
+2. **High:** `.claude/adrs/*.md` (documented architecture decisions)
 3. **Medium:** Story acceptance criteria
 4. **Lowest:** Skill guidelines (generic best practices)
 
@@ -299,12 +299,12 @@ You clearly don't understand Spring Boot.
 
 **When project guideline exists:**
 ```markdown
-**Rule:** claudedocs/guidelines/exception-handling.md → ErrorCode First
+**Rule:** .claude/guidelines/exception-handling.md → ErrorCode First
 ```
 
 **When ADR exists:**
 ```markdown
-**Rule:** claudedocs/adrs/ADR-003-event-sourcing.md → Event Sourcing for Order Domain
+**Rule:** .claude/adrs/ADR-003-event-sourcing.md → Event Sourcing for Order Domain
 ```
 
 **When only skill guideline:**
@@ -314,7 +314,7 @@ You clearly don't understand Spring Boot.
 
 **When both apply:**
 ```markdown
-**Rule:** claudedocs/guidelines/coding-standards.md (overrides skill)
+**Rule:** .claude/guidelines/coding-standards.md (overrides skill)
 ```
 
 ---

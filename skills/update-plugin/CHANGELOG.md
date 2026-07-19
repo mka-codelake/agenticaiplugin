@@ -5,6 +5,15 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.25.0
+
+- **Slimmed the always-on rule set from 5 to 3.** A rule now has to *change* default behavior to earn its always-on cost; two did not:
+  - **Removed `engineering` rule** — its behavior-changing parts moved into two task-triggered, plugin-bundled skills (no per-project rollout, no drift): **`writing-tests`** (test your code, not the framework; public-API-only, no test-only API widening) and **`dependency-management`** (verify the current version from the registry instead of stale training data, no unrequested dependencies, lockfile hygiene). Code size limits were already covered by code-review specialist 06b; story-AC traceability was intentionally dropped (unused).
+  - **Removed `protected-dirs` rule** — as a prompt-rule it enforced nothing that isn't already default behavior. The guideline/ADR *reading* by code-review/architecture-audit is unaffected (it is decoupled); only the non-enforcing write-protection note is gone.
+- **Project guidelines/ADRs moved from `claudedocs/` to `.claude/`.** `.claude/guidelines/` and `.claude/adrs/` are the new home; other `claudedocs/` outputs (review/audit/qa/license reports) are unchanged. `update-plugin` migrates existing installations with a tested Node script that moves only guidelines/adrs, **never overwrites** a destination (collisions are reported for you to resolve), and removes `claudedocs/` only if it is left empty. If you want these committed/shared, un-ignore `.claude/guidelines/` and `.claude/adrs/`.
+- **Deterministic, tested rule sync + removal.** Rule install/update/**removal** is now a Node script (`sync-rules.mjs`) that diffs the installed `.claude/rules/` against the plugin's templates — the template set is the single source of truth, so a rule no longer shipped is **deleted** from a project on update (the old version-table comparison could not express removal). No new dependency (Node stdlib only; Node ≥ 22 was already required).
+- **New SessionStart notice hook.** Warns — once, on change, per project — when installed rules are outdated/deprecated or an old `claudedocs/` structure is present, pointing you to `/agenticaiplugin:update-plugin`. It never auto-updates. Disable with `{"rulesUpdateNotice":"off"}` in `agenticaiplugin.config.json`.
+
 ## 0.24.0
 
 - **New: `youtube-transcript` skill — fetch a YouTube video's captions as plain text.** New user-invoked command `/agenticaiplugin:youtube-transcript <url|videoId> [--lang=xx] [--out[=path]]` that returns a video's **existing** captions as plain text. Existing captions only — no audio transcription (Whisper etc.) by design.

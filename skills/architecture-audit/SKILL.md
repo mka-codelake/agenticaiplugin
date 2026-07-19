@@ -54,8 +54,8 @@ tech-stack detection (need Bash/Glob) before the call and write the report after
 ### Step 2: Tech Stack Detection (you)
 Detect manifests, primary/secondary languages, frameworks, build/test tools → assemble the
 **Tech Stack Profile** string (orchestration.md Step 2.5). Also collect a `fileList` of
-representative source files/dirs, and detect whether `claudedocs/guidelines/` and
-`claudedocs/adrs/` exist (with `*.md`).
+representative source files/dirs, and detect whether `.claude/guidelines/` and
+`.claude/adrs/` exist (with `*.md`).
 
 ### Step 3: Call the Workflow
 
@@ -124,7 +124,7 @@ skills/architecture-audit/
 
 - **Audit describes, assesses, and rates** — it does not demand changes
 - **Overall rating is exact JS math** (01 & 03 weighted 2×, N/A excluded, A=5…E=1, rounded half-up) — identical inputs always yield the identical grade
-- **Project guidelines** (`claudedocs/guidelines/*.md`) provide context; **ADRs** (`claudedocs/adrs/`) are respected
+- **Project guidelines** (`.claude/guidelines/*.md`) provide context; **ADRs** (`.claude/adrs/`) are respected
 - **Phase 1 → Phase 2** sequencing ensures analyzers know what pattern to evaluate against
 - **Consolidation stage** (cross-cutting themes, deduped strengths/concerns, 3-5 recommendations) runs as a dedicated agent so the full analyzer reports never flood the orchestrator context
 - If an analyzer fails it becomes N/A and the audit continues; if Phase 1 fails, Phase 2 evaluates against general best practices

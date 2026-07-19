@@ -64,8 +64,8 @@ Resolve `{skill_dir}` = absolute path of this skill's directory. The script is a
 - `tests`: at least one changed file is a test file.
 - `layers`: number of distinct architectural layers touched (e.g. controller/service/repository/domain/infra, or distinct top-level module dirs). Integer.
 - `newDeps`: a manifest file (pom.xml, build.gradle, package.json, requirements.txt, pyproject.toml, go.mod, …) is among the changed files, or the diff adds dependency entries.
-- `guidelines`: `claudedocs/guidelines/` exists and contains `*.md`.
-- `adrs`: `claudedocs/adrs/` exists and contains `*.md`.
+- `guidelines`: `.claude/guidelines/` exists and contains `*.md`.
+- `adrs`: `.claude/adrs/` exists and contains `*.md`.
 
 Also set `date` = today's date `YYYY-MM-DD`.
 
@@ -144,7 +144,7 @@ skills/code-review/
 
 ## Key Principles
 
-- **Project guidelines** (`claudedocs/guidelines/*.md`) always override skill rules
+- **Project guidelines** (`.claude/guidelines/*.md`) always override skill rules
 - **Every specialist researches current standards** (language, framework, libraries) via WebSearch/Context7 before reviewing
 - **Phase 1 → Phase 2** sequencing ensures version context is available to all specialists
 - **Adversarial verify pass** drops majority-refuted false positives; a refuted *Critical* is never silently dropped (kept as low-confidence)

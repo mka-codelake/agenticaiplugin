@@ -175,13 +175,13 @@ skills/code-review/shared/issue-classification.md
 {IF project_guidelines_exist}
 ## Project Guidelines (OVERRIDE skill rules when conflicts occur)
 Read and apply project-specific guidelines from:
-claudedocs/guidelines/*.md
+.claude/guidelines/*.md
 {ENDIF}
 
 {IF adrs_exist}
 ## Architectural Decision Records
 Read and respect documented architecture decisions from:
-claudedocs/adrs/*.md
+.claude/adrs/*.md
 When reviewing, treat ADRs as authoritative context — flag code that contradicts documented decisions.
 {ENDIF}
 
@@ -420,7 +420,7 @@ Check ALL dependencies in the project, not just changed ones.
 
 {IF project_guidelines_exist}
 ## Project Guidelines (OVERRIDE when conflicts occur)
-Read: claudedocs/guidelines/*.md
+Read: .claude/guidelines/*.md
 {ENDIF}
 ```
 

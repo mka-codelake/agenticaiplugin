@@ -24,20 +24,14 @@ Check the prompt/context to determine the mode:
 
 ## Rule Templates
 
-Rule templates are stored in `rules-templates/` within the plugin directory.
-The invoking skill provides the `plugin_root` path so you can read them.
+Rule templates are stored in `rules-templates/` within the plugin directory. The
+invoking skill provides the `plugin_root` path. **The template SET is the single source
+of truth** — there is no hardcoded rule list in this coordinator.
 
-**Template files:**
-
-| File | Target in User Project |
-|------|----------------------|
-| `rules-templates/agenticaiplugin-core.md` | `.claude/rules/agenticaiplugin-core.md` |
-| `rules-templates/agenticaiplugin-code-review.md` | `.claude/rules/agenticaiplugin-code-review.md` |
-| `rules-templates/agenticaiplugin-protected-dirs.md` | `.claude/rules/agenticaiplugin-protected-dirs.md` |
-| `rules-templates/agenticaiplugin-git-commit.md` | `.claude/rules/agenticaiplugin-git-commit.md` |
-| `rules-templates/agenticaiplugin-engineering.md` | `.claude/rules/agenticaiplugin-engineering.md` |
-
-**To create/update a rule:** Read the template file from `{plugin_root}/rules-templates/`, then Write its content to `.claude/rules/` in the user's project.
+Installing/updating/removing rules is done deterministically by
+`{plugin_root}/agents/project-initializer/scripts/sync-rules.mjs`, which diffs the
+installed `.claude/rules/agenticaiplugin-*.md` against `rules-templates/` and
+create/update/deletes accordingly. The init and update task files call it.
 
 ## Dispatch Mechanism
 
@@ -58,8 +52,8 @@ Check the current setup status and display it visually:
 
 Check for these items:
 1. `.claude/rules/` directory and existing `agenticaiplugin-*.md` rules
-2. `claudedocs/guidelines/` directory
-3. `claudedocs/adrs/` directory
+2. `.claude/guidelines/` directory
+3. `.claude/adrs/` directory
 4. **Feature prerequisites** — see "Prerequisite Check" in Shared Notes below
 
 Display format:
@@ -69,8 +63,8 @@ AgenticAI Plugin - Project Setup
 Current Status:
   AgenticAI:
     ✓ .claude/rules/ - Already exists (contains 2 plugin rules)   (or: ✗ Not found)
-    ✗ claudedocs/guidelines/ - Not found                          (or: ✓ Already exists)
-    ✗ claudedocs/adrs/ - Not found                                (or: ✓ Already exists)
+    ✗ .claude/guidelines/ - Not found                          (or: ✓ Already exists)
+    ✗ .claude/adrs/ - Not found                                (or: ✓ Already exists)
 
   Prerequisites:
     ✓ node - Found (v24.x)          (or: ⚠ node - NOT FOUND, see warning below)
@@ -96,7 +90,7 @@ If user chooses "No, cancel" → Stop.
 
 Read and execute: `{plugin_root}/agents/project-initializer/init-agenticai.md`
 
-This installs the 5 AgenticAI rules and creates claudedocs directories.
+This installs the current plugin rules (via the sync-rules script) and creates the project directories.
 
 ## Init Step 5: Final Summary
 
@@ -106,18 +100,16 @@ Display a completion message:
 Setup complete! Your project is ready for AgenticAI Plugin.
 
 AgenticAI:
-  ✓ Plugin rules created: 5
+  ✓ Plugin rules created: [count from the sync-rules report]
   ✓ Directories created: [count]
 
-  Plugin Rules (in .claude/rules/):
+  Plugin Rules (in .claude/rules/) — list the rules the sync-rules report created:
     - agenticaiplugin-core.md - Ask before assuming
     - agenticaiplugin-code-review.md - Automatic reviews
-    - agenticaiplugin-protected-dirs.md - Protected directories
     - agenticaiplugin-git-commit.md - Use git-smart-commit skill
-    - agenticaiplugin-engineering.md - Engineering principles
 
 Next steps:
-1. Add project-specific coding rules to claudedocs/guidelines/
+1. Add project-specific coding rules to .claude/guidelines/
 2. Start using plugin features:
    - /agenticaiplugin:code-review - Review code quality
    - /agenticaiplugin:gitme - Smart git commits
