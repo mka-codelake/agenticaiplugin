@@ -30,7 +30,8 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 - **Self-Learning Skills (Autoskill)** — Opt-in: a background reviewer distills reusable "learned skills" from your sessions into your user library; `/learn` distills on demand, `/curator` maintains the library lifecycle
 - **Communication Personas** — Switch the agent's response style (writer / engineer / telegrapher / caveman) to trade verbosity against token usage; opt-in, off by default
 - **Plan & Decision Stress-Test** — `grill-me` interviews you one question at a time to surface every implicit assumption before you commit to a plan
-- **Modular Rules System** — Plugin rules installed per-project, selectively updatable
+- **Test-Writing & Dependency Guidance** — task-triggered skills capturing what's easy to get wrong: writing good tests (public-API-only, no test-only API widening) and managing dependencies (verify the current version from the registry, no unrequested deps)
+- **Modular Rules System** — 3 focused rules installed per-project via a deterministic sync (create / update / remove), with a SessionStart notice when they fall out of date
 
 ## Installation
 
@@ -80,6 +81,8 @@ Initialization creates:
 - `.claude/rules/agenticaiplugin-*.md` — Plugin rules (3 rule files)
 - `.claude/guidelines/` — For your project-specific code review rules
 - `.claude/adrs/` — For Architectural Decision Records
+
+> **Tip:** `.claude/` is often gitignored. If you want your guidelines and ADRs committed and shared with your team, un-ignore `.claude/guidelines/` and `.claude/adrs/`.
 
 ### Commands
 
