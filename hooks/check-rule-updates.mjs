@@ -64,14 +64,19 @@ function writeMarker(file, state) {
   }
 }
 
-function buildNotice(pending, migration) {
+function buildNotice(changed, missing, migration) {
   const lines = [
     '<!-- agenticaiplugin rule-update notice -->',
     '**agenticaiplugin — update available.** Relay this to the user briefly, then continue.',
   ];
-  if (pending.length) {
+  if (changed.length) {
     lines.push(
-      `- Installed rules are out of date (${pending.join(', ')}). Run \`/agenticaiplugin:update-plugin\`.`
+      `- Installed rules are out of date (${changed.join(', ')}). Run \`/agenticaiplugin:update-plugin\`.`
+    );
+  }
+  if (missing.length) {
+    lines.push(
+      `- New rules available to install (${missing.join(', ')}). Run \`/agenticaiplugin:update-plugin\`.`
     );
   }
   if (migration) {
@@ -97,13 +102,19 @@ function main() {
       ? input.hook_event_name
       : 'SessionStart';
 
-  // (a) rule state — only for projects that actually have the plugin installed
-  let pending = [];
+  // (a) rule state — only for projects that actually have the plugin installed.
+  // Split "missing" (a template not yet installed) from "changed" (installed but
+  // outdated/deprecated) so the wording stays accurate for a partial install.
+  let missing = [];
+  let changed = [];
   try {
     const { actions } = computeActions(root, PLUGIN_ROOT);
     const installedCount = actions.filter((a) => a.action !== 'create').length;
     if (installedCount > 0) {
-      pending = actions.filter((a) => a.action !== 'up-to-date').map((a) => `${a.id}:${a.action}`);
+      missing = actions.filter((a) => a.action === 'create').map((a) => a.id);
+      changed = actions
+        .filter((a) => a.action === 'update' || a.action === 'delete')
+        .map((a) => `${a.id}:${a.action}`);
     }
   } catch {
     // sync logic unavailable -> no rule notice
@@ -113,21 +124,28 @@ function main() {
   const migration =
     existsSync(join(root, 'claudedocs', 'guidelines')) || existsSync(join(root, 'claudedocs', 'adrs'));
 
-  if (pending.length === 0 && !migration) return;
+  if (missing.length === 0 && changed.length === 0 && !migration) return;
 
   // per-project on-change de-dup
   const marker = markerFile(root);
-  const stateKey = JSON.stringify({ pending: [...pending].sort(), migration });
+  const stateKey = JSON.stringify({
+    changed: [...changed].sort(),
+    missing: [...missing].sort(),
+    migration,
+  });
   const last = readJson(marker);
-  const changed = JSON.stringify(last?.key ?? null) !== JSON.stringify(stateKey);
-  if (changed) writeMarker(marker, { key: stateKey });
+  const stateChanged = JSON.stringify(last?.key ?? null) !== JSON.stringify(stateKey);
+  if (stateChanged) writeMarker(marker, { key: stateKey });
 
   const everySession = config?.rulesUpdateNotice === 'every-session';
-  if (!everySession && !changed) return;
+  if (!everySession && !stateChanged) return;
 
   process.stdout.write(
     `${JSON.stringify({
-      hookSpecificOutput: { hookEventName: event, additionalContext: buildNotice(pending, migration) },
+      hookSpecificOutput: {
+        hookEventName: event,
+        additionalContext: buildNotice(changed, missing, migration),
+      },
     })}\n`
   );
 }
