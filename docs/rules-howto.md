@@ -207,15 +207,29 @@ project/.claude/rules/
 - Define `.claude/rules/*.md` files directly
 - Override project structure in the user's repository
 
-### Best Practice for Plugin-Provided Rules
+### How AgenticAI provides always-on behavior (without copied rules)
 
-Plugins should provide a **command** (like `/agenticaiplugin:init`) that:
+Because a plugin cannot ship rules that auto-load, an earlier approach *copied* rule files
+into every project via `/init`. That copying caused version drift across projects and a whole
+update/sync/migration apparatus to manage it. **AgenticAI no longer does this.** Always-on
+behavior is provided by the plugin itself, three ways:
 
-1. Creates the `.claude/rules/` directory in the user's project
-2. Populates it with template rule files
-3. Allows the user to customize and commit to git
+1. **Doctrine via a SessionStart hook** (`hooks/inject-doctrine.mjs` + `hooks/doctrine/*.md`) —
+   the behavioral doctrine (ask-before-assuming, explain WHAT/WHY, minimal scope, honesty,
+   automatic code review) is emitted as `additionalContext` every session. The hook fires on
+   **every** SessionStart source including `compact`, so the doctrine is re-injected after a
+   compaction. Trade-off: `additionalContext` is a post-system-prompt context message — softer
+   than a first-class rule, but it lives once in the plugin and never drifts.
+2. **Enforcement via a PreToolUse hook** (`hooks/guard-git-commit.mjs`) — hard behavior (never
+   run raw `git commit`) is *enforced*, not merely requested. This is stronger than a rule.
+3. **Skills** for task-triggered guidance (`writing-tests`, `dependency-management`, …).
 
-**This keeps rules portable and maintainable** (they live in the project, not the plugin).
+Per-item opt-out lives in `agenticaiplugin.config.json`
+(`{"doctrine":{"core":"off","codeReview":"off"},"gitCommitGuard":"off"}`).
+
+`.claude/rules/` in a user's project is therefore **the user's own space** — the plugin reads
+nothing there and installs nothing there. `/agenticaiplugin:update-plugin` only *removes* any
+legacy `agenticaiplugin-*.md` copies left by older versions.
 
 ---
 

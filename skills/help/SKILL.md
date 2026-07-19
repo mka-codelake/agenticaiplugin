@@ -37,7 +37,7 @@ Show the user the following overview:
 ### Project Setup
 | Command | Description |
 |---------|-------------|
-| **init** | Initializes a project interactively. Creates plugin rules in .claude/rules/ and the .claude/ directory structure (guidelines/, adrs/) |
+| **init** | Initializes a project interactively. Scaffolds the .claude/ directory structure (guidelines/, adrs/). No rules are copied — the plugin provides always-on behavior itself via hooks |
 
 ### Documentation
 | Command | Description |
@@ -81,7 +81,7 @@ Show the user the following overview:
 ### System
 | Command | Description |
 |---------|-------------|
-| **update-plugin** | Updates plugin rules in .claude/rules/ to the latest version. Automatically migrates from legacy installations |
+| **update-plugin** | One-time transition of an existing installation off copied rules: removes legacy .claude/rules/agenticaiplugin-*.md, migrates claudedocs/{guidelines,adrs}→.claude/ (incl. gitignore/CLAUDE.md fixes). After it, future updates are just the marketplace update |
 | **promote-perms** | Promotes workspace-specific permissions to user level (global). Useful when you want the same permissions across all projects |
 | **help** | Shows this overview of all commands, skills, agents, and plugin rules |
 
@@ -139,15 +139,18 @@ Agents are isolated contexts for specific tasks.
 
 ---
 
-## Plugin Rules (always active after /agenticaiplugin:init)
+## Always-On Behavior (provided by the plugin — no per-project install)
 
-These rules are installed in `.claude/rules/` during project initialization and permanently influence Claude's behavior:
+The plugin injects its doctrine into every session via a SessionStart hook (re-injected after compaction) and enforces the commit workflow with a PreToolUse hook. Nothing is copied into your project:
 
-| Rule | Behavior |
+| Behavior | How |
 |------|----------|
-| **Ask instead of assume** | Claude asks for clarification when uncertain rather than making assumptions |
-| **Automatic code review** | After completing an implementation, Claude automatically runs a multi-specialist code review |
-| **Git commits via skill** | `git commit` is never run directly — always via `/agenticaiplugin:gitme` |
+| **Ask instead of assume** | Doctrine — asks for clarification when uncertain rather than assuming |
+| **Explain WHAT/WHY, minimal scope, honesty** | Doctrine — surgical changes traceable to the request; no gold-plating |
+| **Automatic code review** | Doctrine — after finishing an implementation task, runs a multi-specialist review before reporting done |
+| **Git commits via skill** | Enforced — raw `git commit` is blocked by a hook; always commit via `/agenticaiplugin:gitme` |
+
+Opt out per item in `agenticaiplugin.config.json`: `{"doctrine":{"core":"off","codeReview":"off"},"gitCommitGuard":"off"}`.
 
 ---
 
