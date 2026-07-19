@@ -4,7 +4,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
@@ -82,4 +82,19 @@ test('missing config = both blocks present', () => {
   assert.ok(ctx);
   assert.match(ctx, CORE_SENTINEL);
   assert.match(ctx, REVIEW_SENTINEL);
+});
+
+// The plugin loads via a symlinked marketplace path; injection must still fire.
+test('injects when invoked via a symlinked path (does not silently no-op)', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'doc-link-'));
+  const link = join(dir, 'inject-doctrine.mjs');
+  symlinkSync(SCRIPT, link);
+  const res = spawnSync(process.execPath, [link], {
+    input: JSON.stringify({ hook_event_name: 'SessionStart', source: 'compact' }),
+    encoding: 'utf8',
+    env: { ...process.env, CLAUDE_CONFIG_DIR: mkdtempSync(join(tmpdir(), 'doc-cfg-')) },
+  });
+  const ctx = contextOf(res.stdout || '');
+  assert.ok(ctx, 'doctrine must inject even when invoked via a symlink');
+  assert.match(ctx, CORE_SENTINEL);
 });

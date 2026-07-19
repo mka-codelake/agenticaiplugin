@@ -20,7 +20,7 @@
 //
 // Fail-safe: unreadable config/doctrine or any crash injects NOTHING and exits 0.
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -88,11 +88,21 @@ function main() {
 }
 
 // Only run as a hook when invoked directly — importing the module (the test suite
-// does, for buildContext) must NOT read stdin or emit.
-if (import.meta.url === `file://${process.argv[1]}`) {
+// does, for buildContext) must NOT read stdin or emit. Compare via realpath: the
+// plugin loads through a symlinked marketplace path, so argv[1] (symlink) and
+// import.meta.url (realpath) differ — a raw string compare leaves the hook inert.
+if (invokedDirectly()) {
   try {
     main();
   } catch {
     // fail-safe: never break the session
+  }
+}
+
+function invokedDirectly() {
+  try {
+    return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
   }
 }

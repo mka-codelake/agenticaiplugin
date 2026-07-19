@@ -25,9 +25,10 @@
 //
 // Disable with { "gitCommitGuard": "off" } in agenticaiplugin.config.json.
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude');
 const CONFIG_FILE = join(CONFIG_DIR, 'agenticaiplugin.config.json');
@@ -223,10 +224,21 @@ function main() {
 
 // Only run as a hook when invoked directly — importing the module (the test
 // suite does, for the exported parser) must NOT read stdin or emit a decision.
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Compare via realpath: the plugin is loaded through a symlinked marketplace
+// path, so process.argv[1] (the symlink) and import.meta.url (node resolves it
+// to the realpath) differ — a raw string compare would leave the hook inert.
+if (invokedDirectly()) {
   try {
     main();
   } catch {
     // Fail-open: any unexpected error emits nothing and allows the tool call.
+  }
+}
+
+function invokedDirectly() {
+  try {
+    return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
   }
 }
