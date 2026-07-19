@@ -142,13 +142,18 @@ Follow detected project patterns or use conventional commits:
 Create commits for each logical group:
 ```bash
 git add <files for group 1>
-git commit -m "<message 1>"
+git -c agenticai.gitme=1 commit -m "<message 1>"
 
 git add <files for group 2>
-git commit -m "<message 2>"
+git -c agenticai.gitme=1 commit -m "<message 2>"
 ```
 
 Maintain clean git history with atomic, focused commits.
+
+> **`-c agenticai.gitme=1` is required.** It is the plugin's sanctioned-commit
+> marker: the `guard-git-commit` PreToolUse hook blocks any raw `git commit` and
+> permits the commit only when this token is present. It is an inert throwaway git
+> config key (git ignores it). Always include it here; never use it manually.
 
 ## Supported Commit Prefixes
 
@@ -234,13 +239,13 @@ Create these commits? [Proceed with commit creation]
 5. **Execute commits:**
    ```bash
    git add src/api/user.js
-   git commit -m "feat: add user profile management endpoints"
+   git -c agenticai.gitme=1 commit -m "feat: add user profile management endpoints"
 
    git add src/api/auth.js
-   git commit -m "fix: resolve null pointer in authentication"
+   git -c agenticai.gitme=1 commit -m "fix: resolve null pointer in authentication"
 
    git add README.md
-   git commit -m "docs: update API documentation"
+   git -c agenticai.gitme=1 commit -m "docs: update API documentation"
    ```
 
 ## Important Notes
