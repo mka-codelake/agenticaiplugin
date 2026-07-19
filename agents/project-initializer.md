@@ -52,8 +52,8 @@ Check the current setup status and display it visually:
 
 Check for these items:
 1. `.claude/rules/` directory and existing `agenticaiplugin-*.md` rules
-2. `claudedocs/guidelines/` directory
-3. `claudedocs/adrs/` directory
+2. `.claude/guidelines/` directory
+3. `.claude/adrs/` directory
 4. **Feature prerequisites** — see "Prerequisite Check" in Shared Notes below
 
 Display format:
@@ -63,8 +63,8 @@ AgenticAI Plugin - Project Setup
 Current Status:
   AgenticAI:
     ✓ .claude/rules/ - Already exists (contains 2 plugin rules)   (or: ✗ Not found)
-    ✗ claudedocs/guidelines/ - Not found                          (or: ✓ Already exists)
-    ✗ claudedocs/adrs/ - Not found                                (or: ✓ Already exists)
+    ✗ .claude/guidelines/ - Not found                          (or: ✓ Already exists)
+    ✗ .claude/adrs/ - Not found                                (or: ✓ Already exists)
 
   Prerequisites:
     ✓ node - Found (v24.x)          (or: ⚠ node - NOT FOUND, see warning below)
@@ -109,7 +109,7 @@ AgenticAI:
     - agenticaiplugin-git-commit.md - Use git-smart-commit skill
 
 Next steps:
-1. Add project-specific coding rules to claudedocs/guidelines/
+1. Add project-specific coding rules to .claude/guidelines/
 2. Start using plugin features:
    - /agenticaiplugin:code-review - Review code quality
    - /agenticaiplugin:gitme - Smart git commits

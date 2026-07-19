@@ -21,7 +21,7 @@ The `docs/plugin-howto.md` file contains curated, plugin-specific knowledge that
 
 ❌ **NEVER use:** Absolute paths, developer-specific paths (Windows drives, WSL mounts, home dirs), hardcoded paths that won't work when installed elsewhere
 
-✅ **ALWAYS use:** Generic placeholders (`/path/to/your/marketplace`, `<your-project-root>`), relative paths within user's project (`claudedocs/guidelines/`), platform-agnostic examples
+✅ **ALWAYS use:** Generic placeholders (`/path/to/your/marketplace`, `<your-project-root>`), relative paths within user's project (`.claude/guidelines/`), platform-agnostic examples
 
 Users install this plugin on Windows, Linux, macOS, and WSL with different directory structures. The plugin cannot and should not reference its own installation path.
 

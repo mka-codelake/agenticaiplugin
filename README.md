@@ -13,7 +13,7 @@ A Claude Code plugin that adds intelligent code reviews, architecture audits, qu
 
 The AgenticAI Plugin enhances Claude Code with specialized skills and agents that activate automatically when you need them. Code reviews run 12 focused specialists in parallel, architecture audits score your codebase across 7 dimensions, and smart commits analyze your changes to create meaningful atomic commits.
 
-The plugin is **language-agnostic** — it works with any tech stack (Node.js, Java, Python, Rust, Go, .NET, and more). Project-specific rules and architectural decisions are stored in `claudedocs/` and always take priority over the plugin's built-in guidelines.
+The plugin is **language-agnostic** — it works with any tech stack (Node.js, Java, Python, Rust, Go, .NET, and more). Project-specific rules and architectural decisions are stored in `.claude/guidelines/` and `.claude/adrs/` and always take priority over the plugin's built-in guidelines.
 
 ## Features
 
@@ -78,8 +78,8 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 
 Initialization creates:
 - `.claude/rules/agenticaiplugin-*.md` — Plugin rules (3 rule files)
-- `claudedocs/guidelines/` — For your project-specific code review rules
-- `claudedocs/adrs/` — For Architectural Decision Records
+- `.claude/guidelines/` — For your project-specific code review rules
+- `.claude/adrs/` — For Architectural Decision Records
 
 ### Commands
 
@@ -133,7 +133,7 @@ All commands are invoked with the `/agenticaiplugin:` prefix, e.g. `/agenticaipl
 | 10 | Test Completeness & Infra | Integration tests, E2E coverage |
 | 11 | Documentation & Comments | Language, Javadoc/docstrings, TODOs |
 
-Findings are deduplicated, sorted by severity, and consolidated into a single report. Project guidelines (`claudedocs/guidelines/*.md`) always override skill rules.
+Findings are deduplicated, sorted by severity, and consolidated into a single report. Project guidelines (`.claude/guidelines/*.md`) always override skill rules.
 
 ### GitHub Publish
 
@@ -177,10 +177,10 @@ Cross-session continuity mechanism that complements Claude Code's auto-memory (w
 
 ### Project Guidelines
 
-Create `.md` files in `claudedocs/guidelines/` to define project-specific rules that the code review respects:
+Create `.md` files in `.claude/guidelines/` to define project-specific rules that the code review respects:
 
 ```
-claudedocs/guidelines/
+.claude/guidelines/
 ├── exception-handling.md
 ├── logging-standards.md
 ├── code-style.md
@@ -239,7 +239,7 @@ autoskill). It is checked at three points:
 
 ### Architectural Decision Records
 
-Create `.md` files in `claudedocs/adrs/` to document architectural decisions. Both code review and architecture audit check compliance with documented ADRs.
+Create `.md` files in `.claude/adrs/` to document architectural decisions. Both code review and architecture audit check compliance with documented ADRs.
 
 ## Project Structure
 

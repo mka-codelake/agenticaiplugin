@@ -819,15 +819,19 @@ Omit to inherit all tools from main agent.
 
 ## Directory Conventions
 
-### claudedocs/ Pattern
-Common pattern for project artifacts:
+### Project artifact directories
+Guidelines and ADRs (read by code review / architecture audit) live under `.claude/`;
+generated reports and optional requirement artifacts live under `claudedocs/`:
 ```
+.claude/
+├── guidelines/   # Project-specific guidelines (*.md)
+└── adrs/         # ADR-XXX-decision.md
+
 claudedocs/
 ├── epics/        # EPIC-XXX-name.md
 ├── stories/      # STORY-XXX-name.md
 ├── sprints/      # SPRINT-XX.md
-├── adrs/         # ADR-XXX-decision.md
-└── guidelines/   # Project-specific guidelines (*.md)
+└── *-result.md   # skill/agent report outputs
 ```
 
 **Naming:** `{TYPE}-{ID}-{description}.md`

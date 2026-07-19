@@ -1,4 +1,4 @@
-# Task: Deprecated Cleanup & Directory Setup
+# Task: Deprecated Cleanup & Directory Migration
 
 This task is executed by the project-initializer coordinator during UPDATE workflow.
 **MANDATORY:** Execute BEFORE anything else, even if all rules are up to date.
@@ -14,7 +14,33 @@ ls agentic.md 2>/dev/null
 rm agentic.md
 ```
 
-## B) Deprecated Directory Cleanup: claudedocs/testspecs/
+## B) Migrate guidelines/ + adrs/ from claudedocs/ to .claude/ (via script)
+
+Older installations kept project guidelines and ADRs under `claudedocs/`; they now live
+under `.claude/`. Run the deterministic migration script.
+
+**Prerequisite:** `node` on PATH (see `prerequisites.json`, `id: "node"`). If `node` is
+missing, report it and skip this migration — the rest of the update still runs.
+
+```bash
+node "{plugin_root}/agents/project-initializer/scripts/migrate-claudedocs.mjs" .
+```
+
+The script moves `claudedocs/{guidelines,adrs}` into `.claude/{guidelines,adrs}`,
+**never overwriting** an existing destination file. Parse its JSON report:
+
+- `moved` — files migrated.
+- `conflicts` — source files whose destination already existed (left in place). If this
+  is non-empty, use AskUserQuestion to let the user resolve each conflict; do **not**
+  overwrite automatically.
+- `claudedocsRemoved` — `true` if `claudedocs/` was empty afterward and removed.
+- `claudedocsRemaining` — other files still in `claudedocs/` (legitimate report outputs
+  such as `code-review-result.md`); leave them, no action needed.
+
+## C) Deprecated Directory Cleanup: claudedocs/testspecs/
+
+The oldest installations used `claudedocs/testspecs/` — never read by any skill and
+superseded by ADRs (now under `.claude/adrs/`).
 
 ```bash
 ls -d claudedocs/testspecs 2>/dev/null
@@ -26,32 +52,22 @@ ls -d claudedocs/testspecs 2>/dev/null
 - **If NOT empty →** Do NOT delete. Show WARNING:
   ```
   ⚠ WARNING: claudedocs/testspecs/ still contains files.
-    This directory is deprecated (replaced by claudedocs/adrs/).
+    This directory is deprecated (ADRs now live in .claude/adrs/).
     Please migrate or remove files manually, then delete the directory.
   ```
-
-## C) Directory Setup: claudedocs/adrs/
-
-```bash
-ls -d claudedocs/adrs 2>/dev/null
-```
-
-**If claudedocs/adrs/ does NOT exist →** Create it:
-```bash
-mkdir -p claudedocs/adrs
-```
 
 ## D) Report
 
 After all checks, produce a single aggregated report:
 
 ```
-Deprecated Cleanup & Directory Setup:
-  ✓ Removed deprecated agentic.md          (only if removed)
-  ✓ Removed empty claudedocs/testspecs/    (only if removed)
-  ⚠ claudedocs/testspecs/ contains files   (only if non-empty)
-  ✓ Created claudedocs/adrs/               (only if newly created)
-  No deprecated items found.               (only if nothing to do)
+Deprecated Cleanup & Migration:
+  ✓ Removed deprecated agentic.md                       (only if removed)
+  ✓ Migrated [N] guidelines/ADR file(s) to .claude/     (only if migrated)
+  ⚠ [N] migration conflict(s) — asked user              (only if conflicts)
+  ✓ Removed empty claudedocs/testspecs/                 (only if removed)
+  ⚠ claudedocs/testspecs/ contains files                (only if non-empty)
+  No deprecated items found.                             (only if nothing to do)
 ```
 
 Only show lines that apply. If nothing was found/changed, show the "No deprecated items found" line.

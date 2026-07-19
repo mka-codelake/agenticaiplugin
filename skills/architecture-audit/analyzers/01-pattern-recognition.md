@@ -59,7 +59,7 @@ Examine top-level source directories for structural clues:
 ### Step 4: Documented Intent
 
 Check for architecture documentation that states the intended pattern:
-- `ARCHITECTURE.md`, `docs/architecture/`, `claudedocs/adrs/`
+- `ARCHITECTURE.md`, `docs/architecture/`, `.claude/adrs/`
 - Comments or annotations referencing specific patterns
 - Architecture test frameworks (ArchUnit, dependency-cruiser, import-linter) — their rules reveal intended architecture
 

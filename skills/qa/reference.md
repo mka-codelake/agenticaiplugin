@@ -648,6 +648,6 @@ Documents grow incrementally. The splitting threshold keeps files manageable:
 5. **~100 lines splitting threshold** — split group files when they exceed this
 6. **Lazy loading** — root catalogs reference groups only; load detail files on demand
 7. **DRAFT marking** — all first-run content is DRAFT until user promotes it
-8. **claudedocs/guidelines/ and adrs/ are READ-ONLY** — never modify, only read for context
+8. **.claude/guidelines/ and adrs/ are READ-ONLY** — never modify, only read for context
 9. **Idempotent execution** — running the skill twice without code changes produces the same result
 10. **Max 5 rounds per phase** — convergence is bounded to prevent runaway iteration

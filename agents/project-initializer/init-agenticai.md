@@ -23,13 +23,13 @@ action `create`).
 For each missing directory from the coordinator's status check, create it:
 
 ```bash
-mkdir -p claudedocs/guidelines claudedocs/adrs
+mkdir -p .claude/guidelines .claude/adrs
 ```
 
 Report each created directory:
 ```
-✓ Created claudedocs/guidelines/
-✓ Created claudedocs/adrs/
+✓ Created .claude/guidelines/
+✓ Created .claude/adrs/
 ```
 
 Skip directories that already exist (don't report them).

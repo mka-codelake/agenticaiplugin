@@ -37,7 +37,7 @@ Show the user the following overview:
 ### Project Setup
 | Command | Description |
 |---------|-------------|
-| **init** | Initializes a project interactively. Creates plugin rules in .claude/rules/ and the claudedocs/ directory structure (guidelines/, adrs/) |
+| **init** | Initializes a project interactively. Creates plugin rules in .claude/rules/ and the .claude/ directory structure (guidelines/, adrs/) |
 
 ### Documentation
 | Command | Description |
@@ -87,14 +87,14 @@ Show the user the following overview:
 
 ---
 
-## Project Structure (claudedocs/)
+## Project Structure (.claude/)
 
-The plugin uses a `claudedocs/` directory for project-specific configuration:
+The plugin uses `.claude/` subdirectories for project-specific configuration:
 
 | Directory | Purpose |
 |-----------|---------|
-| `claudedocs/guidelines/` | Your own coding rules that code review respects (e.g. exception handling, logging standards) |
-| `claudedocs/adrs/` | Architecture Decision Records — documented architecture decisions used as context by code review and architecture audit |
+| `.claude/guidelines/` | Your own coding rules that code review respects (e.g. exception handling, logging standards) |
+| `.claude/adrs/` | Architecture Decision Records — documented architecture decisions used as context by code review and architecture audit |
 
 These directories are created by `/agenticaiplugin:init`. You place your own `.md` files there — the plugin reads them but never modifies them.
 

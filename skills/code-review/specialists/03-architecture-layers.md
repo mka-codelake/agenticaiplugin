@@ -61,7 +61,7 @@ BAD:  PaymentService → RestTemplate.getForObject(...) (direct HTTP call)
 
 ### 3.6 ADR Compliance
 
-If `claudedocs/adrs/` directory exists:
+If `.claude/adrs/` directory exists:
 - **WARNING:** Technology choices inconsistent with documented ADRs
 - **WARNING:** Violations of documented Architectural Decision Records
 
