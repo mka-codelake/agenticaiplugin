@@ -148,7 +148,6 @@ These rules are installed in `.claude/rules/` during project initialization and 
 | **Ask instead of assume** | Claude asks for clarification when uncertain rather than making assumptions |
 | **Automatic code review** | After completing an implementation, Claude automatically runs a multi-specialist code review |
 | **Git commits via skill** | `git commit` is never run directly — always via `/agenticaiplugin:gitme` |
-| **Protected directories** | `claudedocs/guidelines/` and `claudedocs/adrs/` are read-only — never modified |
 
 ---
 

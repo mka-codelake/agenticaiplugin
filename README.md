@@ -77,7 +77,7 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 ```
 
 Initialization creates:
-- `.claude/rules/agenticaiplugin-*.md` — Plugin rules (5 rule files)
+- `.claude/rules/agenticaiplugin-*.md` — Plugin rules (3 rule files)
 - `claudedocs/guidelines/` — For your project-specific code review rules
 - `claudedocs/adrs/` — For Architectural Decision Records
 

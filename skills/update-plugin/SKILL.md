@@ -73,8 +73,8 @@ Legacy Migration Preview:
 
 Migrating from CLAUDE.md to .claude/rules/:
   agenticaiplugin-core.md - will be created (v1.0)
-  agenticaiplugin-code-review.md - will be created (v1.0)
-  agenticaiplugin-protected-dirs.md - will be created (v1.0)
+  agenticaiplugin-code-review.md - will be created (v1.2)
+  agenticaiplugin-git-commit.md - will be created (v1.1)
 
 Actions:
 - 3 rules will be created
@@ -96,8 +96,8 @@ No project-specific content found.
 CLAUDE.md deleted (backup kept: CLAUDE.md.backup)
 
 ✓ agenticaiplugin-core.md - Created (v1.0)
-✓ agenticaiplugin-code-review.md - Created (v1.0)
-✓ agenticaiplugin-protected-dirs.md - Created (v1.0)
+✓ agenticaiplugin-code-review.md - Created (v1.2)
+✓ agenticaiplugin-git-commit.md - Created (v1.1)
 
 Plugin Migration Complete!
 

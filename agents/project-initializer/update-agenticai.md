@@ -341,8 +341,8 @@ CLAUDE.md Migration:
 
 Rules Created:
   ✓ agenticaiplugin-core.md (v1.0)
-  ✓ agenticaiplugin-code-review.md (v1.1)
-  ✓ agenticaiplugin-protected-dirs.md (v1.1)
+  ✓ agenticaiplugin-code-review.md (v1.2)
+  ✓ agenticaiplugin-git-commit.md (v1.1)
 
 Your project is now using the new rules-based configuration.
 Project-specific content was preserved.
