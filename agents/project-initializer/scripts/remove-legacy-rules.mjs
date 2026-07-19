@@ -13,8 +13,9 @@
 // Emits JSON: { "applied": bool, "removed": ["agenticaiplugin-core.md", ...] }
 // Node stdlib only. Non-destructive in --dry-run.
 
-import { readdirSync, rmSync } from 'node:fs';
+import { readdirSync, realpathSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const RULE_FILE = /^agenticaiplugin-.*\.md$/;
 
@@ -43,6 +44,16 @@ function main(argv) {
   process.stdout.write(`${JSON.stringify({ applied: doApply, removed }, null, 2)}\n`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Compare via realpath: invoked through a symlinked plugin path, so argv[1]
+// (symlink) and import.meta.url (realpath) differ — a raw compare would no-op.
+if (invokedDirectly()) {
   main(process.argv);
+}
+
+function invokedDirectly() {
+  try {
+    return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
 }

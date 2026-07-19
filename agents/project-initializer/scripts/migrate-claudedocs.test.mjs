@@ -12,7 +12,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
@@ -143,4 +143,18 @@ test('--apply rewrites claudedocs/{guidelines,adrs} tokens in CLAUDE.md', () => 
 
 test('planClaudeMdRewrites is a no-op when no tokens present', () => {
   assert.deepEqual(planClaudeMdRewrites('nothing to see here'), []);
+});
+
+// The plugin's scripts run through a symlinked plugin path; the CLI must still
+// execute (a raw import.meta.url compare would make it a silent no-op).
+test('runs when invoked via a symlinked path (does not silently no-op)', () => {
+  const root = proj();
+  write(root, 'claudedocs/adrs/0001.md', 'a');
+  const linkDir = mkdtempSync(join(tmpdir(), 'mc-link-'));
+  const link = join(linkDir, 'migrate-claudedocs.mjs');
+  symlinkSync(SCRIPT, link);
+  const r = spawnSync(process.execPath, [link, root, '--apply'], { encoding: 'utf8' });
+  const report = JSON.parse(r.stdout);
+  assert.equal(report.applied, true, 'CLI must run via a symlinked invocation');
+  assert.ok(existsSync(join(root, '.claude/adrs/0001.md')), 'adr moved via symlinked invocation');
 });

@@ -24,12 +24,14 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  realpathSync,
   renameSync,
   rmSync,
   rmdirSync,
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const SUBDIRS = ['guidelines', 'adrs'];
 
@@ -231,7 +233,17 @@ function main(argv) {
 }
 
 // Only run as a CLI when invoked directly — importing the module (for the exported
-// planners) must have no side effects.
-if (import.meta.url === `file://${process.argv[1]}`) {
+// planners) must have no side effects. Compare via realpath: this script is invoked
+// through a symlinked plugin path, so argv[1] (symlink) and import.meta.url (realpath)
+// differ — a raw string compare would make the CLI a silent no-op.
+if (invokedDirectly()) {
   main(process.argv);
+}
+
+function invokedDirectly() {
+  try {
+    return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
 }

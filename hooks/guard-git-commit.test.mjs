@@ -4,7 +4,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
@@ -96,6 +96,22 @@ test('config { gitCommitGuard: "off" } disables the guard', () => {
   writeFileSync(join(cfgDir, 'agenticaiplugin.config.json'), JSON.stringify({ gitCommitGuard: 'off' }));
   const { stdout } = bash('git commit -m x', { CLAUDE_CONFIG_DIR: cfgDir });
   assert.equal(stdout.trim(), '');
+});
+
+// ---- symlink invocation (marketplace scenario) --------------------------
+
+// The plugin is loaded through a symlinked marketplace path; the "run as main"
+// guard must survive that (argv[1] is the symlink, import.meta.url the realpath).
+test('runs when invoked via a symlinked path (does not silently no-op)', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ggc-link-'));
+  const link = join(dir, 'guard-git-commit.mjs');
+  symlinkSync(SCRIPT, link);
+  const res = spawnSync(process.execPath, [link], {
+    input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' } }),
+    encoding: 'utf8',
+    env: { ...process.env, CLAUDE_CONFIG_DIR: mkdtempSync(join(tmpdir(), 'ggc-cfg-')) },
+  });
+  assert.ok(isDeny(res.stdout || ''), 'guard must still deny when invoked via a symlink');
 });
 
 // ---- direct unit tests on the parser ------------------------------------

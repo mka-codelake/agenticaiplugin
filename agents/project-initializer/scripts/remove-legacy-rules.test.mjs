@@ -3,7 +3,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
@@ -56,6 +56,18 @@ test('no rules dir is a clean no-op', () => {
   const root = proj();
   const report = run(root, '--apply');
   assert.deepEqual(report.removed, []);
+});
+
+// The plugin's scripts are invoked through a symlinked plugin path; the CLI must
+// still run (a raw import.meta.url compare would make it a silent no-op).
+test('runs when invoked via a symlinked path (does not silently no-op)', () => {
+  const root = proj(CURRENT);
+  const linkDir = mkdtempSync(join(tmpdir(), 'rlr-link-'));
+  const link = join(linkDir, 'remove-legacy-rules.mjs');
+  symlinkSync(SCRIPT, link);
+  const r = spawnSync(process.execPath, [link, root], { encoding: 'utf8' });
+  const report = JSON.parse(r.stdout);
+  assert.equal(report.removed.length, 3, 'CLI must produce a report via a symlinked invocation');
 });
 
 test('computeRemovals is pure (import has no side effects, returns sorted list)', () => {

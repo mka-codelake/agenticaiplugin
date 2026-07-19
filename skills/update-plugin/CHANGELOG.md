@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.26.1
+
+- **Fix: the 0.26.0 doctrine/enforcement hooks (and transition scripts) were inert when the plugin loaded via a symlinked marketplace path.** The "run as main" guard compared `import.meta.url` (which Node resolves to the **realpath**) against `` `file://${process.argv[1]}` `` (the **symlink** path as invoked). Because a marketplace clone is a symlink to the dev repo, the two never matched, so `hooks/inject-doctrine.mjs`, `hooks/guard-git-commit.mjs`, `migrate-claudedocs.mjs`, and `remove-legacy-rules.mjs` silently produced no output — the git-commit guard let raw commits through and no doctrine was injected. The guard now compares **realpaths on both sides** (`realpathSync(argv[1]) === realpathSync(fileURLToPath(import.meta.url))`), which is symlink-robust. Added regression tests that invoke each script through a symlink. (The pre-existing unit tests missed this because they invoke the scripts by their direct realpath.)
+
 ## 0.26.0
 
 - **Retired the copied-rules mechanism; the plugin now provides always-on behavior itself — no per-project rule files, no drift, no sync.** Claude Code has no plugin-native rules mechanism, and copying rule files into every project (via `/init`) was the sole source of version drift. The 3 rules (`core`, `code-review`, `git-commit`) are gone as copied files and re-expressed plugin-side:
