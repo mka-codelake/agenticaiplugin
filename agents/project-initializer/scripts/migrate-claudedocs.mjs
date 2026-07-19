@@ -17,10 +17,25 @@
 //
 // Node stdlib only.
 
-import { existsSync, mkdirSync, readdirSync, renameSync, rmdirSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync, rmdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const SUBDIRS = ['guidelines', 'adrs'];
+
+// Move a file, falling back to copy+remove when src and dst are on different
+// filesystems (renameSync throws EXDEV — e.g. some container / WSL bind-mount setups).
+function moveFile(from, to) {
+  try {
+    renameSync(from, to);
+  } catch (err) {
+    if (err && err.code === 'EXDEV') {
+      copyFileSync(from, to);
+      rmSync(from, { force: true });
+    } else {
+      throw err;
+    }
+  }
+}
 
 function migrateSubdir(projectRoot, subdir, moved, conflicts) {
   const src = join(projectRoot, 'claudedocs', subdir);
@@ -38,7 +53,7 @@ function migrateSubdir(projectRoot, subdir, moved, conflicts) {
       conflicts.push(`claudedocs/${subdir}/${name}`); // never overwrite user content
       continue;
     }
-    renameSync(join(src, name), to);
+    moveFile(join(src, name), to);
     moved.push(`claudedocs/${subdir}/${name} -> .claude/${subdir}/${name}`);
   }
   // remove the now-(possibly)-empty source subdir
