@@ -13,6 +13,12 @@
           {
             "type": "command",
             "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/inject-doctrine.mjs"],
+            "statusMessage": "Loading plugin doctrine..."
+          },
+          {
+            "type": "command",
+            "command": "node",
             "args": ["${CLAUDE_PLUGIN_ROOT}/skills/persona/persona.mjs", "inject"],
             "statusMessage": "Loading persona..."
           },
