@@ -25,8 +25,8 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/check-rule-updates.mjs"],
-            "statusMessage": "Checking plugin rule updates..."
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/check-transition-pending.mjs"],
+            "statusMessage": "Checking for pending plugin transition..."
           }
         ]
       }
