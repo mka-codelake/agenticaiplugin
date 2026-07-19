@@ -146,7 +146,7 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 
 ## Gotchas
 
-- **Skills = shared context** — every SKILL.md is loaded into every session → token-expensive, keep them short. Agents have isolated context and can be more detailed.
+- **Skills = progressive disclosure** — only a SKILL.md's frontmatter `description` is always in context; the body loads on demand when the skill is invoked (not every session). Keep descriptions sharp (they drive auto-activation); bodies can be longer without a per-session token cost. Agents have isolated context and can be more detailed.
 - **`rules-templates/` vs `.claude/rules/`** — `rules-templates/` contains the source templates. The `project-initializer` agent copies them to `.claude/rules/` in the target project. `.claude/` is gitignored in the plugin repo.
 - **Marketplace update required** — File changes in the plugin directory are NOT immediately active. Always run `/plugin marketplace update` after changes.
 - **Progressive disclosure** — Put details in `reference.md`, not `SKILL.md`. Claude loads reference.md only when explicitly needed, saving tokens.
