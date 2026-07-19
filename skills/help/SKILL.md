@@ -106,6 +106,7 @@ Skills are knowledge modules that Claude loads automatically when certain keywor
 
 ### Development
 - **git-smart-commit** - Rules for good commits
+- **dependency-management** - Adding/upgrading deps: verify the current version from the registry, no unrequested deps, lockfile hygiene
 - **create-cli** - CLI design: arguments, flags, subcommands, output formats, exit codes (Command: `/agenticaiplugin:create-cli`)
 
 ### Compliance
@@ -113,6 +114,7 @@ Skills are knowledge modules that Claude loads automatically when certain keywor
 
 ### Code Quality
 - **code-review** - Multi-specialist code reviews (12 focused specialists)
+- **writing-tests** - How to write good tests (test your code not the framework; public-API-only, no test-only API widening)
 - **qa** - Quality Square Traceability Manager (Command: `/agenticaiplugin:qa`)
 
 ### Architecture
@@ -146,7 +148,6 @@ These rules are installed in `.claude/rules/` during project initialization and 
 | **Ask instead of assume** | Claude asks for clarification when uncertain rather than making assumptions |
 | **Automatic code review** | After completing an implementation, Claude automatically runs a multi-specialist code review |
 | **Git commits via skill** | `git commit` is never run directly — always via `/agenticaiplugin:gitme` |
-| **Engineering principles** | Story traceability, code size limits, test classification, dependency management |
 | **Protected directories** | `claudedocs/guidelines/` and `claudedocs/adrs/` are read-only — never modified |
 
 ---
