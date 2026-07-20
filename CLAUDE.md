@@ -111,8 +111,9 @@ When making feature changes, new commands, or directory changes, check:
 
 1. **Doctrine / enforcement** (`hooks/doctrine/*.md`, `hooks/guard-git-commit.mjs`) — If always-on behavior changed, update the doctrine markdown (injected live by the SessionStart hook — no version headers, no per-project sync). Changing the git-commit sentinel means updating both the guard and `skills/git-smart-commit/SKILL.md`.
 2. **Help-Skill** (`skills/help/SKILL.md`) — Is the overview still current?
-3. **CHANGELOG** (`skills/update-plugin/CHANGELOG.md`) — Entry added?
-4. **Per-Skill `--help`** — Usage section in affected skills up to date?
+3. **Command tables** (`README.md` **and** root `CLAUDE.md`) — Both command tables list the same commands; keep them in sync (a missed `README.md` update is a common slip).
+4. **CHANGELOG** (`skills/update-plugin/CHANGELOG.md`) — Entry added?
+5. **Per-Skill `--help`** — Usage section in affected skills up to date?
 
 ### Testing
 

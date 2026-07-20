@@ -37,5 +37,5 @@ Include it in the agent prompt as `plugin_root: <absolute_path>`.
 
 ## Related
 
-- **/agenticaiplugin:update-plugin** - One-time transition for an existing installation
+- **/agenticaiplugin:update-plugin** _(deprecated since 0.26.2)_ - One-time transition for an existing installation
 - **/agenticaiplugin:code-review** - Review code quality

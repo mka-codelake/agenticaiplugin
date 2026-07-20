@@ -816,6 +816,16 @@ Store templates in `skills/skill-name/templates/`:
 - Render with context data
 - Keep templates simple and reusable
 
+### Deprecating a Feature
+When a command/skill has served its purpose but should stay functional for a transition period, mark it deprecated in-place — **no new hook infrastructure**. The mechanic (established when `update-plugin` was deprecated in 0.26.2):
+
+1. **Frontmatter `description`** — prefix with `DEPRECATED — ` (keep the rest; this string shows up in listings).
+2. **Deprecation block** — directly after the frontmatter, a short block stating what the feature was, why it is deprecated, who still needs it, and that it is scheduled for removal in a future release.
+3. **Usage / `--help`** — add the deprecation notice to the `## Usage` section so `--help` output surfaces it.
+4. **Overviews & tables** — flag the entry `(DEPRECATED)` in the `help` skill overview **and** in both command tables that list it: `README.md` and the root `CLAUDE.md`. Cross-references from other skills/agents (e.g. an `init` "Related" list, an agent `description`) get a short `(deprecated since X.Y.Z)` note too.
+5. **CHANGELOG** — add an entry to `skills/update-plugin/CHANGELOG.md` with the concrete version (`Deprecated since X.Y.Z`). The version bump itself is **owner-initiated** — never bump on your own.
+6. **No enforcement hook** — deprecation is documentation only; the feature keeps working until a later release removes it.
+
 ## File Naming Conventions
 
 - **Skills:** `skill-name` (directory), `SKILL.md` (uppercase)

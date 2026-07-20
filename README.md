@@ -106,7 +106,7 @@ own doctrine (SessionStart) and enforcement (PreToolUse) hooks.
 | `youtube-transcript` | Fetch a YouTube video's captions as plain text (pure Node; `--lang`, `--out`) |
 | `handover` | Save/load cross-session continuity snapshot (open items, blockers, next steps) with reconciliation against prior state |
 | `init` | Initialize plugin in a project |
-| `update-plugin` | One-time transition of an existing installation off copied rules |
+| `update-plugin` _(DEPRECATED)_ | One-time transition of an existing installation off copied rules; deprecated since 0.26.2, scheduled for removal in a future release |
 | `promote-perms` | Promote workspace permissions to user level |
 | `help` | Show overview of all commands and skills |
 
