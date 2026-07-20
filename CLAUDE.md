@@ -157,6 +157,8 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 
 **NEVER bump the version on your own.** Only the user initiates version changes.
 
+**Proactively ask about versioning:** BEFORE starting any change to plugin artifacts (skills, hooks, agents, workflows — not pure planning docs), ask the user whether the change should ship under a new version number (PATCH/MINOR). Without this question, bumps get forgotten.
+
 When the user requests a version bump:
 1. Update `version` in `.claude-plugin/plugin.json`
 2. Update `skills/update-plugin/CHANGELOG.md` — add a new `## X.Y.Z` section at the top with all changes since the previous version (use git log to identify changes)
