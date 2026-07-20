@@ -1,6 +1,6 @@
 ---
 name: project-initializer
-description: Performs interactive project setup and updates for AgenticAI Plugin. Use when user runs /agenticaiplugin:init (fresh setup) or /agenticaiplugin:update-plugin (one-time transition of an existing installation). Scaffolds .claude/ project directories; the plugin no longer copies rule files.
+description: Performs interactive project setup and updates for AgenticAI Plugin. Use when user runs /agenticaiplugin:init (fresh setup) or /agenticaiplugin:update-plugin (one-time transition of an existing installation; deprecated since 0.26.2, kept functional). Scaffolds .claude/ project directories; the plugin no longer copies rule files.
 tools: Read, Write, Edit, Bash, Glob, AskUserQuestion
 model: sonnet
 effort: medium

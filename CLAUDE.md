@@ -75,7 +75,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:code-review` | Multi-specialist code review |
 | `/agenticaiplugin:architecture-audit` | Multi-analyzer architecture audit |
 | `/agenticaiplugin:init` | Set up plugin in a new project |
-| `/agenticaiplugin:update-plugin` | One-time transition of an existing installation off copied rules (removes legacy `.claude/rules/`, migrates `claudedocs/`→`.claude/`) |
+| `/agenticaiplugin:update-plugin` _(DEPRECATED)_ | One-time transition of an existing installation off copied rules (removes legacy `.claude/rules/`, migrates `claudedocs/`→`.claude/`). Transition complete fleet-wide; deprecated since 0.26.2, scheduled for removal in a future release |
 | `/agenticaiplugin:git-smart-commit` | Atomic commits with meaningful messages |
 | `/agenticaiplugin:gitme` | Short alias for git-smart-commit |
 | `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
@@ -111,8 +111,9 @@ When making feature changes, new commands, or directory changes, check:
 
 1. **Doctrine / enforcement** (`hooks/doctrine/*.md`, `hooks/guard-git-commit.mjs`) — If always-on behavior changed, update the doctrine markdown (injected live by the SessionStart hook — no version headers, no per-project sync). Changing the git-commit sentinel means updating both the guard and `skills/git-smart-commit/SKILL.md`.
 2. **Help-Skill** (`skills/help/SKILL.md`) — Is the overview still current?
-3. **CHANGELOG** (`skills/update-plugin/CHANGELOG.md`) — Entry added?
-4. **Per-Skill `--help`** — Usage section in affected skills up to date?
+3. **Command tables** (`README.md` **and** root `CLAUDE.md`) — Both command tables list the same commands; keep them in sync (a missed `README.md` update is a common slip).
+4. **CHANGELOG** (`skills/update-plugin/CHANGELOG.md`) — Entry added?
+5. **Per-Skill `--help`** — Usage section in affected skills up to date?
 
 ### Testing
 
@@ -156,6 +157,8 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 ## Versioning
 
 **NEVER bump the version on your own.** Only the user initiates version changes.
+
+**Proactively ask about versioning:** BEFORE starting any change to plugin artifacts (skills, hooks, agents, workflows — not pure planning docs), ask the user whether the change should ship under a new version number (PATCH/MINOR). Without this question, bumps get forgotten.
 
 When the user requests a version bump:
 1. Update `version` in `.claude-plugin/plugin.json`
