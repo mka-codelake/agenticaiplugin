@@ -6,7 +6,7 @@ effort: low
 
 # Update Plugin Command
 
-> **⚠️ DEPRECATED — scheduled for removal in a future release.**
+> **⚠️ DEPRECATED since 0.26.2 — scheduled for removal in a future release.**
 >
 > This command was a **one-time transition** off the old copied-rules model (it removes
 > legacy `.claude/rules/agenticaiplugin-*.md` copies and completes the `claudedocs/` → `.claude/`
@@ -19,7 +19,7 @@ effort: low
 > - **You no longer need it** if the project has already been transitioned. Future plugin updates
 >   need only `/plugin marketplace update` — there is no recurring per-project step.
 >
-> The command remains functional for now, but will be **removed as of a future release**. It is not
+> The command remains functional for now, but will be **removed in a future release**. It is not
 > a general-purpose "update" command and never was.
 
 Updates AgenticAI Plugin to the latest version, including rules and CLAUDE.md migration.
@@ -30,7 +30,7 @@ Updates AgenticAI Plugin to the latest version, including rules and CLAUDE.md mi
 /agenticaiplugin:update-plugin
 ```
 
-**DEPRECATED — one-time transition, scheduled for removal in a future release.** Only run this if
+**DEPRECATED since 0.26.2 — one-time transition, scheduled for removal in a future release.** Only run this if
 the project still carries legacy `.claude/rules/agenticaiplugin-*.md` copies or a `claudedocs/`
 layout; already-transitioned projects do not need it. See the deprecation note at the top.
 

@@ -81,7 +81,7 @@ Show the user the following overview:
 ### System
 | Command | Description |
 |---------|-------------|
-| **update-plugin** _(DEPRECATED)_ | One-time transition of an existing installation off copied rules: removes legacy .claude/rules/agenticaiplugin-*.md, migrates claudedocs/{guidelines,adrs}→.claude/ (incl. gitignore/CLAUDE.md fixes). The fleet-wide transition is complete — only projects never transitioned still need it. Scheduled for removal in a future release |
+| **update-plugin** _(DEPRECATED)_ | One-time transition of an existing installation off copied rules: removes legacy .claude/rules/agenticaiplugin-*.md, migrates claudedocs/{guidelines,adrs}→.claude/ (incl. gitignore/CLAUDE.md fixes). The fleet-wide transition is complete — only projects never transitioned still need it. Deprecated since 0.26.2, scheduled for removal in a future release |
 | **promote-perms** | Promotes workspace-specific permissions to user level (global). Useful when you want the same permissions across all projects |
 | **help** | Shows this overview of all commands, skills, agents, and plugin rules |
 
