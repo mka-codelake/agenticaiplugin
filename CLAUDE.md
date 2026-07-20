@@ -75,7 +75,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:code-review` | Multi-specialist code review |
 | `/agenticaiplugin:architecture-audit` | Multi-analyzer architecture audit |
 | `/agenticaiplugin:init` | Set up plugin in a new project |
-| `/agenticaiplugin:update-plugin` | One-time transition of an existing installation off copied rules (removes legacy `.claude/rules/`, migrates `claudedocs/`→`.claude/`) |
+| `/agenticaiplugin:update-plugin` **(DEPRECATED)** | One-time transition of an existing installation off copied rules (removes legacy `.claude/rules/`, migrates `claudedocs/`→`.claude/`). Transition complete fleet-wide; scheduled for removal in a future release |
 | `/agenticaiplugin:git-smart-commit` | Atomic commits with meaningful messages |
 | `/agenticaiplugin:gitme` | Short alias for git-smart-commit |
 | `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
