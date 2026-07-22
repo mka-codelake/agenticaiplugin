@@ -284,7 +284,7 @@ files into projects (Claude Code has no plugin-native rules mechanism, and copyi
   across `/compact`; `PreCompact` is observe/block-only and cannot preserve context. Caveat:
   `additionalContext` is a post-system-prompt context message — softer than a first-class rule,
   which is the accepted trade-off for zero per-project drift. Per-block opt-out via
-  `agenticaiplugin.config.json` `{"doctrine":{"core":"off","codeReview":"off"}}`.
+  `agenticaiplugin.config.json` `{"doctrine":{"core":"off","codeReview":"off","prReviewMonitoring":"off"}}`.
 - **Enforcement — `hooks/guard-git-commit.mjs` (PreToolUse, matcher `Bash`).** Returns
   `permissionDecision:"deny"` for a raw `git commit`, steering to `/agenticaiplugin:gitme`. The
   git-smart-commit skill signals a sanctioned commit with an inert `git -c agenticai.gitme=1

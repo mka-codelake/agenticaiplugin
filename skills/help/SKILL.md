@@ -148,9 +148,10 @@ The plugin injects its doctrine into every session via a SessionStart hook (re-i
 | **Ask instead of assume** | Doctrine — asks for clarification when uncertain rather than assuming |
 | **Explain WHAT/WHY, minimal scope, honesty** | Doctrine — surgical changes traceable to the request; no gold-plating |
 | **Automatic code review** | Doctrine — after finishing an implementation task, runs a multi-specialist review before reporting done |
+| **PR review monitoring** | Doctrine — after opening a PR or pushing to one, watches the repo's automated review check unprompted, evaluates the findings, and reports |
 | **Git commits via skill** | Enforced — raw `git commit` is blocked by a hook; always commit via `/agenticaiplugin:gitme` |
 
-Opt out per item in `agenticaiplugin.config.json`: `{"doctrine":{"core":"off","codeReview":"off"},"gitCommitGuard":"off"}`.
+Opt out per item in `agenticaiplugin.config.json`: `{"doctrine":{"core":"off","codeReview":"off","prReviewMonitoring":"off"},"gitCommitGuard":"off"}`.
 
 ---
 
