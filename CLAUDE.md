@@ -166,6 +166,26 @@ When the user requests a version bump:
 
 ---
 
+## Git & Release Workflow
+
+Development-side process rules (this repo only — nothing here ships as plugin behavior):
+
+- **Feature branch + GitHub PR, always.** No direct commits to `master`, no local merges —
+  every change lands via a GitHub PR (the PR review action + monitoring doctrine depend on this).
+- **Commits via `/agenticaiplugin:gitme`** (enforced by the guard hook).
+- **After merging a PR that contains a version bump, tag and release it:**
+  1. Verify the merge commit on `master` has the new version:
+     `git show <merge>:.claude-plugin/plugin.json`
+  2. Annotated tag on that merge commit: `git tag -a vX.Y.Z <merge> -m "vX.Y.Z — <one-line summary>"`,
+     then push the tag.
+  3. GitHub release: `gh release create vX.Y.Z --title vX.Y.Z --generate-notes --notes-start-tag v<prev>`.
+     The newest version must end up marked **Latest**.
+  This step is part of the release, not optional — a bumped version without tag + release is
+  an unfinished release. (Backfilled 2026-07-22 for v0.24.0–v0.26.3; versions < 0.20.0
+  pre-date the GitHub publication and stay deliberately untagged.)
+
+---
+
 ## Legacy Framework
 
 When the user mentions "old framework" or "legacy", ask for the path. Only consult when explicitly relevant to the current task.
