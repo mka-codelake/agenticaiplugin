@@ -14,7 +14,7 @@
 // are concatenated by Claude Code.
 //
 // Config (${CLAUDE_CONFIG_DIR:-~/.claude}/agenticaiplugin.config.json):
-//   { "doctrine": { "core": "off", "codeReview": "off" } }
+//   { "doctrine": { "core": "off", "codeReview": "off", "prReviewMonitoring": "off" } }
 // A block is injected unless its key === "off" (absent/other value = on). If all
 // blocks are off, nothing is emitted.
 //
@@ -32,6 +32,7 @@ const DOCTRINE_DIR = join(dirname(fileURLToPath(import.meta.url)), 'doctrine');
 const BLOCKS = [
   { key: 'core', file: 'core.md' },
   { key: 'codeReview', file: 'code-review.md' },
+  { key: 'prReviewMonitoring', file: 'pr-review-monitoring.md' },
 ];
 
 function readJson(path) {

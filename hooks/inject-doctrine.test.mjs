@@ -15,6 +15,7 @@ import { buildContext } from './inject-doctrine.mjs';
 const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), 'inject-doctrine.mjs');
 const CORE_SENTINEL = /Never assume/;
 const REVIEW_SENTINEL = /code review after completing/i;
+const PR_MONITOR_SENTINEL = /PR review monitoring/;
 
 // Spawn with a fresh (empty) config dir unless one is supplied.
 function run(input, env = {}) {
@@ -37,6 +38,7 @@ for (const source of ['startup', 'resume', 'clear', 'compact']) {
     assert.ok(ctx, `expected additionalContext for source ${source}`);
     assert.match(ctx, CORE_SENTINEL);
     assert.match(ctx, REVIEW_SENTINEL);
+    assert.match(ctx, PR_MONITOR_SENTINEL);
   });
 }
 
@@ -69,19 +71,30 @@ test('doctrine.codeReview = "off" omits the review block', () => {
   assert.doesNotMatch(ctx, REVIEW_SENTINEL);
 });
 
-test('both off = no output', () => {
+test('doctrine.prReviewMonitoring = "off" omits the PR monitoring block', () => {
+  const ctx = contextOf(
+    run({ hook_event_name: 'SessionStart', source: 'startup' }, { CLAUDE_CONFIG_DIR: withConfig({ doctrine: { prReviewMonitoring: 'off' } }) })
+  );
+  assert.ok(ctx);
+  assert.match(ctx, CORE_SENTINEL);
+  assert.match(ctx, REVIEW_SENTINEL);
+  assert.doesNotMatch(ctx, PR_MONITOR_SENTINEL);
+});
+
+test('all off = no output', () => {
   const out = run(
     { hook_event_name: 'SessionStart', source: 'startup' },
-    { CLAUDE_CONFIG_DIR: withConfig({ doctrine: { core: 'off', codeReview: 'off' } }) }
+    { CLAUDE_CONFIG_DIR: withConfig({ doctrine: { core: 'off', codeReview: 'off', prReviewMonitoring: 'off' } }) }
   );
   assert.equal(out.trim(), '');
 });
 
-test('missing config = both blocks present', () => {
+test('missing config = all blocks present', () => {
   const ctx = buildContext(null);
   assert.ok(ctx);
   assert.match(ctx, CORE_SENTINEL);
   assert.match(ctx, REVIEW_SENTINEL);
+  assert.match(ctx, PR_MONITOR_SENTINEL);
 });
 
 // The plugin loads via a symlinked marketplace path; injection must still fire.

@@ -31,7 +31,7 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 - **Communication Personas** — Switch the agent's response style (writer / engineer / telegrapher / caveman) to trade verbosity against token usage; opt-in, off by default
 - **Plan & Decision Stress-Test** — `grill-me` interviews you one question at a time to surface every implicit assumption before you commit to a plan
 - **Test-Writing & Dependency Guidance** — task-triggered skills capturing what's easy to get wrong: writing good tests (public-API-only, no test-only API widening) and managing dependencies (verify the current version from the registry, no unrequested deps)
-- **Always-On Doctrine & Enforcement** — the plugin's behavior (ask-before-assuming, automatic code review, minimal-scope changes) is injected into every session by a SessionStart hook (re-injected after compaction) and the commit workflow is enforced by a PreToolUse hook — nothing is copied into your project, so there is nothing to keep in sync
+- **Always-On Doctrine & Enforcement** — the plugin's behavior (ask-before-assuming, automatic code review, PR review monitoring, minimal-scope changes) is injected into every session by a SessionStart hook (re-injected after compaction) and the commit workflow is enforced by a PreToolUse hook — nothing is copied into your project, so there is nothing to keep in sync
 
 ## Installation
 
