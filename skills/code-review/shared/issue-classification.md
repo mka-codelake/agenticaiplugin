@@ -285,7 +285,7 @@ Is a dependency 2+ major versions behind or has a known CVE?
     NO  ↓
 
 Does it violate the English-only comment policy?
-    YES → CRITICAL
+    YES → WARNING
     NO  ↓
 
 Does it violate SOLID principles, show code smells, or create inconsistent cross-cutting concerns?
@@ -379,7 +379,7 @@ You can lower severity if:
 | Legacy framework pattern in use | WARNING | Framework modernization needed |
 | Inconsistent old/new framework patterns | WARNING | Partial migration |
 | Newer minor/patch version available | SUGGESTION | Routine update |
-| Non-English comment in code | CRITICAL | Comment language policy violation |
+| Non-English comment in code | WARNING | Comment language policy violation |
 | Public method without Javadoc/docstring | WARNING | Missing documentation |
 | Protected/package-private method without docs | WARNING | Missing documentation |
 | Documentation says HOW not WHY | WARNING | Documentation quality |
@@ -462,8 +462,8 @@ In the review report, group findings by:
 
 ## Remember
 
-- **CRITICAL** = Must fix (security, YAGNI, framework testing, layer violations, cross-cutting chaos, behavioral regressions, pattern inconsistency 3+ ways, missing critical infrastructure tests, severely outdated dependencies/CVEs, non-English comments)
-- **WARNING** = Should fix (SOLID violations, code smells, cross-cutting inconsistency, cohesion/coupling, naming inconsistency, behavioral changes, infrastructure/E2E test gaps, test distribution issues, outdated dependencies, legacy framework patterns, code quality, coverage, architecture)
+- **CRITICAL** = Must fix (security, YAGNI, framework testing, layer violations, cross-cutting chaos, behavioral regressions, pattern inconsistency 3+ ways, missing critical infrastructure tests, severely outdated dependencies/CVEs)
+- **WARNING** = Should fix (non-English comments, SOLID violations, code smells, cross-cutting inconsistency, cohesion/coupling, naming inconsistency, behavioral changes, infrastructure/E2E test gaps, test distribution issues, outdated dependencies, legacy framework patterns, code quality, coverage, architecture)
 - **SUGGESTION** = Can fix (optional patterns, primitive obsession, routine dependency updates, nice-to-haves, style preferences)
 
 When in doubt, err on the side of lower severity and provide clear justification for the classification.

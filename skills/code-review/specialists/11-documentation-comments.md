@@ -8,7 +8,7 @@ You check documentation quality, comment language, Javadoc/docstring completenes
 
 ### 11.1 Comment Language
 
-- **CRITICAL:** Comments in non-English language (German, French, etc.)
+- **WARNING:** Comments in non-English language (German, French, etc.)
 - Applies to: Javadoc, inline comments, block comments, TODO/FIXME text
 - Detection: Non-English prose in comments (not isolated technical terms or proper nouns)
 - **Exclude:** Log messages, user-facing strings (localization concern, not documentation)
@@ -99,7 +99,7 @@ Every public method/function that is callable from outside the class/module MUST
 
 **Non-English comment:**
 ```markdown
-**CRITICAL:** Non-English comment detected
+**WARNING:** Non-English comment detected
 - [UserService.java:12] Comment in German: "// Benutzer validieren und speichern"
 **Rule:** Documentation → Comment Language
 **Fix:** Translate to English: "// Validate and save user"
