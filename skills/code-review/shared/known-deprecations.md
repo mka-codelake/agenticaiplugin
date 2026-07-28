@@ -32,8 +32,10 @@ curl -s "https://hub.docker.com/v2/repositories/{namespace}/{image}/tags?page_si
 
 **Container images (GHCR):** token first, then the tag list.
 ```bash
-TOKEN=$(curl -s "https://ghcr.io/token?scope=repository:{owner}/{image}:pull" | jq -r .token)
-curl -s -H "Authorization: Bearer $TOKEN" "https://ghcr.io/v2/{owner}/{image}/tags/list"
+# 1. anonymous pull token — read the "token" field out of the JSON response yourself
+curl -s "https://ghcr.io/token?scope=repository:{owner}/{image}:pull"
+# 2. tag list, with that token as bearer
+curl -s -H "Authorization: Bearer {token}" "https://ghcr.io/v2/{owner}/{image}/tags/list"
 ```
 
 **Container images (Quay):**
