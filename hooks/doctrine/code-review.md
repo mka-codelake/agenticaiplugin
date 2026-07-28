@@ -10,3 +10,5 @@ review before reporting completion**: invoke **/agenticaiplugin:code-review**.
   Do not loop into another automatic review.
 - Do this **silently** — don't announce "starting code review"; just do it, then summarize
   what was reviewed and fixed.
+- **No `Workflow` tool available (sub-agent/fork)?** Take that skill's **solo path** — one
+  inline round, never a `Task`/`Agent` fan-out — and return the findings in your result text.

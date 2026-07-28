@@ -106,6 +106,8 @@ Wait for completion. Capture full results.
 
 Spawn ALL applicable Phase 2 specialists in a single message using multiple Task tool calls. This runs them concurrently for faster total review time.
 
+**Main session only:** without the `Workflow` tool you are a sub-agent or fork — do not spawn anything, take the Solo Review path in `SKILL.md` instead.
+
 **Model selection per specialist:**
 
 | Specialist | Model | Rationale |

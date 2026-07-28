@@ -109,11 +109,38 @@ the Specialist Results table from `perSpecialist`).
 
 Do NOT auto-fix. Let the user decide.
 
-### Fallback (if the Workflow feature is unavailable or declined)
+### Fallback (main session, Workflow declined or failed)
 
-Fall back to the prompt-based orchestration in `orchestration.md` (Steps 2–7). It is a
-complete specification of the same activation matrix, phase sequencing, model choice, and
-report format. The only feature unique to the workflow path is the adversarial verify pass.
+Applies when the `Workflow` tool **exists** but the call was declined or failed. Fall back to
+the prompt-based orchestration in `orchestration.md` (Steps 2–7). It is a complete
+specification of the same activation matrix, phase sequencing, model choice, and report
+format. The only feature unique to the workflow path is the adversarial verify pass.
+
+### Solo Review (sub-agent / fork context — never fan out)
+
+**Detection:** If the `Workflow` tool is **not among your available tools**, you are running in
+a sub-agent or fork context → take the **Solo path**, never the fan-out fallback above. Do not
+call `Task` or `Agent` from here, not even synchronously — a sub-agent that spawns sub-agents
+can stall the run indefinitely.
+
+**Procedure — one round, inline, no spawning:**
+
+1. Determine the *character* of the change from the changed files and the diff (core logic,
+   UI/templates, infrastructure, scaffold/setup, docs-only).
+2. Read `solo-review.md` and, from it, the 3–5 rule sets in `specialists/` that match that
+   character. You read them yourself — you are the entire review crew.
+3. Read `shared/issue-classification.md` for the severity definitions.
+4. Check the diff against those rules inline.
+5. `.claude/guidelines/*.md` and `.claude/adrs/*.md` override skill rules when present.
+
+**Report:** Do **not** write `claudedocs/code-review-result.md` on the solo path — several
+sub-agents may run in parallel and would overwrite each other's report file. Return the
+findings in your **result text** to the calling orchestrator instead. The finding format is
+unchanged: severity (Critical/Warning/Suggestion), `[File:Line]`, Rule/Fix/Impact. State
+explicitly when nothing was found.
+
+Complete the review before changing anything; then follow the doctrine's one-round rule
+(evaluate each finding, fix what is valid, report).
 
 ## Skill Contents
 
@@ -122,6 +149,7 @@ skills/code-review/
 ├── SKILL.md                    ← This file (orchestrator command)
 ├── review.workflow.js          ← Deterministic Workflow orchestration (primary path)
 ├── orchestration.md            ← Rules spec + prompt-based fallback, report format, prompt templates
+├── solo-review.md              ← Focus checklist for the solo path (sub-agent/fork, no fan-out)
 ├── shared/
 │   ├── issue-classification.md ← Severity definitions (Critical/Warning/Suggestion)
 │   ├── best-practices.md       ← Review quality guidelines
@@ -151,4 +179,6 @@ skills/code-review/
 - **Deterministic consolidation** (dedup by file:line + description similarity, higher severity wins, severity sort) happens in code
 - If a specialist or verifier fails, the review continues with remaining results
 - After review: display findings, do NOT auto-fix, let user decide
-- Review report is always saved to `claudedocs/code-review-result.md` (overwritten each run)
+- Review report is saved to `claudedocs/code-review-result.md` (overwritten each run) — except
+  on the solo path, which returns findings as result text so parallel sub-agents cannot
+  overwrite each other
