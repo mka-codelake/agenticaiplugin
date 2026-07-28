@@ -67,16 +67,17 @@ IF source_files_modified OR infra_config_files_modified:
 IF infra_config_files_modified:
   → Specialist 12 (Infrastructure & Configuration)
 
-IF ONLY docs changed:
+IF NOT source_files_modified AND NOT test_files_modified AND NOT infra_config_files_modified:
   → Skip all Phase 2 specialists
-  → Return "Documentation-only changes — no Phase 2 specialists activated.
-     The dependency & version check (Phase 1) ran anyway; its findings, if any,
-     are listed below."
+  → Return "No source, test, or infra/config files changed — no Phase 2 specialists
+     activated. The dependency & version check (Phase 1) ran anyway; its findings,
+     if any, are listed below."
 ```
 
 **Configuration changes are reviewed.** A documentation change cannot break a running
-system; a Compose file or an `application.yml` can. Only documentation-only diffs skip
-Phase 2 — and even then Phase 1 has already run and may have findings to report.
+system; a Compose file or an `application.yml` can. Only diffs that touch no source,
+test, or infra/config file skip Phase 2 — and even then Phase 1 has already run and may
+have findings to report.
 
 ---
 

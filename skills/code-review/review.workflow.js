@@ -143,12 +143,12 @@ const phase1Summary = summarize(phase1Findings, phase1Status);
 // ── Activation as code (orchestration.md Selection Logic) ──
 const active = SPECIALISTS.filter((s) => s.when(ctx));
 
-// Docs-only: no Phase 2 specialists (parity with orchestration.md).
+// No source/test/infra files: no Phase 2 specialists (parity with orchestration.md).
 if (!ctx.source && !ctx.tests && !ctx.infra) {
   return {
     mode,
     date,
-    note: "Documentation-only changes — no Phase 2 specialists activated. The dependency & version check (Phase 1) ran anyway; its findings, if any, are listed below.",
+    note: "No source, test, or infra/config files changed — no Phase 2 specialists activated. The dependency & version check (Phase 1) ran anyway; its findings, if any, are listed below.",
     findings: dedupeAndSort(phase1Findings),
     perSpecialist: [specStatus(DEP_SPEC, phase1Status, phase1Findings)],
     activated: ["01"],
