@@ -77,6 +77,29 @@ You check dependency currency, framework modernization, and deprecations.
 - **WARNING:** Deprecated library with known replacement
 - **SUGGESTION:** Library in maintenance mode, modern alternative available
 
+### 1.5 Base Image & CI Action Version Currency
+
+Container base images and CI actions are dependencies too — an outdated base image ships the same unpatched CVEs as an outdated library. Rules 1.1 and 1.4 apply to them, using the registries below instead of package registries.
+
+**Detection:**
+
+| Artifact | Pattern | Check Method |
+|----------|---------|-------------|
+| Container base image | `FROM <image>:<tag>` in Dockerfile/Containerfile | Docker Hub / GHCR / Quay tag list (see `known-deprecations.md`) |
+| Container image reference | `image:` in docker-compose*.yml, K8s manifests, Helm values | same registries |
+| GitHub Action | `uses: <owner>/<action>@<ref>` in `.github/workflows/*.yml` | latest release of the action repository |
+| Other CI building blocks | CircleCI orbs, GitLab CI `image:`/`include:`, Jenkins plugin versions, Azure Pipelines task versions (`@N`) | respective registry or WebSearch fallback |
+
+**Severity:** Same staging as 1.1 — CRITICAL for 2+ major versions behind or a known CVE in the pinned version, WARNING for 1 major version behind or significantly behind on minor/patch, SUGGESTION for a routine newer release. Treat an image whose distro or runtime line has reached end-of-life (e.g. a base image on an EOL LTS) as 1.4 deprecation, not as 1.1 currency.
+
+**Important:**
+- Verify against the live registry; never judge image or action currency from training data.
+- Only stable tags count as "latest" — ignore `rc`, `beta`, `edge`, `nightly`, and date-only snapshot tags.
+- `:latest` is not a version answer. If the tag is mutable, you cannot determine what is running — report the currency question as unverifiable and leave the pinning finding to Specialist 12.
+- Respect deliberate pins documented in project guidelines (`.claude/guidelines/`), the Dockerfile, or workflow comments.
+
+**Note:** This is the sole owner of *version currency* for images and CI actions — "which version is current, does it carry a known CVE". Specialist 12 (Infrastructure & Configuration) owns *pinning and reproducibility* for the very same lines — "is it pinned at all, is it a mutable tag such as `:latest` or a moving branch ref, is the digest recorded". One line can legitimately produce one finding from each specialist; keep yours to the version question and do not restate the pinning defect.
+
 ---
 
 ## Examples
@@ -103,6 +126,22 @@ You check dependency currency, framework modernization, and deprecations.
 - [UserController.java] Uses modern @GetMapping annotation
 - [OrderController.java] Uses legacy @RequestMapping(method = GET)
 **Fix:** Standardize on @GetMapping across all controllers
+```
+
+**Outdated base image:**
+```markdown
+**CRITICAL:** Outdated container base image
+- [Dockerfile:1] `FROM node:18-alpine` — Node 18 reached end-of-life; current stable LTS line is 24 (verified via Docker Hub tag list)
+**Impact:** Base image no longer receives security updates; inherited CVEs stay unpatched regardless of application dependencies
+**Fix:** Move to `node:24-alpine` and re-run the build. Check the Node 20/22/24 migration notes for native-module rebuilds.
+```
+
+**Outdated CI action:**
+```markdown
+**WARNING:** Outdated GitHub Action
+- [.github/workflows/ci.yml:22] `uses: actions/checkout@v3` — current major is v5 (verified via the action's latest release)
+**Impact:** Runs on a deprecated Node runner; misses fixes shipped in v4/v5
+**Fix:** Bump to `actions/checkout@v5`.
 ```
 
 **Unjustified dependency:**
