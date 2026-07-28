@@ -104,7 +104,7 @@ Wait for completion. Capture full results.
 
 ### Phase 2: All Applicable Specialists (Parallel)
 
-Spawn ALL applicable Phase 2 specialists in a single message using multiple Task tool calls. This runs them concurrently for faster total review time.
+Spawn ALL applicable Phase 2 specialists in a single message using multiple Task tool calls. This runs them concurrently for faster total review time. This fan-out instruction applies to the **main session only** — an agent without the `Workflow` tool (sub-agent/fork) does not run this orchestration at all and spawns nothing (see `SKILL.md`).
 
 **Model selection per specialist:**
 
