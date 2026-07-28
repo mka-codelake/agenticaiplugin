@@ -144,7 +144,7 @@ const phase1Summary = summarize(phase1Findings, phase1Status);
 const active = SPECIALISTS.filter((s) => s.when(ctx));
 
 // No source/test/infra files: no Phase 2 specialists (parity with orchestration.md).
-if (!ctx.source && !ctx.tests && !ctx.infra) {
+if (skipsPhase2(ctx)) {
   return {
     mode,
     date,
@@ -353,6 +353,10 @@ function count(findings) {
 }
 function specStatus(spec, status, findings) {
   return { id: spec.id, name: spec.name, status, counts: count(findings) };
+}
+// No source/test/infra files -> Phase 2 is skipped entirely.
+function skipsPhase2(c) {
+  return !c.source && !c.tests && !c.infra;
 }
 function skipReason(spec, c) {
   if (spec.id === "03") return "needs 3+ layers or new dependencies";
