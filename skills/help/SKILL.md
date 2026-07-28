@@ -49,7 +49,7 @@ Show the user the following overview:
 | Command | Description |
 |---------|-------------|
 | **gitme** | Intelligent Git commits: analyzes all changes, groups them logically, and creates meaningful commit messages. Can create multiple commits when appropriate |
-| **code-review** | Runs an intelligent code review. Four modes: no parameter = Git diff (default), with file = single file, `--complete` = entire project, `--renovate` = dependency audit (options: `--stack jvm/js/python`, `--quick`, `--save`) |
+| **code-review** | Runs an intelligent code review. Four modes: no parameter = Git diff (default), with file = single file, `--complete` = milestone / end-of-project audit over all source files (orders of magnitude costlier than diff mode, scales with project size — run `architecture-audit` first), `--renovate` = dependency audit (options: `--stack jvm/js/python`, `--quick`, `--save`) |
 | **architecture-audit** | Comprehensive architecture audit: detects patterns, evaluates 7 dimensions (Boundaries, Dependencies, Naming, APIs, Wiring, Visibility), produces a scored report (A-E scale). Options: `--scope <path>` for partial audits |
 | **qa** | Quality Assurance: manages bidirectional traceability between requirements, code, test cases, and tests ("Quality Square"). Analyzes code, extracts requirements, derives test cases, produces gap analysis. Option: `--force-rebuild` |
 | **create-cli** | Designs CLI interfaces: arguments, flags, subcommands, help text, output formats, exit codes, prompts. Produces a compact spec for implementation |
