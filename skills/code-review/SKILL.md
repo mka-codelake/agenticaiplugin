@@ -115,7 +115,7 @@ the Specialist Results table from `perSpecialist`).
 
 - Standard modes → write to `claudedocs/code-review-result.md` (overwrite). Confirm: `Report saved: claudedocs/code-review-result.md`.
 - `--renovate` → display the audit; if `--save`, write to `claudedocs/reports/dependency-audit-{date}.md`.
-- If `note` is present (documentation-only) → show it and stop.
+- If `note` is present (no source, test, or infra/config files changed) → show it and stop.
 
 Do NOT auto-fix. Let the user decide.
 
