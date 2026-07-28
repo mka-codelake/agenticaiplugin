@@ -120,7 +120,9 @@ adversarial verify pass.
 Report back instead that the review has to happen at orchestrator level — an agent reviewing
 its own implementation reproduces its own assumptions instead of questioning them, and a
 sub-agent must not fan out further sub-agents. The orchestrator that delegated the work runs
-the review on the combined diff via the primary path above.
+the review on the combined diff via the primary path above. Before reporting back, run the
+handover check the doctrine defines for this case (tests, debug leftovers, diff scope, known
+deviations — see `hooks/doctrine/code-review.md`); it is a checklist, not a review.
 
 ## Skill Contents
 
