@@ -36,8 +36,15 @@ Specialists produce a structured findings report. The user decides what to fix.
 | 7 | Dead Code & Duplication | 2 | Source files modified |
 | 8 | Cross-Cutting Concerns | 2 | Source files modified |
 | 9 | Test Quality | 2 | Test files modified |
-| 10 | Test Completeness & Infra | 2 | Source files modified |
+| 10 | Test Completeness & Infra | 2 | Source files modified OR infra/config files modified |
 | 11 | Documentation & Comments | 2 | Source files modified |
+| 12 | Infrastructure & Configuration | 2 | Infra/config files modified |
+
+**Infra/config files** are infrastructure and configuration artifacts: container definitions,
+orchestration manifests, infrastructure as code, CI/CD workflows, application configuration,
+environment templates, web server / proxy configuration, and process / runtime configuration.
+The full pattern list lives in `specialists/12-infrastructure-configuration.md`. Dependency
+manifests are *not* infra — they drive `new_dependencies` instead.
 
 ### Selection Logic
 
@@ -54,13 +61,22 @@ IF source_files_modified AND (layers_affected >= 3 OR new_dependencies):
 IF test_files_modified:
   → Specialist 9 (Test Quality)
 
-IF source_files_modified:
-  → Specialist 10 (Test Completeness)
+IF source_files_modified OR infra_config_files_modified:
+  → Specialist 10 (Test Completeness & Infra)
 
-IF ONLY docs/config changed:
-  → Skip all specialists
-  → Return "No code review needed — documentation/config changes only."
+IF infra_config_files_modified:
+  → Specialist 12 (Infrastructure & Configuration)
+
+IF ONLY docs changed:
+  → Skip all Phase 2 specialists
+  → Return "Documentation-only changes — no Phase 2 specialists activated.
+     The dependency & version check (Phase 1) ran anyway; its findings, if any,
+     are listed below."
 ```
+
+**Configuration changes are reviewed.** A documentation change cannot break a running
+system; a Compose file or an `application.yml` can. Only documentation-only diffs skip
+Phase 2 — and even then Phase 1 has already run and may have findings to report.
 
 ---
 
@@ -121,6 +137,7 @@ Spawn ALL applicable Phase 2 specialists in a single message using multiple Task
 | 09 Test Quality | **haiku** | Scoped to test files |
 | 10 Test Completeness | **sonnet** | Cross-references prose acceptance criteria against assertions and distinguishes real integration tests from mock-only fakes |
 | 11 Documentation & Comments | **haiku** | Local, rule-based checks on comments and documentation |
+| 12 Infrastructure & Configuration | **opus** | A configuration name has to be traced across artifact boundaries (Compose → property file → the code that consumes it) under framework-specific binding rules, and the finding is the *absence* of a match spread over several artifacts — the same profile as 08. Affordable because the specialist only activates on infra/config diffs, which today see a single haiku run |
 
 **Spawn each via Task tool:**
 ```
@@ -261,7 +278,7 @@ Order all findings:
 | SUGGESTION | Config.java:12 | Consider @Value | Dependencies |
 
 **Summary:** 2 Critical, 2 Warnings, 1 Suggestion
-**Specialists activated:** 8/12
+**Specialists activated:** 8/13
 **Phase 1 duration:** ~30s | **Phase 2 duration:** ~45s (parallel)
 ```
 
@@ -271,7 +288,7 @@ Order all findings:
 ## Code Review Report
 
 **Files Reviewed:** {count}
-**Specialists Activated:** {activated_count}/12
+**Specialists Activated:** {activated_count}/13
 **Phase 1:** Dependencies & Versions
 **Phase 2:** {list of activated specialists}
 **Project Guidelines:** {found or "None"}
@@ -324,8 +341,9 @@ Order all findings:
 | Dead Code & Duplication | 1C, 2W | Complete |
 | Cross-Cutting Concerns | — | Complete (no findings) |
 | Test Quality | 1C, 1W | Complete |
-| Test Completeness | 2W | Complete |
+| Test Completeness & Infra | 2W | Complete |
 | Documentation & Comments | 1W, 2S | Complete |
+| Infrastructure & Configuration | — | Skipped (no infra/config files modified) |
 ```
 
 ### Step 7: Save Report
@@ -440,7 +458,7 @@ Confirm: `Report saved: claudedocs/reports/dependency-audit-{date}.md`
 
 ## Token/Cost Optimization
 
-- **Three-tier model choice:** Specialists requiring nuanced, subtle analysis (02 Security, 03 Architecture, 06a Correctness & Bug Detection, 08 Cross-Cutting) use `opus`; specialists needing semantic cross-file understanding (04 Design Patterns, 05 SOLID, 10 Test Completeness) use `sonnet`; rule-based specialists (01, 06b, 07, 09, 11) use `haiku`. The 06a/06b split (issue #19) routes execution-simulation bug-hunting to `opus` while keeping local style checks on `haiku` — better recall *and* lower cost than the former single haiku specialist. This ensures maximum recall for the most critical/subtle reviews while keeping costs efficient for focused rule checking.
+- **Three-tier model choice:** Specialists requiring nuanced, subtle analysis (02 Security, 03 Architecture, 06a Correctness & Bug Detection, 08 Cross-Cutting, 12 Infrastructure & Configuration) use `opus`; specialists needing semantic cross-file understanding (04 Design Patterns, 05 SOLID, 10 Test Completeness) use `sonnet`; rule-based specialists (01, 06b, 07, 09, 11) use `haiku`. The 06a/06b split (issue #19) routes execution-simulation bug-hunting to `opus` while keeping local style checks on `haiku` — better recall *and* lower cost than the former single haiku specialist. This ensures maximum recall for the most critical/subtle reviews while keeping costs efficient for focused rule checking.
 - **Selective activation:** Only applicable specialists are spawned
 - **Parallel execution:** Phase 2 specialists run concurrently
 - **Focused context:** Each specialist reads only ~150-250 lines of rules (vs. ~3,200 lines in single-agent approach)

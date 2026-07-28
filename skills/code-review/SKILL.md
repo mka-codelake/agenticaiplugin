@@ -69,8 +69,9 @@ never block, never ask back, proceed with the run.
 **--renovate:** `mode = "renovate"`. Detect manifest files via Glob (patterns in `shared/known-deprecations.md`) → `manifests`. If none: error + STOP. If `--stack` given but not detected: error + STOP. Set `flags = { stack?, quick?, save? }`.
 
 **Compute `ctx`** (this makes the activation matrix deterministic in the script):
-- `source`: at least one changed file is a source file (not test/docs/config).
+- `source`: at least one changed file is a source file — application/library code in a programming language. Not a test file, not documentation, and not an infrastructure/configuration artifact (see `infra`).
 - `tests`: at least one changed file is a test file.
+- `infra`: at least one changed file is an infrastructure or configuration artifact. Categories (the full pattern list lives in `specialists/12-infrastructure-configuration.md`): container definitions (Dockerfile, Compose), orchestration (Kubernetes manifests, Helm charts), infrastructure as code (Terraform, Ansible, CloudFormation, Bicep), CI/CD workflow definitions, application configuration (`application.*`, `appsettings.*`, `config/**`), environment templates (`.env.example` and friends), web server / reverse proxy configuration, and process / runtime configuration (Procfile, systemd units, runtime version pins). Dependency manifests (pom.xml, package.json, …) are **not** `infra` — they are `newDeps`. **Tie-breaker:** when a file could be read as either documentation or infrastructure, choose infrastructure — a false positive costs one specialist run, a false negative costs the entire review.
 - `layers`: number of distinct architectural layers touched (e.g. controller/service/repository/domain/infra, or distinct top-level module dirs). Integer.
 - `newDeps`: a manifest file (pom.xml, build.gradle, package.json, requirements.txt, pyproject.toml, go.mod, …) is among the changed files, or the diff adds dependency entries.
 - `guidelines`: `.claude/guidelines/` exists and contains `*.md`.
@@ -89,7 +90,7 @@ Call the `Workflow` tool with:
     "skillDir": "{skill_dir}",
     "files": ["..."],
     "diff": "<unified diff or null>",
-    "ctx": { "source": true, "tests": false, "layers": 3, "newDeps": false, "guidelines": false, "adrs": false },
+    "ctx": { "source": true, "tests": false, "infra": false, "layers": 3, "newDeps": false, "guidelines": false, "adrs": false },
     "flags": { "stack": "js", "quick": false, "save": true },
     "manifests": ["package.json"],
     "date": "YYYY-MM-DD"
@@ -114,7 +115,7 @@ the Specialist Results table from `perSpecialist`).
 
 - Standard modes → write to `claudedocs/code-review-result.md` (overwrite). Confirm: `Report saved: claudedocs/code-review-result.md`.
 - `--renovate` → display the audit; if `--save`, write to `claudedocs/reports/dependency-audit-{date}.md`.
-- If `note` is present (docs/config-only) → show it and stop.
+- If `note` is present (documentation-only) → show it and stop.
 
 Do NOT auto-fix. Let the user decide.
 
@@ -145,7 +146,7 @@ skills/code-review/
 │   ├── best-practices.md       ← Review quality guidelines
 │   ├── specialist-output-format.md ← Standard output format (mirrored by the script schema)
 │   └── known-deprecations.md   ← Registry APIs, manifest detection, WebSearch patterns
-└── specialists/                ← 12 focused review rule sets (read by the subagents)
+└── specialists/                ← 13 focused review rule sets (read by the subagents)
     ├── 01-dependencies-versions.md    (Phase 1 — always)
     ├── 02-security-data-safety.md     (Phase 2 — source files)
     ├── 03-architecture-layers.md      (Phase 2 — 3+ layers / new deps)
@@ -156,8 +157,9 @@ skills/code-review/
     ├── 07-dead-code-duplication.md    (Phase 2 — source files)
     ├── 08-cross-cutting-concerns.md   (Phase 2 — source files)
     ├── 09-test-quality.md             (Phase 2 — test files)
-    ├── 10-test-completeness-infra.md  (Phase 2 — source files)
-    └── 11-documentation-comments.md    (Phase 2 — source files)
+    ├── 10-test-completeness-infra.md  (Phase 2 — source or infra/config files)
+    ├── 11-documentation-comments.md   (Phase 2 — source files)
+    └── 12-infrastructure-configuration.md (Phase 2 — infra/config files)
 ```
 
 ## Key Principles
