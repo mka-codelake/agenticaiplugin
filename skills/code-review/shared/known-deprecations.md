@@ -37,6 +37,11 @@ curl -s "https://ghcr.io/token?scope=repository:{owner}/{image}:pull"
 # 2. tag list, with that token as bearer
 curl -s -H "Authorization: Bearer {token}" "https://ghcr.io/v2/{owner}/{image}/tags/list"
 ```
+Optional shortcut, only where `jq` happens to be installed (not on plain Windows) — same two calls as one line:
+```bash
+TOKEN=$(curl -s "https://ghcr.io/token?scope=repository:{owner}/{image}:pull" | jq -r .token)
+curl -s -H "Authorization: Bearer $TOKEN" "https://ghcr.io/v2/{owner}/{image}/tags/list"
+```
 
 **Container images (Quay):**
 ```bash
