@@ -215,8 +215,9 @@ function main() {
 
   if (classify(command).isRawCommit) {
     deny(
-      'Raw `git commit` is blocked by agenticaiplugin. Commit via /agenticaiplugin:gitme ' +
-        '(the git-smart-commit skill), which groups changes into atomic commits. ' +
+      'Raw `git commit` is blocked by agenticaiplugin. Commit via /agenticaiplugin:gitme, ' +
+        'which groups changes into atomic commits. Agents/sub-agents, which cannot invoke ' +
+        'that command, use the skill agenticaiplugin:git-smart-commit instead. ' +
         'To bypass intentionally, set {"gitCommitGuard":"off"} in agenticaiplugin.config.json.'
     );
   }

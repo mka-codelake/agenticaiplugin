@@ -172,7 +172,8 @@ Development-side process rules (this repo only — nothing here ships as plugin 
 
 - **Feature branch + GitHub PR, always.** No direct commits to `master`, no local merges —
   every change lands via a GitHub PR (the PR review action + monitoring doctrine depend on this).
-- **Commits via `/agenticaiplugin:gitme`** (enforced by the guard hook).
+- **Commits via `/agenticaiplugin:gitme`** (enforced by the guard hook); agents/sub-agents
+  invoke the skill `agenticaiplugin:git-smart-commit` instead.
 - **After merging a PR that contains a version bump, tag and release it:**
   1. Verify the merge commit on `master` has the new version:
      `git show <merge>:.claude-plugin/plugin.json`

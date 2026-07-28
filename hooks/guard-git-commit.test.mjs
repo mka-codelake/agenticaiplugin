@@ -49,6 +49,11 @@ for (const cmd of [
     const { stdout } = bash(cmd);
     assert.ok(isDeny(stdout), `expected deny for: ${cmd}`);
     assert.match(stdout, /gitme/, 'deny reason should point to /agenticaiplugin:gitme');
+    assert.match(
+      stdout,
+      /agenticaiplugin:git-smart-commit/,
+      'deny reason should also point agents to the git-smart-commit skill'
+    );
   });
 }
 
