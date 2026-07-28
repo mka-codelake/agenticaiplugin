@@ -19,8 +19,14 @@ Specialists only collect findings — they never fix code.
 |------|---------|-------------|
 | **Git Diff** (Default) | `/agenticaiplugin:code-review` | Review uncommitted changes |
 | **Single File** | `/agenticaiplugin:code-review <file>` | Review a specific file |
-| **Complete Project** | `/agenticaiplugin:code-review --complete` | Review all source files |
+| **Complete Project** | `/agenticaiplugin:code-review --complete` | Milestone / end-of-project audit over all source files — orders of magnitude costlier than diff mode, scales with project size |
 | **Dependency Audit** | `/agenticaiplugin:code-review --renovate [--stack jvm\|js\|python] [--quick] [--save]` | Full dependency audit |
+
+> **`--complete` is a milestone audit, not a routine gate.** It reviews every source file,
+> so its cost is orders of magnitude above the default diff mode and grows with the project.
+> For an end-of-project pass, run `/agenticaiplugin:architecture-audit` first and
+> `--complete` after it — structural and code-level findings confirm each other, which makes
+> the expensive run more productive.
 
 ## Argument Handling
 
@@ -56,6 +62,9 @@ Resolve `{skill_dir}` = absolute path of this skill's directory. The script is a
 **Single File:** validate the file exists (else error + STOP); `files = [path]`, `diff = null`, `mode = "single-file"`.
 
 **--complete:** find all source files (exclude `node_modules`, `target`, `build`, `.git`, `dist`, `venv`, `__pycache__`) → `files`, `diff = null`, `mode = "complete"`.
+Then display the number of files found and note that the review cost scales with it, e.g.
+`Complete audit: <N> source files — review cost scales with this count.` Informational only:
+never block, never ask back, proceed with the run.
 
 **--renovate:** `mode = "renovate"`. Detect manifest files via Glob (patterns in `shared/known-deprecations.md`) → `manifests`. If none: error + STOP. If `--stack` given but not detected: error + STOP. Set `flags = { stack?, quick?, save? }`.
 

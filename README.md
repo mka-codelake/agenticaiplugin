@@ -93,7 +93,7 @@ own doctrine (SessionStart) and enforcement (PreToolUse) hooks.
 | `github-publish` | Prepare repo for public release (README, license, badges, logo, etc.) |
 | `npm-publish` | End-to-end npm release: cut release (semver bump from Conventional Commits + CHANGELOG generation) + pre-publish audit (package.json, tarball content, secrets, version sync) |
 | `gitme` | Smart Git commits with logical grouping |
-| `code-review` | Multi-specialist code review (4 modes: diff, file, complete, renovate) |
+| `code-review` | Multi-specialist code review (4 modes: diff, file, complete, renovate; `--complete` is a milestone audit — orders of magnitude costlier than diff mode, scales with project size) |
 | `architecture-audit` | 7-dimension architecture assessment with A-E ratings |
 | `qa` | Quality Square traceability (requirements, code, test cases, tests) |
 | `create-cli` | Design CLI parameters, flags, and UX |
@@ -117,7 +117,7 @@ All commands are invoked with the `/agenticaiplugin:` prefix, e.g. `/agenticaipl
 ```bash
 /agenticaiplugin:code-review                    # Review uncommitted changes (default)
 /agenticaiplugin:code-review src/UserService.js  # Review a single file
-/agenticaiplugin:code-review --complete          # Review entire project
+/agenticaiplugin:code-review --complete          # Milestone audit over the entire project (costly, scales with size)
 /agenticaiplugin:code-review --renovate          # Dependency audit
 ```
 
