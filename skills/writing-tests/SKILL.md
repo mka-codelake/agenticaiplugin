@@ -26,6 +26,17 @@ When you intentionally skip a test, document why inline: `// No test: [reason]`.
 - If internal logic is complex enough to need its own tests, that is a design signal:
   extract it into its own unit with its own public API, then test *that*.
 
+## Assert the state, not just the artifact
+
+Where a feature produces an artifact **and** a state marker recording it — file written +
+"downloaded" flag, message sent + "notified" timestamp, record imported + import status —
+assert **both**. Asserting only the artifact leaves the easy half covered and the half that
+actually breaks uncovered: the test stays green while the marker is wrong.
+
+The same holds for conditional writes: assert the value the write was supposed to produce,
+not that the code path was reached. A write that silently did nothing leaves no trace an
+artifact-only assertion would catch.
+
 ## Related
 
 - **qa** — analyzes existing test *coverage* and requirement→test traceability (a

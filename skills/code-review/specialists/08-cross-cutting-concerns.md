@@ -56,6 +56,35 @@ You check that cross-cutting concerns are implemented consistently across the en
 
 - **WARNING:** Inconsistent serialization configuration across modules
 
+### 8.8 Silent No-op Writes Across Isolation Boundaries
+
+- **WARNING:** Conditional write that can silently do nothing across an isolation boundary, with no log, metric, or test assertion covering the empty case
+- **CRITICAL:** Same, when the skipped write is a state marker other code relies on (e.g. a "downloaded"/"processed" flag driving later behavior)
+
+**Both triggers must apply — either one alone is NOT a finding:**
+
+1. **The conditional branch performs a write** — state mutation, persistence, filesystem, or outbound call. A pure read path never qualifies.
+2. **The path crosses an isolation boundary** — separate thread, separate transaction, asynchronous execution, or a process/service boundary. Only then can the condition be unmet purely because the other side has not committed or published yet.
+
+The finding is that the no-op is **unobservable**: nothing — no log, no metric, no test assertion — makes the case "condition was not met, so nothing was written" visible. No compiler error, no exception, no failing test.
+
+**Patterns to look for (not exhaustive, language-agnostic):**
+- Optional/nullable-guarded write callbacks: Java `Optional.ifPresent(v -> v.setFlag(true))`, JS `entity?.save()` (optional chaining with a side effect), Python `if (v := cache.get(key)): v.flag = True`, Go `if v, ok := m[k]; ok { v.Flag = true }`
+- Ignored affected-row count of a conditional `UPDATE … WHERE` / `@Modifying` query (0 rows matched)
+- Conditional collection mutations whose return value is discarded (`computeIfPresent`, `replace(key, old, new)`)
+- `filter(...).forEach(write)` — an empty stream/sequence writes nothing, silently
+- Conditional writes behind `if (entity != null)` and equivalents
+
+**Explicitly NOT a finding:**
+- The same patterns in read paths
+- Synchronous code within a single transaction (visibility cannot be the reason the condition is unmet)
+- Cases where the empty branch is already logged or measured
+
+**What to check:**
+- Does the write run in a different thread/transaction than the data it depends on?
+- Is there an else branch, log, metric, or assertion that makes "nothing was written" visible?
+- Does other code read the state marker this write is supposed to set?
+
 ---
 
 ## Review Approach
@@ -97,4 +126,16 @@ You check that cross-cutting concerns are implemented consistently across the en
 - [OrderController.java] Manual null/format checks in method body
 **Rule:** Cross-Cutting → Validation Consistency
 **Fix:** Standardize on Bean Validation annotations at Controller layer.
+```
+
+**Silent no-op write across a transaction boundary:**
+```markdown
+**CRITICAL:** Conditional write silently does nothing across a transaction boundary
+- [ThumbnailWorker.java:58] repository.findById(id).ifPresent(v -> v.setThumbnailDownloaded(true))
+- Worker runs in its own thread/transaction, started while the creating transaction is still open
+- Lookup misses the uncommitted record → empty Optional → lambda never runs, no log, no exception
+- [VideoService.java:104] reads thumbnailDownloaded to decide whether to serve the file
+**Rule:** Cross-Cutting → Silent No-op Writes Across Isolation Boundaries
+**Fix:** Start the async work after commit (e.g. an after-commit hook), and log or count the
+empty case so a missed write is observable instead of silent.
 ```

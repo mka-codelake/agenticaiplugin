@@ -118,6 +118,23 @@ Verify that architectural rules are enforced by automated tests:
 
 ---
 
+## Acceptance Criteria Completeness
+
+### 10.8 State Assertions, Not Just Artifacts
+
+Acceptance criteria must verify the resulting **state**, not only the artifact. Where a feature produces an artifact **and** a state marker recording it (file written + "downloaded" flag, message sent + "notified" timestamp, record imported + import status), both belong in the definition of done — and both belong in the test.
+
+- **WARNING:** Test asserts only the artifact (file exists, message published, record created) while the feature also sets a state marker (flag, status, timestamp) that stays unasserted
+- **WARNING:** Acceptance criterion describes an artifact-plus-state outcome, but no test asserts the state half
+- **SUGGESTION:** State marker asserted only on the success path (no assertion for the failure/skip path)
+
+**What to check:**
+- For each artifact-producing feature: is there a state marker that other code reads?
+- Does the test assert that marker's value, or only the artifact's existence?
+- Would the test still pass if the write setting the marker silently did nothing? (see Specialist 8, Rule 8.8)
+
+---
+
 ## Examples
 
 **Missing infrastructure test:**
@@ -162,4 +179,14 @@ Verify that architectural rules are enforced by automated tests:
 - No ArchUnit or equivalent tests enforce these rules
 **Rule:** Test Completeness → Architecture Test Coverage
 **Fix:** Add architecture tests covering: layer dependencies, no circular deps, naming conventions.
+```
+
+**Artifact asserted, state marker not:**
+```markdown
+**WARNING:** Test asserts the artifact but not the state marker
+- [ThumbnailDownloadIT.java:41] Asserts only that the thumbnail file exists on disk
+- Feature also sets video.thumbnailDownloaded, which [VideoService.java:104] reads to serve the file
+- Test stays green while the flag is false
+**Rule:** Test Completeness → State Assertions, Not Just Artifacts
+**Fix:** Assert both: file exists AND thumbnailDownloaded == true after the download completes.
 ```
