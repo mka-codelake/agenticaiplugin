@@ -61,6 +61,9 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
     - Dependency 2+ major versions behind (likely missing critical security patches)
     - Known security vulnerability (CVE) in current dependency version
 
+12. **Silent No-op Write of a Relied-Upon State Marker**
+    - Conditional write across an isolation boundary (own thread/transaction, async, process/service boundary) that can silently skip a state marker other code relies on, with no log, metric, or assertion covering the empty case
+
 ### CRITICAL Finding Format
 
 ```markdown
@@ -189,6 +192,10 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
     - Code uses deprecated/legacy framework pattern when modern alternative exists
     - Inconsistent framework usage (some files modernized, others still legacy)
 
+20. **Unobservable Conditional Writes**
+    - Conditional write across an isolation boundary that can silently do nothing, with no log, metric, or test assertion covering the empty case (both triggers required — a read path or single-transaction synchronous code is not a finding)
+    - Test asserts only the artifact (file, message, record) while the feature also sets an unasserted state marker
+
 ### WARNING Finding Format
 
 ```markdown
@@ -284,6 +291,10 @@ Is a dependency 2+ major versions behind or has a known CVE?
     YES → CRITICAL
     NO  ↓
 
+Can a conditional write across an isolation boundary silently skip a state marker other code relies on?
+    YES → CRITICAL
+    NO  ↓
+
 Does it violate the English-only comment policy?
     YES → WARNING
     NO  ↓
@@ -293,6 +304,10 @@ Does it violate SOLID principles, show code smells, or create inconsistent cross
     NO  ↓
 
 Are there infrastructure test gaps, E2E coverage gaps, test distribution issues, or outdated dependencies?
+    YES → WARNING
+    NO  ↓
+
+Is a conditional write across an isolation boundary unobservable, or does a test assert only the artifact and not the state marker?
     YES → WARNING
     NO  ↓
 
@@ -379,6 +394,8 @@ You can lower severity if:
 | Legacy framework pattern in use | WARNING | Framework modernization needed |
 | Inconsistent old/new framework patterns | WARNING | Partial migration |
 | Newer minor/patch version available | SUGGESTION | Routine update |
+| Silent no-op write skipping a relied-upon state marker | CRITICAL | Correctness defect invisible to compiler and tests |
+| Unobservable conditional write across isolation boundary | WARNING | No log, metric, or assertion covers the empty case |
 | Non-English comment in code | WARNING | Comment language policy violation |
 | Public method without Javadoc/docstring | WARNING | Missing documentation |
 | Protected/package-private method without docs | WARNING | Missing documentation |
@@ -407,6 +424,7 @@ You can lower severity if:
 | Complex logic only at integration/E2E | WARNING | Wrong test level |
 | Many variations only at E2E level | WARNING | Test distribution issue |
 | Integration test without requirement ref | WARNING | Missing traceability |
+| Artifact asserted but state marker not | WARNING | Acceptance criteria check state, not just artifact |
 
 ### Architecture Review Findings
 
@@ -462,8 +480,8 @@ In the review report, group findings by:
 
 ## Remember
 
-- **CRITICAL** = Must fix (security, YAGNI, framework testing, layer violations, cross-cutting chaos, behavioral regressions, pattern inconsistency 3+ ways, missing critical infrastructure tests, severely outdated dependencies/CVEs)
-- **WARNING** = Should fix (non-English comments, SOLID violations, code smells, cross-cutting inconsistency, cohesion/coupling, naming inconsistency, behavioral changes, infrastructure/E2E test gaps, test distribution issues, outdated dependencies, legacy framework patterns, code quality, coverage, architecture)
+- **CRITICAL** = Must fix (security, YAGNI, framework testing, layer violations, cross-cutting chaos, behavioral regressions, pattern inconsistency 3+ ways, missing critical infrastructure tests, severely outdated dependencies/CVEs, silent no-op writes skipping a relied-upon state marker)
+- **WARNING** = Should fix (non-English comments, SOLID violations, code smells, cross-cutting inconsistency, unobservable conditional writes, artifact-only test assertions, cohesion/coupling, naming inconsistency, behavioral changes, infrastructure/E2E test gaps, test distribution issues, outdated dependencies, legacy framework patterns, code quality, coverage, architecture)
 - **SUGGESTION** = Can fix (optional patterns, primitive obsession, routine dependency updates, nice-to-haves, style preferences)
 
 When in doubt, err on the side of lower severity and provide clear justification for the classification.
