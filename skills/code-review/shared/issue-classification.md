@@ -64,6 +64,13 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
 12. **Silent No-op Write of a Relied-Upon State Marker**
     - Conditional write across an isolation boundary (own thread/transaction, async, process/service boundary) that can silently skip a state marker other code relies on, with no log, metric, or assertion covering the empty case
 
+13. **Infrastructure & Configuration Defects That Lose Data or Expose Secrets**
+    - Env var / property name mismatch across artifacts that silently leaves persistence, retention, or security behavior at a default (no startup failure)
+    - Volume or mount that does not cover the path the application writes to (data lost on restart)
+    - Real credential, token, private key, or password-bearing connection string in a committed configuration artifact; `.env` itself tracked in the repository
+    - Datastore or admin interface published on all host interfaces (`0.0.0.0`) with default or absent authentication
+    - CI/CD secrets reachable from a step that executes untrusted code
+
 ### CRITICAL Finding Format
 
 ```markdown
@@ -196,6 +203,18 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
     - Conditional write across an isolation boundary that can silently do nothing, with no log, metric, or test assertion covering the empty case (both triggers required — a read path or single-transaction synchronous code is not a finding)
     - Test asserts only the artifact (file, message, record) while the feature also sets an unasserted state marker
 
+21. **Infrastructure & Configuration Issues**
+    - Variable defined in an infrastructure artifact with no consumer, or consumed with no definition and no documented default
+    - Host-published port hardcoded without an env-var override, or on a collision-prone default (8080, 3000, 5432, …) for a long-running service
+    - State-writing service without a volume; bind mount to a machine-specific host path
+    - Secret passed as a Docker build `ARG`; default credentials shipped for a non-local service
+    - Floating image tag (`:latest`), CI action pinned to a branch instead of a release tag
+    - `depends_on` without a readiness condition, missing or wrong health check
+    - Datastore port published to the host unnecessarily, debug/admin endpoints in a non-dev profile, `privileged`, `network_mode: host`, root user
+    - Missing memory limit; runtime heap exceeding the container's memory limit
+    - CI `permissions` broader than needed, quality gate that cannot fail the pipeline, secret leaked into logs or artifacts
+    - New configuration setting without a documented default or override path
+
 ### WARNING Finding Format
 
 ```markdown
@@ -295,6 +314,11 @@ Can a conditional write across an isolation boundary silently skip a state marke
     YES → CRITICAL
     NO  ↓
 
+Does a configuration defect silently lose data (unresolved name, wrong mount) or expose a secret
+(committed credential, unauthenticated datastore on 0.0.0.0, secrets reachable by untrusted CI code)?
+    YES → CRITICAL
+    NO  ↓
+
 Does it violate the English-only comment policy?
     YES → WARNING
     NO  ↓
@@ -308,6 +332,11 @@ Are there infrastructure test gaps, E2E coverage gaps, test distribution issues,
     NO  ↓
 
 Is a conditional write across an isolation boundary unobservable, or does a test assert only the artifact and not the state marker?
+    YES → WARNING
+    NO  ↓
+
+Is a configuration artifact unpinned, exposed further than needed, unlimited, orphaned (name without
+consumer), missing a health check, or an undocumented new setting?
     YES → WARNING
     NO  ↓
 
@@ -440,6 +469,31 @@ You can lower severity if:
 | Could use Factory pattern | SUGGESTION | Optional pattern introduction |
 | Could use Builder pattern | SUGGESTION | Optional pattern introduction |
 
+### Infrastructure & Configuration Findings
+
+| Issue | Severity | Rationale |
+|-------|----------|-----------|
+| Env var name does not resolve, leaving persistence/security at its default | CRITICAL | Silent data loss, no startup failure |
+| Volume does not cover the application's write path | CRITICAL | Data lost on restart |
+| Real credential in a committed configuration artifact | CRITICAL | Secret exposure |
+| `.env` tracked in the repository | CRITICAL | Secret exposure |
+| Datastore on `0.0.0.0` with default/absent auth | CRITICAL | Directly reachable, unauthenticated |
+| CI secrets reachable from untrusted code | CRITICAL | Pipeline compromise |
+| Variable defined with no consumer (or consumed with no definition) | WARNING | Dead or unresolved configuration |
+| Host port hardcoded / collision-prone default | WARNING | Conflict forces edit of a tracked file |
+| State-writing service without a volume | WARNING | Persistence not guaranteed |
+| Secret passed as Docker build `ARG` | WARNING | Persists in image layer history |
+| `:latest` or branch-pinned CI action | WARNING | Build not reproducible |
+| `depends_on` without readiness condition / missing health check | WARNING | Sporadic startup failures |
+| Datastore port published to host unnecessarily; `privileged`; root user | WARNING | Unneeded attack surface |
+| Missing memory limit; heap exceeds container limit | WARNING | Host starvation or guaranteed OOM kill |
+| Broad CI `permissions`; quality gate that cannot fail | WARNING | Unearned green pipeline |
+| New setting without documented default/override | WARNING | Configurable but undiscoverable |
+| Bind mount to machine-specific host path | WARNING | Setup not portable |
+| Tag-pinned where digest pinning is possible | SUGGESTION | Stronger reproducibility |
+| No CPU limit, no job timeout, no restart policy | SUGGESTION | Operational hardening |
+| Naming diverges from neighboring settings' convention | SUGGESTION | Consistency |
+
 ---
 
 ## Reporting Guidelines
@@ -480,8 +534,8 @@ In the review report, group findings by:
 
 ## Remember
 
-- **CRITICAL** = Must fix (security, YAGNI, framework testing, layer violations, cross-cutting chaos, behavioral regressions, pattern inconsistency 3+ ways, missing critical infrastructure tests, severely outdated dependencies/CVEs, silent no-op writes skipping a relied-upon state marker)
-- **WARNING** = Should fix (non-English comments, SOLID violations, code smells, cross-cutting inconsistency, unobservable conditional writes, artifact-only test assertions, cohesion/coupling, naming inconsistency, behavioral changes, infrastructure/E2E test gaps, test distribution issues, outdated dependencies, legacy framework patterns, code quality, coverage, architecture)
-- **SUGGESTION** = Can fix (optional patterns, primitive obsession, routine dependency updates, nice-to-haves, style preferences)
+- **CRITICAL** = Must fix (security, YAGNI, framework testing, layer violations, cross-cutting chaos, behavioral regressions, pattern inconsistency 3+ ways, missing critical infrastructure tests, severely outdated dependencies/CVEs, silent no-op writes skipping a relied-upon state marker, configuration defects that silently lose data or expose secrets)
+- **WARNING** = Should fix (non-English comments, SOLID violations, code smells, cross-cutting inconsistency, unobservable conditional writes, artifact-only test assertions, cohesion/coupling, naming inconsistency, behavioral changes, infrastructure/E2E test gaps, test distribution issues, outdated dependencies, legacy framework patterns, unpinned or over-exposed or undocumented configuration, code quality, coverage, architecture)
+- **SUGGESTION** = Can fix (optional patterns, primitive obsession, routine dependency updates, digest pinning, operational hardening, nice-to-haves, style preferences)
 
 When in doubt, err on the side of lower severity and provide clear justification for the classification.
