@@ -18,6 +18,10 @@ token = "eyJ..."
 
 **Fix:** Move to environment variables, secret managers, or encrypted config.
 
+**Scope:** source code only. Secrets in infrastructure and configuration artifacts (`docker-compose*.yml`,
+`.env`, CI workflows, `application*.yml`, Helm values) are → **Covered by Specialist 12 (Infrastructure &
+Configuration), Rule 12.4.** Do not duplicate here.
+
 ### 2.2 SQL Injection (CRITICAL)
 
 **Detection:** String concatenation in SQL queries.
@@ -62,6 +66,11 @@ stmt.setString(1, email);
 - **CRITICAL:** Missing transaction for multi-table write operations
 - **WARNING:** No error handling for destructive operations
 - **WARNING:** Insecure defaults that could expose data
+
+**Scope:** the data-loss half of this rule (transaction boundaries, destructive operations, corruption paths)
+stays here in full. Only *insecure defaults in infrastructure and configuration artifacts* — exposed ports,
+`0.0.0.0` binds, `privileged`, enabled debug endpoints — are → **Covered by Specialist 12 (Infrastructure &
+Configuration), Rule 12.7.** Code-level insecure defaults remain here.
 
 ---
 

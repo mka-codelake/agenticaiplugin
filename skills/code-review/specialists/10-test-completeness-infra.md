@@ -32,6 +32,10 @@ For each detected component, verify an integration test exists:
 - Tests actual integration boundary (connection, read/write, publish/consume)
 - Verifies data crosses the boundary correctly (format, encoding, schema)
 
+**Scope vs. Specialist 12:** you read configuration artifacts to answer *"is there an integration test for
+this infrastructure?"* — Specialist 12 (Infrastructure & Configuration) answers *"is the configuration
+itself correct?"*. Different finding classes; report only the test-coverage half here.
+
 ### 10.3 Test Traceability (All Test Levels)
 
 Every test should reference its requirement (STORY-XXX, EPIC-YYY, AC-N). This applies to all test levels:

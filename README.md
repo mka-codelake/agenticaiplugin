@@ -11,13 +11,13 @@ A Claude Code plugin that adds intelligent code reviews, architecture audits, qu
 
 ## Overview
 
-The AgenticAI Plugin enhances Claude Code with specialized skills and agents that activate automatically when you need them. Code reviews run 12 focused specialists in parallel, architecture audits score your codebase across 7 dimensions, and smart commits analyze your changes to create meaningful atomic commits.
+The AgenticAI Plugin enhances Claude Code with specialized skills and agents that activate automatically when you need them. Code reviews run 13 focused specialists in parallel, architecture audits score your codebase across 7 dimensions, and smart commits analyze your changes to create meaningful atomic commits.
 
 The plugin is **language-agnostic** — it works with any tech stack (Node.js, Java, Python, Rust, Go, .NET, and more). Project-specific rules and architectural decisions are stored in `.claude/guidelines/` and `.claude/adrs/` and always take priority over the plugin's built-in guidelines.
 
 ## Features
 
-- **Multi-Specialist Code Review** — 12 focused review specialists run in parallel, covering security, architecture, SOLID principles, code quality, test coverage, documentation, and more
+- **Multi-Specialist Code Review** — 13 focused review specialists run in parallel, covering security, architecture, SOLID principles, code quality, test coverage, documentation, infrastructure and configuration, and more
 - **Architecture Audit** — 7-dimension analysis with A-E ratings (boundaries, dependencies, naming, APIs, wiring, visibility, patterns)
 - **QA Traceability** — Bidirectional mapping between requirements, code, test cases, and tests ("Quality Square")
 - **Smart Git Commits** — Analyzes changes, groups them logically, creates atomic commits following project conventions
@@ -121,7 +121,7 @@ All commands are invoked with the `/agenticaiplugin:` prefix, e.g. `/agenticaipl
 /agenticaiplugin:code-review --renovate          # Dependency audit
 ```
 
-12 specialists run in parallel:
+13 specialists run in parallel:
 
 | # | Specialist | Focus |
 |---|-----------|-------|
@@ -137,6 +137,7 @@ All commands are invoked with the `/agenticaiplugin:` prefix, e.g. `/agenticaipl
 | 9 | Test Quality | AAA structure, naming, placement |
 | 10 | Test Completeness & Infra | Integration tests, E2E coverage |
 | 11 | Documentation & Comments | Language, Javadoc/docstrings, TODOs |
+| 12 | Infrastructure & Configuration | Container/orchestration/IaC/CI configs, env-var wiring, ports, volumes, secrets in config |
 
 Findings are deduplicated, sorted by severity, and consolidated into a single report. Project guidelines (`.claude/guidelines/*.md`) always override skill rules.
 
@@ -263,7 +264,7 @@ agenticaiplugin/
 │   └── project-initializer.md   # Project setup and updates (entry point)
 ├── skills/
 │   ├── architecture-audit/      # 7-dimension architecture assessment
-│   ├── code-review/             # 12-specialist code review
+│   ├── code-review/             # 13-specialist code review
 │   ├── create-cli/              # CLI interface design
 │   ├── curator/                 # Learned-skill library curation (autoskill)
 │   ├── git-smart-commit/        # Intelligent commit creation

@@ -113,7 +113,7 @@ Skills are knowledge modules that Claude loads automatically when certain keywor
 - **license-check** - License compatibility checking (Command: `/agenticaiplugin:license-check`)
 
 ### Code Quality
-- **code-review** - Multi-specialist code reviews (12 focused specialists)
+- **code-review** - Multi-specialist code reviews (13 focused specialists)
 - **writing-tests** - How to write good tests (test your code not the framework; public-API-only, no test-only API widening; assert the state, not just the artifact)
 - **qa** - Quality Square Traceability Manager (Command: `/agenticaiplugin:qa`)
 

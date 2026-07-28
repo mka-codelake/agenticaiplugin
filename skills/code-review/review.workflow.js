@@ -87,8 +87,9 @@ const SPECIALISTS = [
   { id: "07",  name: "Dead Code & Duplication",     file: "07-dead-code-duplication.md",      model: "haiku",  when: (c) => c.source },
   { id: "08",  name: "Cross-Cutting Concerns",      file: "08-cross-cutting-concerns.md",     model: "opus",   when: (c) => c.source },
   { id: "09",  name: "Test Quality",                file: "09-test-quality.md",               model: "haiku",  when: (c) => c.tests },
-  { id: "10",  name: "Test Completeness & Infra",   file: "10-test-completeness-infra.md",    model: "sonnet", when: (c) => c.source },
+  { id: "10",  name: "Test Completeness & Infra",   file: "10-test-completeness-infra.md",    model: "sonnet", when: (c) => c.source || c.infra },
   { id: "11",  name: "Documentation & Comments",    file: "11-documentation-comments.md",     model: "haiku",  when: (c) => c.source },
+  { id: "12",  name: "Infrastructure & Configuration", file: "12-infrastructure-configuration.md", model: "opus", when: (c) => c.infra },
 ];
 
 // ── Input (spike #9: args may be a JSON string) ──────────────────────────
@@ -142,12 +143,12 @@ const phase1Summary = summarize(phase1Findings, phase1Status);
 // ── Activation as code (orchestration.md Selection Logic) ──
 const active = SPECIALISTS.filter((s) => s.when(ctx));
 
-// Docs/config-only: no Phase 2 specialists (parity with orchestration.md).
-if (!ctx.source && !ctx.tests) {
+// No source/test/infra files: no Phase 2 specialists (parity with orchestration.md).
+if (skipsPhase2(ctx)) {
   return {
     mode,
     date,
-    note: "No code review needed — documentation/config changes only.",
+    note: "No source, test, or infra/config files changed — no Phase 2 specialists activated. The dependency & version check (Phase 1) ran anyway; its findings, if any, are listed below.",
     findings: dedupeAndSort(phase1Findings),
     perSpecialist: [specStatus(DEP_SPEC, phase1Status, phase1Findings)],
     activated: ["01"],
@@ -353,9 +354,15 @@ function count(findings) {
 function specStatus(spec, status, findings) {
   return { id: spec.id, name: spec.name, status, counts: count(findings) };
 }
+// No source/test/infra files -> Phase 2 is skipped entirely.
+function skipsPhase2(c) {
+  return !c.source && !c.tests && !c.infra;
+}
 function skipReason(spec, c) {
   if (spec.id === "03") return "needs 3+ layers or new dependencies";
   if (spec.id === "09") return "no test files modified";
+  if (spec.id === "10") return "no source or infra/config files modified";
+  if (spec.id === "12") return "no infra/config files modified";
   return "no source files modified";
 }
 function summarize(findings, status) {
