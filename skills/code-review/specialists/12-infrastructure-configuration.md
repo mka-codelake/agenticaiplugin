@@ -41,10 +41,13 @@ it pins a base image: whether that version is *current* is Specialist 1, whether
 
 ## Rules
 
-### 12.1 Environment Variable / Property Name Resolution Across Artifacts
+### 12.1 Name Resolution and Changed Values Across Artifacts
 
-Every name defined in one artifact needs a consumer, and every consumer needs a definition. Both directions
-are checked, and both are checked **across artifact boundaries** — Compose/K8s/CI → application config → code.
+Every name defined in one artifact needs a consumer, every consumer needs a definition — and every value
+this diff changes needs its consumers accounted for. All of it is checked **across artifact boundaries** —
+Compose/K8s/CI → application config → code.
+
+**Names that do not resolve:**
 
 - **CRITICAL:** A name mismatch leaves a setting at its built-in default, and that default silently changes
   persistence, retention, or security behavior (no startup failure, no log entry)
@@ -57,11 +60,27 @@ are checked, and both are checked **across artifact boundaries** — Compose/K8s
 overrides, `${VAR:-default}` expansion) resolves *near* matches and falls back to the default for everything
 else. A typo produces no error at any layer — the application starts happily and uses the wrong value.
 
+**Values that change while the name stays the same:** the binding still works, so nothing above fires — the
+defect is the unexamined blast radius of a timeout, pool size, retention interval, limit, replica count, or
+feature flag whose consumers sit in other artifacts.
+
+- **CRITICAL:** The new value silently changes what is persisted or for how long (retention, cleanup, backup
+  window), or weakens security behavior (TLS or authentication off, allowed origins widened, token lifetime
+  extended) — the system keeps running and reports nothing
+- **WARNING:** Consumers of the changed value were not traced — a timeout that no longer fits the caller's
+  own, a pool or connection limit below what a dependent service assumes, a limit a downstream default no
+  longer satisfies
+- **SUGGESTION:** The value changes with nothing in the diff stating why, leaving intent and accident
+  indistinguishable
+
 **What to check:**
 - For each variable added or renamed in the diff: which file consumes it, and does the spelling survive the
   binding rules of the framework in use (case, separators, prefix)?
 - For a renamed setting: was the old name removed everywhere, or does a stale consumer still reference it?
 - If a name resolves to nothing, what is the built-in fallback — and is that fallback harmless?
+- For each value changed in the diff: who reads this setting, and what did they assume about the old value?
+  A change is only safe once its consumers are named — Specialist 6a's standard for code defaults, applied
+  to configuration artifacts.
 
 ### 12.2 Host Port Assignment and Collision Risk
 
@@ -179,8 +198,9 @@ remain Specialist 11.
 
 - **1** owns version *currency*; you own *pinning*. **2** owns secrets and insecure defaults in source code,
   plus all transaction-boundary and code-level data-loss handling; you own the same topics in configuration
-  artifacts. **6a** owns changed defaults in code (parameters, constants); you own changed defaults in
-  configuration artifacts. **8** owns logging consistency, including logging configuration.
+  artifacts. **6a** owns changed defaults in code (parameters, constants); changed defaults and values in
+  configuration artifacts are yours under Rule 12.1. **8** owns logging consistency, including logging
+  configuration.
 - **10** asks *"is there an integration test for this infrastructure?"*; you ask *"is the configuration itself
   correct?"*. Different finding classes — do not restate one as the other.
 
@@ -189,7 +209,7 @@ remain Specialist 11.
 ## Review Approach
 
 1. Determine which changed files fall in your scope (table above). If none do, return `No findings.`
-2. Resolve every name introduced or changed end to end across artifacts (Rule 12.1) before anything else.
+2. Resolve every name and trace every changed value end to end across artifacts (Rule 12.1) before anything else.
 3. For each remaining change, name the runtime effect before judging it — what behaves differently now?
 4. Reserve CRITICAL for release-blocking defects; silent, restart-surviving ones (data loss, unresolved
    names, exposed datastores) outrank stylistic findings.
@@ -206,7 +226,7 @@ remain Specialist 11.
 - Relaxed binding does not match STORAGE_PATH → property keeps its default ./files
 - [docker-compose.yml:19] Volume mounts appdata:/data/files, which the app never writes to
 - Uploads land in the container layer and are gone after the next restart, with no error
-**Rule:** Infrastructure & Configuration → Env Var / Property Name Resolution
+**Rule:** Infrastructure & Configuration → Name Resolution and Changed Values Across Artifacts
 **Fix:** Rename the Compose variable to STORAGE_FILE_PATH; add an integration check that the configured
 path is inside the mounted volume.
 ```

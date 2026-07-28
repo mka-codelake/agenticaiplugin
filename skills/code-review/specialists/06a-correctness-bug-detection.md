@@ -47,9 +47,10 @@ When reviewing modifications to existing code, check for unintended changes:
 **Rule:** A change is only safe once you have traced every caller of the changed
 surface. Flag changes whose blast radius is not accounted for.
 
-**Scope:** code defaults (parameters, constants, field initializers) stay here. Changed defaults in
-infrastructure and configuration artifacts (`application*.yml`, Compose, Helm values, CI workflows) are
-→ **Covered by Specialist 12 (Infrastructure & Configuration).** Do not duplicate here.
+**Scope:** code defaults (parameters, constants, field initializers) stay here. Changed defaults and other
+changed values in infrastructure and configuration artifacts (`application*.yml`, Compose, Helm values, CI
+workflows) are → **Covered by Specialist 12, Rule 12.1 (Name Resolution and Changed Values Across
+Artifacts).** Do not duplicate here.
 
 ---
 

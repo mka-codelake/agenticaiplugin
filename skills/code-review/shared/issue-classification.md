@@ -66,6 +66,7 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
 
 13. **Infrastructure & Configuration Defects That Lose Data or Expose Secrets**
     - Env var / property name mismatch across artifacts that silently leaves persistence, retention, or security behavior at a default (no startup failure)
+    - Changed configuration value that silently alters what is persisted or for how long (retention, cleanup interval, backup window), or weakens security behavior (TLS/auth off, allowed origins widened, token lifetime extended)
     - Volume or mount that does not cover the path the application writes to (data lost on restart)
     - Real credential, token, private key, or password-bearing connection string in a committed configuration artifact; `.env` itself tracked in the repository
     - Datastore or admin interface published on all host interfaces (`0.0.0.0`) with default or absent authentication
@@ -205,6 +206,7 @@ Guidelines for classifying review findings by severity: Critical, Warning, or Su
 
 21. **Infrastructure & Configuration Issues**
     - Variable defined in an infrastructure artifact with no consumer, or consumed with no definition and no documented default
+    - Configuration value changed without tracing its consumers (timeout, pool or connection limit, retention, feature flag) — the name still resolves, the blast radius was never examined
     - Host-published port hardcoded without an env-var override, or on a collision-prone default (8080, 3000, 5432, …) for a long-running service
     - State-writing service without a volume; bind mount to a machine-specific host path
     - Secret passed as a Docker build `ARG`; default credentials shipped for a non-local service
@@ -314,8 +316,9 @@ Can a conditional write across an isolation boundary silently skip a state marke
     YES → CRITICAL
     NO  ↓
 
-Does a configuration defect silently lose data (unresolved name, wrong mount) or expose a secret
-(committed credential, unauthenticated datastore on 0.0.0.0, secrets reachable by untrusted CI code)?
+Does a configuration defect silently lose data (unresolved name, wrong mount, changed retention) or
+weaken security (changed auth/TLS setting, committed credential, unauthenticated datastore on 0.0.0.0,
+secrets reachable by untrusted CI code)?
     YES → CRITICAL
     NO  ↓
 
@@ -336,7 +339,8 @@ Is a conditional write across an isolation boundary unobservable, or does a test
     NO  ↓
 
 Is a configuration artifact unpinned, exposed further than needed, unlimited, orphaned (name without
-consumer), missing a health check, or an undocumented new setting?
+consumer), changed in value without its consumers traced, missing a health check, or an undocumented
+new setting?
     YES → WARNING
     NO  ↓
 
@@ -474,12 +478,14 @@ You can lower severity if:
 | Issue | Severity | Rationale |
 |-------|----------|-----------|
 | Env var name does not resolve, leaving persistence/security at its default | CRITICAL | Silent data loss, no startup failure |
+| Changed value alters retention/persistence or weakens security behavior | CRITICAL | Silent data or security impact, system keeps running |
 | Volume does not cover the application's write path | CRITICAL | Data lost on restart |
 | Real credential in a committed configuration artifact | CRITICAL | Secret exposure |
 | `.env` tracked in the repository | CRITICAL | Secret exposure |
 | Datastore on `0.0.0.0` with default/absent auth | CRITICAL | Directly reachable, unauthenticated |
 | CI secrets reachable from untrusted code | CRITICAL | Pipeline compromise |
 | Variable defined with no consumer (or consumed with no definition) | WARNING | Dead or unresolved configuration |
+| Value changed without tracing its consumers (timeout, pool size, limit, flag) | WARNING | Unexamined blast radius |
 | Host port hardcoded / collision-prone default | WARNING | Conflict forces edit of a tracked file |
 | State-writing service without a volume | WARNING | Persistence not guaranteed |
 | Secret passed as Docker build `ARG` | WARNING | Persists in image layer history |
