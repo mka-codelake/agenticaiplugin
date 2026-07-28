@@ -21,5 +21,6 @@ State failures, uncertainties, and trade-offs plainly. Never paper over a proble
 overstate confidence.
 
 ## Commits
-Never run `git commit` directly — commit via **/agenticaiplugin:gitme** (the git-smart-commit
-skill). A hook blocks raw `git commit`.
+Never run `git commit` directly — a hook blocks it. Commit via **/agenticaiplugin:gitme**;
+agents/sub-agents, which cannot invoke that command, use the skill
+**agenticaiplugin:git-smart-commit** instead.
