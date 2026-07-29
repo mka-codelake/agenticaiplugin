@@ -508,6 +508,9 @@ find $PKG_DIR -name "*.map" -type f 2>/dev/null | while read f; do
   python3 -c "
 import json,re,sys
 m = json.load(open('$f'))
+# Escaping: the four backslashes below become two inside the bash double quotes,
+# which the Python raw string reads as one literal backslash, so the character
+# class matches a Windows drive letter followed by a backslash or a forward slash.
 out = [s for s in (m.get('sources') or [])
        if s.startswith('../') or s.startswith('/') or re.match(r'^[A-Za-z]:[\\\\/]', s)]
 if out:
