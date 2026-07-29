@@ -488,7 +488,9 @@ find $PKG_DIR -type f \( \
 
 Any match here is critical — these patterns are documented credential-leak vectors. Reference: Check Point Research scanned ~46,500 npm packages and found `.claude/settings.local.json` in 428 of them, with 30+ containing real tokens.
 
-**8. Source-maps with embedded sourcesContent (Warning)** — would leak original TypeScript/source:
+**8. Source-map hygiene** — two opposite failure classes, both worth surfacing:
+
+**8a. Embedded `sourcesContent` (Warning)** — would leak original TypeScript/source:
 ```bash
 find $PKG_DIR -name "*.map" -type f 2>/dev/null | while read f; do
   python3 -c "
@@ -499,7 +501,25 @@ if m.get('sourcesContent') and any(s for s in m['sourcesContent']):
 " 2>/dev/null
 done
 ```
-Note: source-maps without `sourcesContent` are clean. Source-maps with `sources` containing absolute paths fall under check 1.
+
+**8b. `sources` pointing outside the package (informational)** — the map is unusable for consumers:
+```bash
+find $PKG_DIR -name "*.map" -type f 2>/dev/null | while read f; do
+  python3 -c "
+import json,re,sys
+m = json.load(open('$f'))
+out = [s for s in (m.get('sources') or [])
+       if s.startswith('../') or s.startswith('/') or re.match(r'^[A-Za-z]:[\\\\/]', s)]
+if out:
+    print('$f' + ': ' + ', '.join(out[:3]))
+" 2>/dev/null
+done
+```
+Report as: *Source-map references files outside the published tarball. Consumers cannot use it for debugging.*
+
+Rationale: this is not a leak but dead weight. The consumer installs the package, `../src/` does not exist in `node_modules/<pkg>/`, and go-to-source breaks. It is the mirror image of 8a — a source-map that is useless because it carries too little rather than too much.
+
+Note: a source-map without `sourcesContent` whose `sources` all stay inside the package is clean. Absolute paths in `sources` deliberately overlap with check 1 — there they match as a raw path string (Critical, build-environment leak), here as a semantic statement that the map points out of the package. One line may legitimately produce both findings; do not deduplicate them.
 
 **Cleanup after audit (always — even on error):**
 ```bash
@@ -507,7 +527,7 @@ rm -f {repo_path}/$TARBALL
 rm -rf $AUDIT_DIR
 ```
 
-Store all findings as `tarball_findings = { absolute_paths, emails, ips, hostnames, names, secrets, dotfiles, sourcemaps_with_content }` — each list contains file paths + counts + up to 3 example matches.
+Store all findings as `tarball_findings = { absolute_paths, emails, ips, hostnames, names, secrets, dotfiles, sourcemaps_with_content, sourcemaps_unreachable }` — each list contains file paths + counts + up to 3 example matches.
 
 #### 3f. Registry State
 
