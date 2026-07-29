@@ -163,7 +163,7 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 When the user requests a version bump:
 1. Update `version` in `.claude-plugin/plugin.json` — this is the **only** version file
 2. Update `skills/update-plugin/CHANGELOG.md` — add a new `## X.Y.Z` section at the top with all changes since the previous version (use git log to identify changes)
-3. Verify nothing was missed: `grep -rn "<old-version>" .claude-plugin/` must return exactly one hit — `plugin.json`
+3. Verify in `.claude-plugin/`: `grep -rn "<old-version>"` must come back empty, `grep -rn "<new-version>"` must return exactly one hit — `plugin.json`
 
 **`.claude-plugin/marketplace.json` deliberately carries no version field** (neither `metadata.version` nor `plugins[0].version`, removed in #66): `plugin.json` wins at install time, so an entry version would be silently ignored and could only ever drift out of sync. Do not add it back on a bump.
 
