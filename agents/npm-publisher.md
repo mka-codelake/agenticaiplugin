@@ -330,6 +330,22 @@ Read `package.json`. Check:
 - `engines.node` — explicit Node version constraint
 - `publishConfig.access` — "public" for unscoped or scoped-public packages
 
+**`description` content heuristic** (runs in addition to the presence check above, never replaces it):
+
+Match `description` case-insensitively with word boundaries (`\b`) against these publication-warning markers:
+- `DO NOT PUBLISH`
+- `FIXTURE`
+- `TEST` — standalone word only (`testing`, `Testable` must not match)
+- `PROTOTYPE`
+- `PLACEHOLDER`
+- `TODO`
+- `PRIVATE` — only when `private: true` is NOT set in package.json
+
+On a match, emit one **warning** naming the matched word:
+> Description contains a publication-warning marker ({matched word}). If this is a deliberate test, ignore. Otherwise update before publishing.
+
+Severity is deliberately **warning, not critical**: the word boundaries cut false alarms down but do not eliminate them (e.g. "Testing utilities for ..."). This is an "are you sure?" prompt, not a hard block — do not escalate it. Route the finding into `pkg_json_warnings`.
+
 **Common mistakes:**
 - `bin` paths starting with `./` → npm 10+ warns and auto-corrects on publish (`bin: "./dist/cli.js"` → `bin: "dist/cli.js"`)
 - `private: true` set when intent is to publish → would block publish
