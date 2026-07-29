@@ -26,7 +26,7 @@ plugin-name/
 
 ## Plugin Metadata (.claude-plugin/plugin.json)
 
-**Required fields:**
+**Fields:**
 ```json
 {
   "name": "plugin-identifier",
@@ -37,6 +37,8 @@ plugin-name/
   }
 }
 ```
+
+Officially only `name` is required — `description`, `version` and `author` are optional. Set `version` anyway: without it Claude Code falls back to the commit SHA, which makes every single commit look like an update. That is the opposite of the tagged releases this repo ships.
 
 **No registration needed** - Claude Code auto-discovers all components.
 
