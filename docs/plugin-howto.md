@@ -943,7 +943,7 @@ See `skills/code-review/orchestration.md` for the full orchestration playbook
 ## Summary Checklist
 
 Creating a plugin:
-- [ ] Create `.claude-plugin/plugin.json` with required fields
+- [ ] Create `.claude-plugin/plugin.json` with its fields
 - [ ] Add skills in `skills/skill-name/SKILL.md` (if needed)
 - [ ] Add agents in `agents/agent-name.md` (if needed)
 - [ ] Add commands in `commands/command-name.md` (legacy; prefer `skills/` for new features)
