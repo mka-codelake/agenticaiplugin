@@ -64,11 +64,11 @@ The `agenticaiplugin:npm-publisher` agent runs an 11-phase workflow (Phases 0–
    - Generates a Keep-a-Changelog entry from grouped commits — user reviews
    - Commits as `chore(release): vX.Y.Z`
 4. **Audits** the package across seven dimensions:
-   - **package.json hygiene** — required + recommended fields, common mistakes
+   - **package.json hygiene** — required + recommended fields, common mistakes, publication-warning markers in `description`
    - **Version sync** — informational if cutting ran, critical otherwise
    - **License compliance** — LICENSE present + matches; for Apache-2.0: NOTICE in `files[]`
    - **README sanity** — exists, has Installation + Usage (mandatory for first publish)
-   - **Tarball content** — builds a real `npm pack`, extracts, scans for absolute paths, emails, IPs, internal hostnames, real names, secret patterns (JWT, npm/GitHub/OpenAI/Anthropic/Slack/AWS tokens), dotfile leaks (`.claude/settings.local.json`, `.env`, `.npmrc`, `.aws/`, `.ssh/`, private keys), and source-maps with embedded `sourcesContent`
+   - **Tarball content** — builds a real `npm pack`, extracts, scans for absolute paths, emails, IPs, internal hostnames, real names, secret patterns (JWT, npm/GitHub/OpenAI/Anthropic/Slack/AWS tokens), dotfile leaks (`.claude/settings.local.json`, `.env`, `.npmrc`, `.aws/`, `.ssh/`, private keys), and source-map hygiene (embedded `sourcesContent`, `sources` pointing outside the package)
    - **Registry state** — first publish vs. update, version bump check, maintainer membership
    - **Dependencies** — `npm audit` for production deps, outdated check
 5. **Displays** classified findings (Critical / Warning / Informational with `✓` `⚠` `ℹ` icons), prepended with a "Release Cut" summary if Phase 2 ran
@@ -85,7 +85,7 @@ Releasing to npm has more sharp edges than first-time publishers expect:
 - `bin` paths with `./` prefix trigger npm 10+ warnings and are auto-corrected at publish time (your source-of-truth `package.json` then drifts from the registry)
 - Hard-coded `VERSION` constants in source files silently drift from `package.json.version` after a bump — `--version` reports the wrong number
 - Apache-2.0 requires `NOTICE` in the distribution; npm only auto-includes README/LICENSE/CHANGELOG, so `NOTICE` must be explicit in `files[]`
-- Source-maps with `sourcesContent` would publish your full TypeScript source to the registry
+- Source-maps with `sourcesContent` would publish your full TypeScript source to the registry; maps whose `sources` point outside the tarball ship as dead weight and break go-to-source for consumers
 - Check Point Research scanned ~46,500 npm packages and found `.claude/settings.local.json` in 428 of them — 30+ contained real npm tokens, GitHub PATs, or third-party service credentials
 - Choosing the right semver bump from a long commit history is error-prone manually — Conventional Commits make it tractable
 

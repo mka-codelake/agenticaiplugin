@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "A Claude Code productivity toolkit: intelligent code reviews, architecture audits, license compliance checking, QA traceability, smart Git commits, GitHub/npm repository publishing, agent communication personas, and self-learning skills.",
-    "version": "0.27.0"
+    "version": "0.27.1"
   },
   "plugins": [
     {
       "name": "agenticaiplugin",
       "source": "./",
       "description": "A Claude Code productivity toolkit: intelligent code reviews, architecture audits, license compliance checking, QA traceability, smart Git commits, GitHub/npm repository publishing, agent communication personas, and self-learning skills.",
-      "version": "0.27.0",
+      "version": "0.27.1",
       "author": {
         "name": "Michael Kagel"
       },
