@@ -26,7 +26,7 @@ plugin-name/
 
 ## Plugin Metadata (.claude-plugin/plugin.json)
 
-**Required fields:**
+**Fields:**
 ```json
 {
   "name": "plugin-identifier",
@@ -37,6 +37,8 @@ plugin-name/
   }
 }
 ```
+
+Officially only `name` is required — `description`, `version` and `author` are optional. Set `version` anyway: without it Claude Code falls back to the commit SHA, which makes every single commit look like an update. That is the opposite of the tagged releases this repo ships.
 
 **No registration needed** - Claude Code auto-discovers all components.
 
@@ -941,7 +943,7 @@ See `skills/code-review/orchestration.md` for the full orchestration playbook
 ## Summary Checklist
 
 Creating a plugin:
-- [ ] Create `.claude-plugin/plugin.json` with required fields
+- [ ] Create `.claude-plugin/plugin.json` with its fields
 - [ ] Add skills in `skills/skill-name/SKILL.md` (if needed)
 - [ ] Add agents in `agents/agent-name.md` (if needed)
 - [ ] Add commands in `commands/command-name.md` (legacy; prefer `skills/` for new features)

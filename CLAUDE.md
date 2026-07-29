@@ -161,10 +161,11 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 **Proactively ask about versioning:** BEFORE starting any change to plugin artifacts (skills, hooks, agents, workflows — not pure planning docs), ask the user whether the change should ship under a new version number (PATCH/MINOR). Without this question, bumps get forgotten.
 
 When the user requests a version bump:
-1. Update `version` in `.claude-plugin/plugin.json`
-2. Update **both** version fields in `.claude-plugin/marketplace.json` — `metadata.version` **and** `plugins[0].version`
-3. Update `skills/update-plugin/CHANGELOG.md` — add a new `## X.Y.Z` section at the top with all changes since the previous version (use git log to identify changes)
-4. Verify nothing was missed: `grep -rn "<old-version>" .claude-plugin/` must come back empty (three version strings across two files)
+1. Update `version` in `.claude-plugin/plugin.json` — this is the **only** version file
+2. Update `skills/update-plugin/CHANGELOG.md` — add a new `## X.Y.Z` section at the top with all changes since the previous version (use git log to identify changes)
+3. Verify in `.claude-plugin/`: `grep -rn "<old-version>"` must come back empty, `grep -rn "<new-version>"` must return exactly one hit — `plugin.json`
+
+**`.claude-plugin/marketplace.json` deliberately carries no version field** (neither `metadata.version` nor `plugins[0].version`, removed in #66): `plugin.json` wins at install time, so an entry version would be silently ignored and could only ever drift out of sync. Do not add it back on a bump.
 
 ---
 

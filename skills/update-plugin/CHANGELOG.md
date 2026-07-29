@@ -5,6 +5,14 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.27.2
+
+- **Version maintenance drops from four places to two — the two ineffective ones are gone (#66).** Since `df064a2` the version number lived in `plugin.json`, in `metadata.version` **and** `plugins[0].version` of `.claude-plugin/marketplace.json`, and in this CHANGELOG. Claude Code resolves the plugin version in a fixed order — `plugin.json` → marketplace entry → commit SHA — so with `plugin.json.version` set (and it always is), the entry version is **never read**. The official documentation advises against the duplication for exactly that reason: a stale manifest version can mask the value set in the marketplace entry, silently. `metadata.version` was the wrong concept on top of that — per schema it versions the *catalog*, not the plugin, and it sat in the legacy spelling under `metadata` rather than canonically at top level.
+  - **Both `version` fields removed from `.claude-plugin/marketplace.json`.** Verified empirically with `claude plugin validate`: a mismatch (manifest 0.27.1 vs. entry 0.26.9) produces a warning and fails under `--strict`, while omitting the fields entirely passes clean — `✔ Validation passed`, exit 0, **including** `--strict`. Omission is not merely permitted, it is the only state that can produce neither divergence nor warning.
+  - **`CLAUDE.md` versioning section rolled back** to the two real maintenance points (`plugin.json`, CHANGELOG) — the `marketplace.json` step introduced in 0.27.1 is withdrawn again. It now states explicitly that `marketplace.json` carries no version **by design**, with the reason, so the next bump does not helpfully add it back. The `grep` counter-check remains and now runs in both directions: the old version must be gone from `.claude-plugin/` entirely, the new one must appear exactly once.
+  - **`docs/plugin-howto.md`: `version` is no longer listed as a required field of `plugin.json`** — officially `name` is the only one. We keep setting it regardless, and the file now says why: without it Claude Code falls back to the commit SHA, which would make every commit count as an update — incompatible with this repo's tagged releases.
+  - Deliberately **not** in scope, to be assessed separately: a `node --test` sync test coupling `plugin.json` to the CHANGELOG, and `claude plugin validate` as a CI gate.
+
 ## 0.27.1
 
 - **`npm-publish` audit: two new checkpoints from the negative-test validation, both deliberately low-severity.** Neither is a security fix; both close a case where the audit looked at an artifact and reported nothing although the artifact plainly announced its own problem.
