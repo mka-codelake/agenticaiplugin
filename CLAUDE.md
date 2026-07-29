@@ -162,7 +162,9 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 
 When the user requests a version bump:
 1. Update `version` in `.claude-plugin/plugin.json`
-2. Update `skills/update-plugin/CHANGELOG.md` — add a new `## X.Y.Z` section at the top with all changes since the previous version (use git log to identify changes)
+2. Update **both** version fields in `.claude-plugin/marketplace.json` — `metadata.version` **and** `plugins[0].version`
+3. Update `skills/update-plugin/CHANGELOG.md` — add a new `## X.Y.Z` section at the top with all changes since the previous version (use git log to identify changes)
+4. Verify nothing was missed: `grep -rn "<old-version>" .claude-plugin/` must come back empty (three version strings across two files)
 
 ---
 
