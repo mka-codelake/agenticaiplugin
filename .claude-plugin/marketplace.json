@@ -1,0 +1,24 @@
+{
+  "name": "agenticaiplugin",
+  "owner": {
+    "name": "Michael Kagel"
+  },
+  "metadata": {
+    "description": "A Claude Code productivity toolkit: intelligent code reviews, architecture audits, license compliance checking, QA traceability, smart Git commits, GitHub/npm repository publishing, agent communication personas, and self-learning skills.",
+    "version": "0.27.0"
+  },
+  "plugins": [
+    {
+      "name": "agenticaiplugin",
+      "source": "./",
+      "description": "A Claude Code productivity toolkit: intelligent code reviews, architecture audits, license compliance checking, QA traceability, smart Git commits, GitHub/npm repository publishing, agent communication personas, and self-learning skills.",
+      "version": "0.27.0",
+      "author": {
+        "name": "Michael Kagel"
+      },
+      "license": "Apache-2.0",
+      "keywords": ["code-review", "git", "github", "npm", "license-compliance", "qa", "productivity"],
+      "category": "productivity"
+    }
+  ]
+}
