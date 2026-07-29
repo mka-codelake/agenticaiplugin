@@ -23,7 +23,7 @@ Best practice for public packages. Warnings if missing.
 
 | Field | Recommendation |
 |---|---|
-| `description` | Non-empty, one-line summary. Shown on the npm registry page. |
+| `description` | Non-empty, one-line summary. Shown on the npm registry page. Content is additionally matched (case-insensitive, word boundaries) against publication-warning markers — `DO NOT PUBLISH`, `FIXTURE`, `TEST`, `PROTOTYPE`, `PLACEHOLDER`, `TODO`, and `PRIVATE` unless `private: true` is set. A match is a warning, not a block. |
 | `author` | String `"Name"` or object `{name, email, url}`. |
 | `repository` | Object `{type: "git", url: "git+https://github.com/..."}`. Drives the registry page's "Repository" link. |
 | `bugs` | `{url: "https://github.com/.../issues"}`. |
@@ -214,7 +214,11 @@ find $PKG_DIR -type f \( \
 
 The `.claude/` directory is meant for local Claude Code workspace settings and should be added to `.npmignore` and `.gitignore`. The skill's default `.npmignore.j2` template covers this and the broader credential-file patterns.
 
-### 3.8 Source-Maps with Embedded `sourcesContent` (Warning)
+### 3.8 Source-Map Hygiene
+
+Two opposite failure classes — a map that carries too much, and one that carries too little.
+
+**Embedded `sourcesContent` (Warning)**
 
 Source-maps reference original source files via the `sources` array. They optionally embed the original content via `sourcesContent`. When TypeScript projects publish only the compiled output (`dist/`), source-maps with `sourcesContent` effectively republish the entire TypeScript source — defeating the point of distributing only compiled JS.
 
@@ -231,7 +235,26 @@ done
 
 To fix at the source: `tsconfig.json` → `compilerOptions.sourceMap: true` (no `inlineSources`, no `inlineSourceMap`).
 
-Source-maps with `sources` containing absolute paths fall under Section 3.2.
+**`sources` pointing outside the package (informational)**
+
+The mirror image: entries in `sources` that start with `../` or are absolute point at paths that do not exist inside `node_modules/<pkg>/` after install. The map ships as dead weight and go-to-source breaks for consumers. Not a leak — a map that is useless because it carries too little.
+
+```bash
+find $PKG_DIR -name "*.map" -type f 2>/dev/null | while read f; do
+  python3 -c "
+import json,re,sys
+m = json.load(open('$f'))
+out = [s for s in (m.get('sources') or [])
+       if s.startswith('../') or s.startswith('/') or re.match(r'^[A-Za-z]:[\\\\/]', s)]
+if out:
+    print('$f' + ': ' + ', '.join(out[:3]))
+" 2>/dev/null
+done
+```
+
+To fix at the source: emit the map from a build whose `rootDir`/`outDir` keep sources inside the published tree, or set `compilerOptions.sourceRoot` so the references resolve within the package. Dropping the `.map` files from `files[]` is the alternative when consumers are not meant to debug into the source at all.
+
+A map without `sourcesContent` whose `sources` all stay inside the package is clean. Absolute paths in `sources` deliberately overlap with Section 3.2 — there they match as a raw path string (Critical, build-environment leak), here as a semantic statement that the map points out of the package. One line may legitimately produce both findings; do not deduplicate them.
 
 ### 3.9 False-Positive Downgrades
 
