@@ -335,7 +335,7 @@ git -C "{repo_path}" commit -m "chore(release): v{next_version}"
 ```
 ✓ Release cut: v{PKG_VERSION} → v{next_version} ({bump_type})
   - package.json: version updated
-  - {N} source files: VERSION constant synced   {or, if Step F printed SKIPPED: "source VERSION constants: not checked — no source dir (src, app/src, lib)"}
+  - {VERSION constant synced in {N} source files | VERSION constants not checked — no source dir (src, app/src, lib), Step F printed SKIPPED}
   - CHANGELOG.md: new section added
   - Commit: chore(release): v{next_version}
 
