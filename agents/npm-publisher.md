@@ -310,7 +310,7 @@ git -C "{repo_path}" commit -m "chore(release): v{next_version}"
 ```
 ✓ Release cut: v{PKG_VERSION} → v{next_version} ({bump_type})
   - package.json: version updated
-  - {N} source files: VERSION constant synced
+  - {N} source files: VERSION constant synced   {or, if Step F printed SKIPPED: "source VERSION constants: not checked — no source dir (src, app/src, lib)"}
   - CHANGELOG.md: new section added
   - Commit: chore(release): v{next_version}
 
@@ -401,7 +401,7 @@ else
 fi
 ```
 
-Same pre-filter rationale as Phase 2.4 Step F. This check carries the stronger claim of the two: when Phase 2 was skipped it is the *only* sync defense, so an empty result is reported as "versions are in sync". A `SKIPPED (...)` line means nothing was searched — surface it as an informational finding rather than a clean check.
+Same pre-filter rationale as Phase 2.4 Step F — keep the two blocks in sync when either changes (their `--include` lists already differ: Step F additionally covers `*.java`). This check carries the stronger claim of the two: when Phase 2 was skipped it is the *only* sync defense, so an empty result is reported as "versions are in sync". A `SKIPPED (...)` line means nothing was searched — surface it as an informational finding rather than a clean check.
 
 For each match, compare against current `package.json.version`. Store: `version_mismatches` (list of `{file, line, found_version, expected_version}`).
 
@@ -626,7 +626,7 @@ NPM Publish — Audit Status
   {If Phase 2 ran a bump:}
   Release Cut
     {check} Bumped {old_version} → {new_version} ({bump_type}, {N} commits)
-    {check} Source VERSION constants synced ({M} files)
+    {✓ source VERSION constants synced ({M} files) | ℹ not checked — no source dir (src, app/src, lib)}
     {check} CHANGELOG.md entry added
     {check} Commit: chore(release): v{new_version}
 
@@ -638,7 +638,7 @@ NPM Publish — Audit Status
     {checks for required fields, recommended fields, common mistakes}
 
   Version Sync
-    {✓ all source constants match | ⚠ ... | ℹ handled by cutting (see Release Cut above)}
+    {✓ all source constants match | ⚠ ... | ℹ handled by cutting (see Release Cut above) | ℹ not checked — no source dir (src, app/src, lib), version sync unverified}
 
   License
     {LICENSE present? matches package.json.license? Apache-2.0 NOTICE handling}
@@ -673,6 +673,7 @@ Use `AskUserQuestion` for each fix that requires user input. Batch where possibl
 
 **Group C — Version sync fixes** (one AskUserQuestion per affected file):
 - Only triggers if Phase 3b found mismatches that Phase 2 didn't catch
+- A Phase 3b `SKIPPED (...)` is deliberately **not** a trigger here: there is no file and no mismatch, so no fix can be offered. It surfaces in the Phase 4 report only — as `ℹ not checked`, never as `✓`.
 - "File X has VERSION = '{found}', package.json says '{expected}'. Update file?"
 - Options: Update file / Update package.json / Skip (already correct intent)
 
