@@ -36,11 +36,36 @@ Execute these phases in order. Read `skills/npm-publisher/reference.md` for deta
 **If `--repo` parameter was provided:**
 
 1. **Local path** (starts with `/`, `~`, `.`, or drive letter):
-   - Verify directory exists: `ls -d "{path}" 2>/dev/null`
-   - Verify it contains `package.json`: `ls "{path}/package.json" 2>/dev/null`
+
+   **Normalize it once, here, before storing it.** The value arrives as plain text from the
+   command line, never through a shell, so `~` is still literal and a relative path is still
+   relative. Every later phase interpolates the stored path into a *double-quoted* shell word,
+   and bash does not expand `~` inside double quotes (`ls -d "~"` fails where `ls -d ~` works) —
+   so an unnormalized `~/myrepo` would be rejected as invalid, and the same unresolved value
+   would poison every quoted command downstream.
+
+   ```bash
+   node -e 'const p=require("path"),os=require("os");let a=process.argv[1];if(a==="~"||a.startsWith("~/")||a.startsWith("~\\"))a=p.join(os.homedir(),a.slice(1));process.stdout.write(p.resolve(a))' "{raw --repo value}"
+   ```
+
+   Node rather than `readlink -f` or `realpath`: neither is reliably present on native Windows,
+   while Node is a hard prerequisite of this plugin (same reasoning as the JSON reads below).
+   `path.resolve` also keeps a `C:\...` drive path absolute and untouched on Windows and turns
+   `~\myrepo` into a home-relative path there, where the shell would never have expanded it.
+
+   Do **not** expand `~` with `eval` or by leaving the word unquoted — both hand the `--repo`
+   value to the shell as code and reopen exactly the injection this quoting pass closed. Passing
+   the raw value as `process.argv[1]` keeps it data. `~user` (another account's home) is not
+   expanded; pass such a path in full.
+
+   - Store the printed absolute path as `{repo_path}`. All later phases use `{repo_path}` — the
+     raw input is never interpolated again.
+   - Verify directory exists: `ls -d "{repo_path}" 2>/dev/null`
+   - Verify it contains `package.json`: `ls "{repo_path}/package.json" 2>/dev/null`
    - If invalid → report error and STOP
 
-2. **No `--repo` parameter:** Use current working directory.
+2. **No `--repo` parameter:** Use current working directory — store `pwd` output as `{repo_path}`
+   so the value is absolute here too.
 
 **Verify the target is a single npm package, not a monorepo:**
 
