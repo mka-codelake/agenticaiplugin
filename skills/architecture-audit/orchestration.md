@@ -9,6 +9,8 @@ Detailed orchestration logic for the multi-analyzer architecture audit.
 > remains the **single source of truth for the rules and report structure**, and is the
 > **complete prompt-based fallback** used when the Workflow feature is unavailable or declined.
 > Discovery and tech-stack detection (Steps 1–2) stay with the main model either way.
+> Keep the two consistent: if you change sequencing/model choice/rating math, change it in
+> the script and reflect it here.
 
 ## Fundamental Principle: Describe & Assess
 
@@ -210,7 +212,10 @@ Wait for completion. Extract:
 
 ## Step 4: Phase 2 — Parallel Analyzers
 
-Spawn **Analyzers 02-07** in a single message (6 parallel Task calls).
+Spawn **Analyzers 02-07** in a single message (6 parallel Task calls). This fan-out — like
+the Phase 1 spawn in Step 3 — applies to the **main session only**: an agent without the
+`Workflow` tool (sub-agent/fork) does not run this orchestration at all and spawns nothing
+(see `SKILL.md`).
 
 **Model selection per analyzer:**
 

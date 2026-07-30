@@ -1,7 +1,6 @@
 ---
 description: Run comprehensive architecture audit. Analyzes project structure, patterns, boundaries, naming, dependencies. Produces a rated assessment report. Invoke via /agenticaiplugin:architecture-audit.
 disable-model-invocation: true
-context: fork
 effort: xhigh
 ---
 
@@ -96,9 +95,16 @@ Do NOT auto-fix. The audit describes and rates; the user decides next steps.
 
 ### Fallback (if the Workflow feature is unavailable or declined)
 
-Fall back to the prompt-based orchestration in `orchestration.md` (Steps 3–6). It is a
-complete specification of the same sequencing, model choice, rating calculation, and report
-format.
+**Main session only.** Fall back to the prompt-based orchestration in `orchestration.md`
+(Steps 3–6). It is a complete specification of the same sequencing, model choice, rating
+calculation, and report format. The only feature unique to the workflow path is the exact
+JS rating math — in the fallback the model computes the weighted average itself.
+
+**Sub-agent or fork (no `Workflow` tool available):** run **no** audit and spawn **nothing**.
+The prompt fallback fans out seven analyzer sub-agents, and a sub-agent must not fan out
+further sub-agents. Report back instead that the audit has to run at orchestrator level — it
+assesses the whole project, not the slice of work that was delegated, so its scope and its
+report belong to the session that owns the project.
 
 ## Skill Contents
 
