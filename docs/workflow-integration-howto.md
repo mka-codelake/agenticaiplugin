@@ -28,7 +28,7 @@ plugin skills.
 | # | Question | **Decision** |
 |---|----------|--------------|
 | **A** | Script location & naming | `skills/<skill>/<name>.workflow.js`, **one file per skill** (`review.workflow.js`, `audit.workflow.js`). Use a `skills/<skill>/workflow/` subdir only if a skill ever needs multiple scripts. |
-| **B** | How `SKILL.md` calls the script | Main model resolves **`{skill_dir}`** (absolute path of the skill's own directory — same mechanism `skills/qa/` already uses in production) and builds `scriptPath = {skill_dir}/<name>.workflow.js`. **Do not** rely on `${CLAUDE_PLUGIN_ROOT}` in shell — it is empty in the normal tool context (verified). |
+| **B** | How `SKILL.md` calls the script | Main model resolves **`{skill_dir}`** (absolute path of the skill's own directory — same mechanism `skills/qa/` already uses in production) and builds `scriptPath = {skill_dir}/<name>.workflow.js`. **Do not** rely on `${CLAUDE_PLUGIN_ROOT}` in shell — it is empty in the normal tool context (verified). — **amended, see A1 below** |
 | **C** | Input passing | One **structured object** via the tool's `args` field, with a stable shape (see §4). **Critical empirical finding:** `args` arrives in the script as a **JSON string**, not a parsed object → the script MUST normalize: `const input = typeof args === "string" ? JSON.parse(args) : (args ?? {})`. Flags are **fields**, never a bare array. |
 | **D** | Sandbox I/O boundary | Main model collects all inputs **before** the call and writes all output **after** the call. The script touches **no files**. Exception: a final in-workflow `agent()` is allowed only when a synthesis step genuinely needs every prior result in one reasoning context (e.g. #11's consolidation stage). |
 | **E** | Opt-in & fallback | The `SKILL.md` instruction to call `Workflow` **is** the opt-in (state it explicitly). Strategy = **graceful fallback**: keep the existing prompt-based `orchestration.md` path usable when the feature is unavailable/declined. Consequence: `orchestration.md`/`reference.md` MUST stay a complete spec. |
@@ -38,6 +38,27 @@ plugin skills.
 | **I** | Resume & local testing | Iterate with `scriptPath` + `resumeFromRunId` (cached agents return instantly). See §6. |
 | **J** | Single source of truth | **Script is authoritative for control flow & activation.** The `.md` files (`orchestration.md`, specialist/analyzer rule files) remain authoritative for the **domain content** and human-readable rules. Keep them consistent. |
 
+### Amendments
+
+Decisions above stay as written — this is what has since replaced them and why.
+
+**A1 (2026-07-30) — amends decision B: `SKILL.md` uses `${CLAUDE_SKILL_DIR}`, not `{skill_dir}`.**
+
+B chose the `{skill_dir}` placeholder because `${CLAUDE_PLUGIN_ROOT}` had been measured as
+empty *in shell* and the spike generalized that to "unreliable in the tool context". A later
+blind-test measurement (plugin installed under a random name, no absolute paths in the
+content, all search tools blocked) separated the contexts: **both `${CLAUDE_SKILL_DIR}` and
+`${CLAUDE_PLUGIN_ROOT}` are substituted in a `SKILL.md` body**; only the shell sees them
+empty. B's shell caveat therefore still holds — its conclusion for markdown does not.
+
+New rule (full table in `plugin-howto.md` → *Path Substitution*): a `SKILL.md` writes
+`scriptPath = ${CLAUDE_SKILL_DIR}/<name>.workflow.js` directly, with no "resolve this
+directory" preamble. `{skill_dir}` survives **only** in companion files (`orchestration.md`,
+`reference.md`) and sub-agent prompts, where nothing is substituted; the `SKILL.md` states
+`{skill_dir}` = `${CLAUDE_SKILL_DIR}` once and the model substitutes it when it builds those
+prompts. That keeps decision B's actual intent — one guaranteed source for the path — and
+replaces the unspecified "main model resolves it" step with a harness guarantee.
+
 ---
 
 ## 2. The flow in three actors
@@ -46,7 +67,7 @@ plugin skills.
 ┌─ SKILL.md (main model, full tools) ──────────────────────────────┐
 │ 1. Parse mode/flags, run --help / arg validation                 │
 │ 2. Collect inputs: git diff, file lists, ctx flags, date, scope  │
-│ 3. Resolve scriptPath = {skill_dir}/<name>.workflow.js           │
+│ 3. scriptPath = ${CLAUDE_SKILL_DIR}/<name>.workflow.js           │
 │ 4. Call Workflow tool { scriptPath, args: <structured object> }  │
 │ 7. Receive structured return → render report → WRITE to claudedocs│
 └──────────────────────────────────────────────────────────────────┘
@@ -165,7 +186,7 @@ Rules:
 
 ## 5. Opt-in & graceful fallback (question E)
 
-1. `SKILL.md` states explicitly: *"Call the `Workflow` tool with `scriptPath = {skill_dir}/<name>.workflow.js` and the `args` below."* That instruction is the opt-in.
+1. `SKILL.md` states explicitly: *"Call the `Workflow` tool with `scriptPath = ${CLAUDE_SKILL_DIR}/<name>.workflow.js` and the `args` below."* That instruction is the opt-in.
 2. If the feature is unavailable or the user declines, **fall back** to the existing
    prompt-based orchestration documented in `orchestration.md`. Therefore
    `orchestration.md`/`reference.md` must remain a **complete** specification of the
@@ -195,7 +216,7 @@ Rules:
 
 - [ ] Script at `skills/<skill>/<name>.workflow.js`, canonical hook form (§3).
 - [ ] `SKILL.md`: keep mode parsing, `--help`, arg validation, input collection;
-      add the explicit `Workflow` call with `{skill_dir}`-resolved `scriptPath`.
+      add the explicit `Workflow` call with `scriptPath = ${CLAUDE_SKILL_DIR}/<name>.workflow.js`.
 - [ ] `args` normalized with the `JSON.parse` guard; flags as fields.
 - [ ] Script writes **nothing**; main model writes the report after return
       (`code-review` → `claudedocs/code-review-result.md`;
@@ -233,6 +254,7 @@ no `files` whitelist in `plugin.json`; `git check-ignore skills/code-review/revi
   `JSON.parse` guard or all inputs silently fall back to defaults (this exact bug
   was reproduced twice before the fix).
 - **`${CLAUDE_PLUGIN_ROOT}` is not a reliable shell variable** in the tool context
-  (empty). Path resolution uses `{skill_dir}`.
+  (empty). In a `SKILL.md` body it *is* substituted, and path resolution now goes
+  through `${CLAUDE_SKILL_DIR}` (amendment A1).
 - **No `agent().catch()` failure handling.** Failures surface as `null`; use
   `.filter(Boolean)`. The IST-skeletons' `.catch()` would not fire.
