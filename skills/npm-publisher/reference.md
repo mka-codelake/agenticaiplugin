@@ -99,7 +99,7 @@ Missing → warning. Don't auto-create — push to `github-publish` skill which 
 
 ### 3.1 Workflow
 
-1. Build a real tarball: `cd {repo_path} && npm pack --json` (captures filename)
+1. Build a real tarball: `cd "{repo_path}" && npm pack --json` (captures filename). If it yields no tarball name, abort the tarball audit — an empty `$PKG_DIR` makes every scan below report "nothing found" for a package that was never scanned.
 2. Extract to a tempdir: `mktemp -d -t npm-audit-XXXXXXXX`, then `tar -xzf`
 3. Run all scans against the extracted `package/` directory
 4. **Always clean up** in a `finally`-equivalent: delete tempdir and the `.tgz` from the package directory
@@ -112,7 +112,7 @@ Leaks build-environment paths and reveals OS / username structure.
 
 ```bash
 grep -rnE "/home/[a-zA-Z]|/Users/[a-zA-Z]|/root/[a-zA-Z]|/mnt/[a-z]/|C:\\\\[Uu]sers" \
-  $PKG_DIR --include="*.js" --include="*.json" --include="*.md" --include="*.map" 2>/dev/null
+  "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.map" 2>/dev/null
 ```
 
 Common sources:
@@ -129,7 +129,7 @@ Allowlist:
 
 ```bash
 grep -rnE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" \
-  $PKG_DIR --include="*.js" --include="*.json" --include="*.md" --include="*.txt" 2>/dev/null
+  "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.txt" 2>/dev/null
 ```
 
 Whitelist — these are expected and not findings:
@@ -144,7 +144,7 @@ Other matches → ask user per file (could be intentional contact info, could be
 ### 3.4 IP Addresses (Warning)
 
 ```bash
-grep -rnE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" $PKG_DIR \
+grep -rnE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" "$PKG_DIR" \
   --include="*.js" --include="*.json" --include="*.md" 2>/dev/null
 ```
 
@@ -160,7 +160,7 @@ Findings worth flagging:
 ### 3.5 Hostnames (Warning)
 
 ```bash
-grep -rnE "\b(localhost|[a-z0-9-]+\.local|[a-z0-9-]+\.lan|[a-z0-9-]+\.intern|[a-z0-9-]+\.corp|[a-z0-9-]+\.intranet|raspberry[a-z0-9-]*|rpi[0-9-]*|pihole[a-z0-9-]*|homelab[a-z0-9-]*)\b" $PKG_DIR \
+grep -rnE "\b(localhost|[a-z0-9-]+\.local|[a-z0-9-]+\.lan|[a-z0-9-]+\.intern|[a-z0-9-]+\.corp|[a-z0-9-]+\.intranet|raspberry[a-z0-9-]*|rpi[0-9-]*|pihole[a-z0-9-]*|homelab[a-z0-9-]*)\b" "$PKG_DIR" \
   --include="*.js" --include="*.json" --include="*.md" --include="*.txt" 2>/dev/null
 ```
 
@@ -197,7 +197,7 @@ The most important audit. Use this regex catalog:
 Files that should never appear in published tarballs. Documented credential-leak vectors.
 
 ```bash
-find $PKG_DIR -type f \( \
+find "$PKG_DIR" -type f \( \
   -path '*/.claude/*' -o \
   -name 'settings.local.json' -o \
   -name '.env' -o -name '.env.*' -o -name '*.env' -o \
@@ -223,13 +223,16 @@ Two opposite failure classes — a map that carries too much, and one that carri
 Source-maps reference original source files via the `sources` array. They optionally embed the original content via `sourcesContent`. When TypeScript projects publish only the compiled output (`dist/`), source-maps with `sourcesContent` effectively republish the entire TypeScript source — defeating the point of distributing only compiled JS.
 
 ```bash
-find $PKG_DIR -name "*.map" -type f 2>/dev/null | while read f; do
-  python3 -c "
-import json,sys
-m = json.load(open('$f'))
-if m.get('sourcesContent') and any(s for s in m['sourcesContent']):
-    print('$f')
-" 2>/dev/null
+find "$PKG_DIR" -name "*.map" -type f -print0 | while IFS= read -r -d '' f; do
+  node -e '
+const fs = require("fs");
+const f = process.argv[1];
+let m;
+try { m = JSON.parse(fs.readFileSync(f, "utf8")); }
+catch (e) { console.error("SKIPPED (unreadable or invalid JSON): " + f + " - " + e.message); process.exit(0); }
+const c = Array.isArray(m.sourcesContent) ? m.sourcesContent : [];
+if (c.some(s => s)) console.log(f);
+' "$f"
 done
 ```
 
@@ -240,22 +243,26 @@ To fix at the source: `tsconfig.json` → `compilerOptions.sourceMap: true` (no 
 The mirror image: entries in `sources` that start with `../` or are absolute point at paths that do not exist inside `node_modules/<pkg>/` after install. The map ships as dead weight and go-to-source breaks for consumers. Not a leak — a map that is useless because it carries too little.
 
 ```bash
-find $PKG_DIR -name "*.map" -type f 2>/dev/null | while read f; do
-  python3 -c "
-import json,re,sys
-m = json.load(open('$f'))
-# Escaping: the four backslashes below become two inside the bash double quotes,
-# which the Python raw string reads as one literal backslash, so the character
-# class matches a Windows drive letter followed by a backslash or a forward slash.
-out = [s for s in (m.get('sources') or [])
-       if s.startswith('../') or s.startswith('/') or re.match(r'^[A-Za-z]:[\\\\/]', s)]
-if out:
-    print('$f' + ': ' + ', '.join(out[:3]))
-" 2>/dev/null
+find "$PKG_DIR" -name "*.map" -type f -print0 | while IFS= read -r -d '' f; do
+  node -e '
+const fs = require("fs");
+const f = process.argv[1];
+let m;
+try { m = JSON.parse(fs.readFileSync(f, "utf8")); }
+catch (e) { console.error("SKIPPED (unreadable or invalid JSON): " + f + " - " + e.message); process.exit(0); }
+const sources = Array.isArray(m.sources) ? m.sources : [];
+// In the JS regex literal, \\ is one literal backslash: the class matches a
+// Windows drive letter followed by either a backslash or a forward slash.
+const out = sources.filter(s => typeof s === "string" &&
+  (s.startsWith("../") || s.startsWith("/") || /^[A-Za-z]:[\\/]/.test(s)));
+if (out.length) console.log(f + ": " + out.slice(0, 3).join(", "));
+' "$f"
 done
 ```
 
 To fix at the source: emit the map from a build whose `rootDir`/`outDir` keep sources inside the published tree, or set `compilerOptions.sourceRoot` so the references resolve within the package. Dropping the `.map` files from `files[]` is the alternative when consumers are not meant to debug into the source at all.
+
+Both checks print findings on stdout and a `SKIPPED (...)` line on stderr for any `.map` that cannot be read or parsed. A skipped map is **not** a clean map — report skipped files separately so an unparsable source-map never passes as "no finding". `2>/dev/null` is deliberately absent here: suppressing stderr is what turned an interpreter failure into a silent false negative in the first place (issue #65).
 
 A map without `sourcesContent` whose `sources` all stay inside the package is clean. Absolute paths in `sources` deliberately overlap with Section 3.2 — there they match as a raw path string (Critical, build-environment leak), here as a semantic statement that the map points out of the package. One line may legitimately produce both findings; do not deduplicate them.
 

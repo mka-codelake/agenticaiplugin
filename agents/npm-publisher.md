@@ -113,8 +113,8 @@ Otherwise, decide on a version bump, sync source-file VERSION constants, generat
 #### 2.0 Detection (read-only)
 
 ```bash
-PKG_NAME=$(node -p "require('{repo_path}/package.json').name")
-PKG_VERSION=$(node -p "require('{repo_path}/package.json').version")
+PKG_NAME=$(node -p 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).name' "{repo_path}/package.json")
+PKG_VERSION=$(node -p 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).version' "{repo_path}/package.json")
 
 # Registry state
 PUBLISHED_LATEST=$(npm view "$PKG_NAME" version 2>/dev/null || echo "FIRST_PUBLISH")
@@ -412,35 +412,45 @@ This is the privacy/security workhorse. Build a real tarball with `npm pack` (NO
 
 ```bash
 # Build real tarball — captures prepack hooks if any
-TARBALL=$(cd {repo_path} && npm pack --json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['filename'])")
+TARBALL=$(cd "{repo_path}" && npm pack --json | node -e '
+let out;
+try { out = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { out = null; }
+if (!Array.isArray(out) || !out[0] || !out[0].filename) {
+  console.error("npm pack produced no tarball name - see the npm error above");
+  process.exit(1);
+}
+console.log(out[0].filename);
+')
 AUDIT_DIR=$(mktemp -d -t npm-audit-XXXXXXXX)
-tar -xzf {repo_path}/$TARBALL -C $AUDIT_DIR
-PKG_DIR=$AUDIT_DIR/package
+tar -xzf "{repo_path}/$TARBALL" -C "$AUDIT_DIR"
+PKG_DIR="$AUDIT_DIR/package"
 ```
+
+**If `$TARBALL` is empty, STOP the tarball audit** and report it as an audit error. Do not continue with an empty `$PKG_DIR` — every scan below would then silently find nothing and the package would look clean without ever having been checked. `npm pack` stderr is deliberately not suppressed here so the reason for the failure is visible.
 
 For each scan below, gather findings with file paths and line numbers (when relevant). All scans run against `$PKG_DIR`. Read `skills/npm-publisher/reference.md` Section 3 for the full pattern catalog.
 
 **1. Absolute filesystem paths (Critical)** — leaks build environment:
 ```bash
 grep -rnE "/home/[a-zA-Z]|/Users/[a-zA-Z]|/root/[a-zA-Z]|/mnt/[a-z]/|C:\\\\[Uu]sers" \
-  $PKG_DIR --include="*.js" --include="*.json" --include="*.md" --include="*.map" 2>/dev/null
+  "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.map" 2>/dev/null
 ```
 
 **2. Email addresses (Warning)** — except those in NOTICE/package.json author/maintainer fields:
 ```bash
-grep -rnE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" $PKG_DIR \
+grep -rnE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" "$PKG_DIR" \
   --include="*.js" --include="*.json" --include="*.md" --include="*.txt" 2>/dev/null
 ```
 Apply whitelist: emails in `NOTICE`, `LICENSE` (Apache contains contact email in boilerplate), and `package.json.author` are expected.
 
 **3. IP addresses (Warning)** — except `127.0.0.1`, `0.0.0.0`, broadcast `255.x`, documentation ranges (`192.0.2.x`, `198.51.100.x`, `203.0.113.x`):
 ```bash
-grep -rnE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" $PKG_DIR --include="*.js" --include="*.json" --include="*.md" 2>/dev/null
+grep -rnE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" 2>/dev/null
 ```
 
 **4. Hostnames (Warning)** — internal/private patterns:
 ```bash
-grep -rnE "\b(localhost|[a-z0-9-]+\.local|[a-z0-9-]+\.lan|[a-z0-9-]+\.intern|[a-z0-9-]+\.corp|[a-z0-9-]+\.intranet|raspberry[a-z0-9-]*|rpi[0-9-]*|pihole[a-z0-9-]*|homelab[a-z0-9-]*)\b" $PKG_DIR \
+grep -rnE "\b(localhost|[a-z0-9-]+\.local|[a-z0-9-]+\.lan|[a-z0-9-]+\.intern|[a-z0-9-]+\.corp|[a-z0-9-]+\.intranet|raspberry[a-z0-9-]*|rpi[0-9-]*|pihole[a-z0-9-]*|homelab[a-z0-9-]*)\b" "$PKG_DIR" \
   --include="*.js" --include="*.json" --include="*.md" --include="*.txt" 2>/dev/null
 ```
 Downgrade `localhost` and standalone "local" usage to informational — they're often legitimate.
@@ -450,25 +460,25 @@ Downgrade `localhost` and standalone "local" usage to informational — they're 
 **6. Secret patterns (CRITICAL)** — see reference.md Section 3.6 for full regex catalog. Minimum coverage:
 ```bash
 # JWT
-grep -rnE "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+" $PKG_DIR 2>/dev/null
+grep -rnE "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+" "$PKG_DIR" 2>/dev/null
 # npm token
-grep -rnE "npm_[A-Za-z0-9]{36,}" $PKG_DIR 2>/dev/null
+grep -rnE "npm_[A-Za-z0-9]{36,}" "$PKG_DIR" 2>/dev/null
 # GitHub PAT
-grep -rnE "ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{82,}" $PKG_DIR 2>/dev/null
+grep -rnE "ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{82,}" "$PKG_DIR" 2>/dev/null
 # OpenAI API
-grep -rnE "sk-[A-Za-z0-9]{32,}|sk-proj-[A-Za-z0-9_-]{40,}" $PKG_DIR 2>/dev/null
+grep -rnE "sk-[A-Za-z0-9]{32,}|sk-proj-[A-Za-z0-9_-]{40,}" "$PKG_DIR" 2>/dev/null
 # Anthropic API
-grep -rnE "sk-ant-[A-Za-z0-9_-]{32,}" $PKG_DIR 2>/dev/null
+grep -rnE "sk-ant-[A-Za-z0-9_-]{32,}" "$PKG_DIR" 2>/dev/null
 # Slack
-grep -rnE "xox[bpaorsl]-[A-Za-z0-9-]{10,}" $PKG_DIR 2>/dev/null
+grep -rnE "xox[bpaorsl]-[A-Za-z0-9-]{10,}" "$PKG_DIR" 2>/dev/null
 # AWS access key
-grep -rnE "AKIA[0-9A-Z]{16}" $PKG_DIR 2>/dev/null
+grep -rnE "AKIA[0-9A-Z]{16}" "$PKG_DIR" 2>/dev/null
 # Generic high-entropy assignments
 # Scans ALL files (not just *.js/*.json): generic/prefixless credentials (DB passwords,
 # bearer tokens) also live in config files (.env, .ini, .conf, renamed variants).
 # Quotes are optional so unquoted KEY=value config lines are caught too.
 # -I skips binaries, --exclude-dir=node_modules drops dependency noise.
-grep -rinIE "(api[_-]?key|password|secret|token|bearer|credential)\s*[:=]\s*['\"]?[^'\"]{16,}['\"]?" $PKG_DIR \
+grep -rinIE "(api[_-]?key|password|secret|token|bearer|credential)\s*[:=]\s*['\"]?[^'\"]{16,}['\"]?" "$PKG_DIR" \
   --exclude-dir=node_modules 2>/dev/null
 ```
 
@@ -476,7 +486,7 @@ Apply false-positive downgrades: matches in `*.test.js`, `*.spec.js`, `fixtures/
 
 **7. Dotfile-Hygiene (CRITICAL — Check Point Research finding)** — these files would leak credentials at scale:
 ```bash
-find $PKG_DIR -type f \( \
+find "$PKG_DIR" -type f \( \
   -path '*/.claude/*' -o \
   -name 'settings.local.json' -o \
   -name '.env' -o -name '.env.*' -o -name '*.env' -o \
@@ -492,30 +502,35 @@ Any match here is critical — these patterns are documented credential-leak vec
 
 **8a. Embedded `sourcesContent` (Warning)** — would leak original TypeScript/source:
 ```bash
-find $PKG_DIR -name "*.map" -type f 2>/dev/null | while read f; do
-  python3 -c "
-import json,sys
-m = json.load(open('$f'))
-if m.get('sourcesContent') and any(s for s in m['sourcesContent']):
-    print('$f')
-" 2>/dev/null
+find "$PKG_DIR" -name "*.map" -type f -print0 | while IFS= read -r -d '' f; do
+  node -e '
+const fs = require("fs");
+const f = process.argv[1];
+let m;
+try { m = JSON.parse(fs.readFileSync(f, "utf8")); }
+catch (e) { console.error("SKIPPED (unreadable or invalid JSON): " + f + " - " + e.message); process.exit(0); }
+const c = Array.isArray(m.sourcesContent) ? m.sourcesContent : [];
+if (c.some(s => s)) console.log(f);
+' "$f"
 done
 ```
 
 **8b. `sources` pointing outside the package (informational)** — the map is unusable for consumers:
 ```bash
-find $PKG_DIR -name "*.map" -type f 2>/dev/null | while read f; do
-  python3 -c "
-import json,re,sys
-m = json.load(open('$f'))
-# Escaping: the four backslashes below become two inside the bash double quotes,
-# which the Python raw string reads as one literal backslash, so the character
-# class matches a Windows drive letter followed by a backslash or a forward slash.
-out = [s for s in (m.get('sources') or [])
-       if s.startswith('../') or s.startswith('/') or re.match(r'^[A-Za-z]:[\\\\/]', s)]
-if out:
-    print('$f' + ': ' + ', '.join(out[:3]))
-" 2>/dev/null
+find "$PKG_DIR" -name "*.map" -type f -print0 | while IFS= read -r -d '' f; do
+  node -e '
+const fs = require("fs");
+const f = process.argv[1];
+let m;
+try { m = JSON.parse(fs.readFileSync(f, "utf8")); }
+catch (e) { console.error("SKIPPED (unreadable or invalid JSON): " + f + " - " + e.message); process.exit(0); }
+const sources = Array.isArray(m.sources) ? m.sources : [];
+// In the JS regex literal, \\ is one literal backslash: the class matches a
+// Windows drive letter followed by either a backslash or a forward slash.
+const out = sources.filter(s => typeof s === "string" &&
+  (s.startsWith("../") || s.startsWith("/") || /^[A-Za-z]:[\\/]/.test(s)));
+if (out.length) console.log(f + ": " + out.slice(0, 3).join(", "));
+' "$f"
 done
 ```
 Report as: *Source-map references files outside the published tarball. Consumers cannot use it for debugging.*
@@ -524,10 +539,12 @@ Rationale: this is not a leak but dead weight. The consumer installs the package
 
 Note: a source-map without `sourcesContent` whose `sources` all stay inside the package is clean. Absolute paths in `sources` deliberately overlap with check 1 — there they match as a raw path string (Critical, build-environment leak), here as a semantic statement that the map points out of the package. One line may legitimately produce both findings; do not deduplicate them.
 
+Both checks print findings on stdout and a `SKIPPED (...)` line on stderr for any `.map` that cannot be read or parsed. A skipped map is **not** a clean map — report skipped files separately so an unparsable source-map never passes as "no finding". `2>/dev/null` is deliberately absent here: suppressing stderr is what turned an interpreter failure into a silent false negative in the first place.
+
 **Cleanup after audit (always — even on error):**
 ```bash
-rm -f {repo_path}/$TARBALL
-rm -rf $AUDIT_DIR
+rm -f "{repo_path}/$TARBALL"
+rm -rf "$AUDIT_DIR"
 ```
 
 Store all findings as `tarball_findings = { absolute_paths, emails, ips, hostnames, names, secrets, dotfiles, sourcemaps_with_content, sourcemaps_unreachable }` — each list contains file paths + counts + up to 3 example matches.
@@ -535,8 +552,8 @@ Store all findings as `tarball_findings = { absolute_paths, emails, ips, hostnam
 #### 3f. Registry State
 
 ```bash
-PKG_NAME=$(node -p "require('{repo_path}/package.json').name")
-PKG_VERSION=$(node -p "require('{repo_path}/package.json').version")
+PKG_NAME=$(node -p 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).name' "{repo_path}/package.json")
+PKG_VERSION=$(node -p 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).version' "{repo_path}/package.json")
 
 # Does package exist on registry?
 npm view "$PKG_NAME" version 2>&1
@@ -559,10 +576,10 @@ Store: `registry_state = { exists, latest_published, bump_type, user_is_maintain
 
 ```bash
 # Production-only audit
-cd {repo_path} && npm audit --omit=dev --json 2>&1 | head -200
+cd "{repo_path}" && npm audit --omit=dev --json 2>&1 | head -200
 
 # Outdated check (informational)
-cd {repo_path} && npm outdated --json 2>&1 | head -50
+cd "{repo_path}" && npm outdated --json 2>&1 | head -50
 ```
 
 Parse for vulnerabilities at `high` or `critical` severity in production deps → critical findings.
@@ -701,12 +718,12 @@ Re-run the critical audits after fixes:
 
 ```bash
 # Run any project-defined quality gates first
-cd {repo_path} && npm run typecheck 2>/dev/null || true
-cd {repo_path} && npm run lint 2>/dev/null || true
-cd {repo_path} && npm run build 2>/dev/null || true
+cd "{repo_path}" && npm run typecheck 2>/dev/null || true
+cd "{repo_path}" && npm run lint 2>/dev/null || true
+cd "{repo_path}" && npm run build 2>/dev/null || true
 
 # Re-run the dry-run — must be warning-free
-cd {repo_path} && npm publish --dry-run 2>&1 | tee /tmp/npm-publish-verify.log
+cd "{repo_path}" && npm publish --dry-run 2>&1 | tee /tmp/npm-publish-verify.log
 ```
 
 Re-run the **tarball content audit** (Phase 3e) on the rebuilt tarball — every CRITICAL finding from Phase 3 must now be absent. Any remaining critical → STOP and report.
@@ -737,7 +754,7 @@ Options:
 
 If the user chooses "Yes":
 ```bash
-cd {repo_path} && npm publish 2>&1
+cd "{repo_path}" && npm publish 2>&1
 ```
 If the publish fails due to auth, fall back to instructions for manual publish.
 
@@ -745,7 +762,7 @@ If the user chooses "No": print:
 ```
 Publish manually:
 
-  cd {repo_path}
+  cd "{repo_path}"
   npm publish
 
 After publish, run `npm view {pkg_name}` to verify the metadata landed correctly.
@@ -754,13 +771,13 @@ After publish, run `npm view {pkg_name}` to verify the metadata landed correctly
 ### Phase 10: Post-Publish (only if Phase 9 published successfully)
 
 ```bash
-cd {repo_path} && git tag -a "v{version}" -m "Release v{version}"
-cd {repo_path} && git push origin "v{version}"
+cd "{repo_path}" && git tag -a "v{version}" -m "Release v{version}"
+cd "{repo_path}" && git push origin "v{version}"
 
 # End-to-end verification
-TESTDIR=$(mktemp -d) && cd $TESTDIR && npm install {pkg_name} 2>&1 | tail -5
+TESTDIR=$(mktemp -d) && cd "$TESTDIR" && npm install {pkg_name} 2>&1 | tail -5
 ./node_modules/.bin/{bin_name} --version 2>&1
-rm -rf $TESTDIR
+rm -rf "$TESTDIR"
 ```
 
 Output:
