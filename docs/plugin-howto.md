@@ -111,7 +111,7 @@ Both `effort:` and `model:` are officially documented Anthropic fields ([Skills]
 **Where each override applies (and where it does not).** This determines whether `model:` is worth setting at all:
 
 - **Skill without `context: fork`** → `effort:` and `model:` apply to the main conversation while the skill body executes.
-- **Skill with `context: fork`** → both apply inside the fork; the main conversation is unaffected.
+- **Skill with `context: fork`** → both apply inside the fork; the main conversation is unaffected. Note the tool restriction below — a fork has no `Workflow` tool.
 - **Skill that delegates via the Task tool to a subagent** → both apply only to the *orchestrating skill body*. The spawned subagent runs with **its own** `model:`/`effort:` (subagent definition wins per the [model resolution order](https://code.claude.com/docs/en/sub-agents#choose-a-model)). So setting `model: haiku` on a *thin* wrapper skill has minimal impact — the wrapper body is too short for the model switch to outweigh the prompt-cache invalidation cost.
 - **Skill preloaded into a subagent via `skills:`** → the skill content is injected as domain knowledge. The subagent runs on its own `model:`/`effort:`. The skill's frontmatter `model:`/`effort:` is **ignored** in this path.
 
@@ -152,6 +152,9 @@ context: fork
 - Skill runs as sub-agent with own context
 - Does NOT see previous conversation history
 - Results returned to main conversation when complete
+- **No `Workflow` tool** — it exists only in the main session
+
+**Do NOT combine with a `*.workflow.js`:** a forked skill can never call the `Workflow` tool, so it silently takes the prompt fallback and the script becomes dead code (issue #51). A skill that ships a workflow script must run in the main session.
 
 ### Agent Field (`agent`)
 
