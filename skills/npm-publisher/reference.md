@@ -288,11 +288,38 @@ Apply these before reporting findings to avoid noise:
 Search source files for hard-coded version strings that should match `package.json.version`:
 
 ```bash
-grep -rEn "(VERSION|version)\s*[:=]\s*['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
-  --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
-  --include="*.py" --include="*.go" --include="*.rs" --include="*.java" \
-  {repo_path}/src {repo_path}/app/src {repo_path}/lib 2>/dev/null
+SRC_DIRS=()
+for d in "{repo_path}/src" "{repo_path}/app/src" "{repo_path}/lib"; do
+  [ -d "$d" ] && SRC_DIRS+=("$d")
+done
+
+if [ ${#SRC_DIRS[@]} -eq 0 ]; then
+  echo "SKIPPED (no source directory found: src, app/src, lib)" >&2
+else
+  grep -rEn "(VERSION|version)\s*[:=]\s*['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
+    --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
+    --include="*.py" --include="*.go" --include="*.rs" --include="*.java" \
+    "${SRC_DIRS[@]}"
+fi
 ```
+
+Two things this shape buys, both load-bearing:
+
+- **Quoting.** `{repo_path}` is quoted, so a repo path containing a space stays one argument.
+  Unquoted, `/my repo/src` splits into `/my` and `repo/src`, `grep` searches neither, and the
+  empty result reads as "versions are in sync" — a false clean check on a repo that was never
+  scanned.
+- **Pre-filtering instead of `2>/dev/null`.** The candidate directories are tested with `[ -d ]`
+  first, so there is no expected "No such file or directory" left to suppress for the two
+  candidates a given repo does not have. Suppressing stderr wholesale would also hide a real
+  error (unreadable directory, broken symlink) behind the same empty-and-therefore-clean result.
+  A repo with none of the three prints `SKIPPED (...)` — that is **not** "no VERSION constants
+  found" and must never be reported as a passing check.
+
+`agents/npm-publisher.md` carries this block twice — Phase 2.4 Step F (cutting) and Phase 3b
+(audit). Keep all three in sync when the shape changes. Their `--include` lists already diverge
+today: Step F and the block above cover `*.java`, Phase 3b does not. That divergence is
+pre-existing and tracked separately — do not silently harmonize it here.
 
 Common patterns:
 - `const VERSION = "1.2.3"` (CLI tools showing `--version`)

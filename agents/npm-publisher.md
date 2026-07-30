@@ -36,22 +36,47 @@ Execute these phases in order. Read `skills/npm-publisher/reference.md` for deta
 **If `--repo` parameter was provided:**
 
 1. **Local path** (starts with `/`, `~`, `.`, or drive letter):
-   - Verify directory exists: `ls -d {path} 2>/dev/null`
-   - Verify it contains `package.json`: `ls {path}/package.json 2>/dev/null`
+
+   **Normalize it once, here, before storing it.** The value arrives as plain text from the
+   command line, never through a shell, so `~` is still literal and a relative path is still
+   relative. Every later phase interpolates the stored path into a *double-quoted* shell word,
+   and bash does not expand `~` inside double quotes (`ls -d "~"` fails where `ls -d ~` works) —
+   so an unnormalized `~/myrepo` would be rejected as invalid, and the same unresolved value
+   would poison every quoted command downstream.
+
+   ```bash
+   node -e 'const p=require("path"),os=require("os");let a=process.argv[1];if(a==="~"||a.startsWith("~/")||a.startsWith("~\\"))a=p.join(os.homedir(),a.slice(1));process.stdout.write(p.resolve(a))' "{raw --repo value}"
+   ```
+
+   Node rather than `readlink -f` or `realpath`: neither is reliably present on native Windows,
+   while Node is a hard prerequisite of this plugin (same reasoning as the JSON reads below).
+   `path.resolve` also keeps a `C:\...` drive path absolute and untouched on Windows and turns
+   `~\myrepo` into a home-relative path there, where the shell would never have expanded it.
+
+   Do **not** expand `~` with `eval` or by leaving the word unquoted — both hand the `--repo`
+   value to the shell as code and reopen exactly the injection this quoting pass closed. Passing
+   the raw value as `process.argv[1]` keeps it data. `~user` (another account's home) is not
+   expanded; pass such a path in full.
+
+   - Store the printed absolute path as `{repo_path}`. All later phases use `{repo_path}` — the
+     raw input is never interpolated again.
+   - Verify directory exists: `ls -d "{repo_path}" 2>/dev/null`
+   - Verify it contains `package.json`: `ls "{repo_path}/package.json" 2>/dev/null`
    - If invalid → report error and STOP
 
-2. **No `--repo` parameter:** Use current working directory.
+2. **No `--repo` parameter:** Use current working directory — store `pwd` output as `{repo_path}`
+   so the value is absolute here too.
 
 **Verify the target is a single npm package, not a monorepo:**
 
 ```bash
 # Single-package signal
-ls {repo_path}/package.json 2>/dev/null
+ls "{repo_path}/package.json" 2>/dev/null
 
 # Monorepo signals (any of these → out of scope)
-ls {repo_path}/lerna.json 2>/dev/null
-ls {repo_path}/pnpm-workspace.yaml 2>/dev/null
-cat {repo_path}/package.json 2>/dev/null | grep -E '"workspaces"\s*:'
+ls "{repo_path}/lerna.json" 2>/dev/null
+ls "{repo_path}/pnpm-workspace.yaml" 2>/dev/null
+cat "{repo_path}/package.json" 2>/dev/null | grep -E '"workspaces"\s*:'
 ```
 
 If a monorepo is detected, STOP with a clear message:
@@ -81,7 +106,7 @@ Store: `npm_user`, `npm_2fa` (boolean or "unknown").
 **Branch handling:**
 
 ```bash
-git -C {repo_path} status --porcelain
+git -C "{repo_path}" status --porcelain
 ```
 
 If there are uncommitted changes, ask the user via AskUserQuestion:
@@ -120,7 +145,7 @@ PKG_VERSION=$(node -p 'JSON.parse(require("fs").readFileSync(process.argv[1], "u
 PUBLISHED_LATEST=$(npm view "$PKG_NAME" version 2>/dev/null || echo "FIRST_PUBLISH")
 
 # Last release tag (best-effort)
-LAST_TAG=$(git -C {repo_path} describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo "")
+LAST_TAG=$(git -C "{repo_path}" describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo "")
 ```
 
 Store: `pkg_name`, `pkg_version`, `published_latest`, `last_tag`.
@@ -180,7 +205,7 @@ else
   RANGE="HEAD"   # all commits, less reliable
 fi
 
-git -C {repo_path} log $RANGE --pretty=format:"%H|%s|%b%n---END---" 2>/dev/null
+git -C "{repo_path}" log $RANGE --pretty=format:"%H|%s|%b%n---END---" 2>/dev/null
 ```
 
 If no commits since last tag:
@@ -235,11 +260,22 @@ Use `Edit` to replace the `"version": "..."` line.
 **Step F — Sync source-file VERSION constants:**
 
 ```bash
-grep -rEn "(VERSION|version)\s*[:=]\s*['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
-  --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
-  --include="*.py" --include="*.go" --include="*.rs" --include="*.java" \
-  {repo_path}/src {repo_path}/app/src {repo_path}/lib 2>/dev/null
+SRC_DIRS=()
+for d in "{repo_path}/src" "{repo_path}/app/src" "{repo_path}/lib"; do
+  [ -d "$d" ] && SRC_DIRS+=("$d")
+done
+
+if [ ${#SRC_DIRS[@]} -eq 0 ]; then
+  echo "SKIPPED (no source directory found: src, app/src, lib)" >&2
+else
+  grep -rEn "(VERSION|version)\s*[:=]\s*['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
+    --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
+    --include="*.py" --include="*.go" --include="*.rs" --include="*.java" \
+    "${SRC_DIRS[@]}"
+fi
 ```
+
+The candidate directories are pre-filtered instead of handed to `grep` wholesale, so `2>/dev/null` is not needed to hide the expected "No such file or directory" for the two candidates a given repo does not have. A repo with none of them prints `SKIPPED (...)` on stderr — that is **not** the same as "no VERSION constants found", and it must not be treated as a completed sync. Any stderr that survives now (unreadable directory, broken symlink) is a real error and stays visible.
 
 For each match: AskUserQuestion (default Yes for `*VERSION` constants, default Skip for ambiguous `version: "..."` matches in config-like contexts).
 
@@ -250,8 +286,10 @@ For each confirmed match: `Edit` the file.
 **Detect existing CHANGELOG:**
 
 ```bash
-ls {repo_path}/CHANGELOG.md {repo_path}/CHANGES.md {repo_path}/HISTORY.md 2>/dev/null
+ls "{repo_path}/CHANGELOG.md" "{repo_path}/CHANGES.md" "{repo_path}/HISTORY.md" 2>/dev/null
 ```
+
+`2>/dev/null` stays here on purpose: at most one of the three names exists, so the suppressed stderr is the expected "not found" for the other two and carries no information. Unlike the version-sync greps, an empty result is not silently reported as a clean check — it turns into the explicit question below, with the user in the loop.
 
 If none found, AskUserQuestion: "No CHANGELOG file found. Create CHANGELOG.md?"
 - **Yes (Recommended)** → create with Keep a Changelog header + first section
@@ -289,15 +327,15 @@ Omit empty subsections.
 #### 2.6 Release Commit
 
 ```bash
-git -C {repo_path} add package.json {synced source files} CHANGELOG.md
-git -C {repo_path} commit -m "chore(release): v{next_version}"
+git -C "{repo_path}" add package.json {synced source files} CHANGELOG.md
+git -C "{repo_path}" commit -m "chore(release): v{next_version}"
 ```
 
 **Output to user:**
 ```
 ✓ Release cut: v{PKG_VERSION} → v{next_version} ({bump_type})
   - package.json: version updated
-  - {N} source files: VERSION constant synced
+  - {VERSION constant synced in {N} source files | VERSION constants not checked — no source dir (src, app/src, lib), Step F printed SKIPPED}
   - CHANGELOG.md: new section added
   - Commit: chore(release): v{next_version}
 
@@ -361,7 +399,7 @@ Run `npm pkg fix` (read-only check via `--dry-run` if available, otherwise note 
 
 ```bash
 # Get current state for diff comparison after potential fix
-cat {repo_path}/package.json
+cat "{repo_path}/package.json"
 ```
 
 Store findings: `pkg_json_critical`, `pkg_json_warnings`, `pkg_json_suggestions`.
@@ -373,11 +411,22 @@ If Phase 2 ran, this is informational — Phase 2.4 Step F already synced source
 If Phase 2 was skipped (`--skip-release-cut`, `--audit-only`, or user-skipped), this check is the only sync defense — mismatches are critical findings.
 
 ```bash
-grep -rEn "(VERSION|version)\s*[:=]\s*['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
-  --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
-  --include="*.py" --include="*.go" --include="*.rs" \
-  {repo_path}/src {repo_path}/app/src {repo_path}/lib 2>/dev/null
+SRC_DIRS=()
+for d in "{repo_path}/src" "{repo_path}/app/src" "{repo_path}/lib"; do
+  [ -d "$d" ] && SRC_DIRS+=("$d")
+done
+
+if [ ${#SRC_DIRS[@]} -eq 0 ]; then
+  echo "SKIPPED (no source directory found: src, app/src, lib)" >&2
+else
+  grep -rEn "(VERSION|version)\s*[:=]\s*['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
+    --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
+    --include="*.py" --include="*.go" --include="*.rs" \
+    "${SRC_DIRS[@]}"
+fi
 ```
+
+Same pre-filter rationale as Phase 2.4 Step F — keep the two blocks in sync when either changes (their `--include` lists already differ: Step F additionally covers `*.java`). This check carries the stronger claim of the two: when Phase 2 was skipped it is the *only* sync defense, so an empty result is reported as "versions are in sync". A `SKIPPED (...)` line means nothing was searched — surface it as an informational finding rather than a clean check.
 
 For each match, compare against current `package.json.version`. Store: `version_mismatches` (list of `{file, line, found_version, expected_version}`).
 
@@ -602,7 +651,7 @@ NPM Publish — Audit Status
   {If Phase 2 ran a bump:}
   Release Cut
     {check} Bumped {old_version} → {new_version} ({bump_type}, {N} commits)
-    {check} Source VERSION constants synced ({M} files)
+    {✓ source VERSION constants synced ({M} files) | ℹ not checked — no source dir (src, app/src, lib)}
     {check} CHANGELOG.md entry added
     {check} Commit: chore(release): v{new_version}
 
@@ -614,7 +663,7 @@ NPM Publish — Audit Status
     {checks for required fields, recommended fields, common mistakes}
 
   Version Sync
-    {✓ all source constants match | ⚠ ... | ℹ handled by cutting (see Release Cut above)}
+    {✓ all source constants match | ⚠ ... | ℹ handled by cutting (see Release Cut above) | ℹ not checked — no source dir (src, app/src, lib), version sync unverified}
 
   License
     {LICENSE present? matches package.json.license? Apache-2.0 NOTICE handling}
@@ -649,6 +698,7 @@ Use `AskUserQuestion` for each fix that requires user input. Batch where possibl
 
 **Group C — Version sync fixes** (one AskUserQuestion per affected file):
 - Only triggers if Phase 3b found mismatches that Phase 2 didn't catch
+- A Phase 3b `SKIPPED (...)` is deliberately **not** a trigger here: there is no file and no mismatch, so no fix can be offered. It surfaces in the Phase 4 report only — as `ℹ not checked`, never as `✓`.
 - "File X has VERSION = '{found}', package.json says '{expected}'. Update file?"
 - Options: Update file / Update package.json / Skip (already correct intent)
 
