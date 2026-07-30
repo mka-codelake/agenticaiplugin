@@ -33,12 +33,11 @@ plus a read-only LLM analysis for overlap and quality findings.
 
 ## Procedure
 
-`{skill_dir}` = the absolute path of THIS skill's directory. The worker lives
-at `{skill_dir}/../../hooks/autoskill/run-review.mjs`.
+The worker lives at `${CLAUDE_PLUGIN_ROOT}/hooks/autoskill/run-review.mjs`.
 
 1. Run the curator worker in the foreground with the Bash tool:
    ```bash
-   node "{skill_dir}/../../hooks/autoskill/run-review.mjs" curator
+   node "${CLAUDE_PLUGIN_ROOT}/hooks/autoskill/run-review.mjs" curator
    ```
    (May take 1–3 minutes because of the LLM pass.)
 2. Read the report:

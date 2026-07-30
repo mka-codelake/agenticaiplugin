@@ -53,8 +53,9 @@ command cleans up whatever an older install left behind.
 Invokes the `agenticaiplugin:project-initializer` agent in **update** mode.
 
 **IMPORTANT:** Pass the plugin root path so the agent can run the transition scripts.
-The plugin root is this skill's base directory, two levels up (i.e., `../../` from `skills/update-plugin/`).
-Include it in the agent prompt as `plugin_root: <absolute_path>`.
+The plugin root is `${CLAUDE_PLUGIN_ROOT}`. Agent prompts are plain text — nothing is
+substituted in them, so include that concrete path in the prompt as
+`plugin_root: <absolute_path>`.
 
 The agent (all steps deterministic, previewed, and confirmed before applying):
 

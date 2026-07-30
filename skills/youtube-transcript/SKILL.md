@@ -34,18 +34,16 @@ not** transcribe audio — if a video has no captions, there is no transcript.
 
 ## Procedure
 
-1. Note the absolute path of **this skill's directory** — referred to as
-   `{skill_dir}`.
-2. Run via Bash, passing the user's URL/ID and any flags through unchanged:
+1. Run via Bash, passing the user's URL/ID and any flags through unchanged:
    ```bash
-   node "{skill_dir}/scripts/fetch-transcript.mjs" "<url|videoId>" [--lang=xx] [--out]
+   node "${CLAUDE_SKILL_DIR}/scripts/fetch-transcript.mjs" "<url|videoId>" [--lang=xx] [--out]
    ```
-3. The transcript is written to **stdout** (prefixed with a `# <title> (<lang>)`
+2. The transcript is written to **stdout** (prefixed with a `# <title> (<lang>)`
    header). Diagnostics (title, language, word count, fallback notice) go to
    **stderr**.
-4. Relay the transcript to the user, or — if they asked for a summary/analysis —
+3. Relay the transcript to the user, or — if they asked for a summary/analysis —
    use the stdout transcript as the source for that.
-5. On error (no captions, requested language missing, network), report the
+4. On error (no captions, requested language missing, network), report the
    script's error message plainly. Do not retry with a different tool unless the
    user asks.
 
@@ -53,7 +51,7 @@ not** transcribe audio — if a video has no captions, there is no transcript.
 fails because `node` is not found (not a "no transcript" result), do NOT report a
 caption failure — tell the user this skill requires Node.js (≥ 22) and show the
 install hint for their platform read from the central registry at
-`{skill_dir}/../../prerequisites.json` (entry `id: "node"`, field `hints` — the
+`${CLAUDE_PLUGIN_ROOT}/prerequisites.json` (entry `id: "node"`, field `hints` — the
 single source of truth for install guidance).
 
 ## Notes

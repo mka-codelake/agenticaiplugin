@@ -51,8 +51,7 @@ All state changes go through the helper script `persona.mjs` (Node, cross-platfo
 no bash/jq required). This makes the write a **real, verified action** instead of a
 code block that could be skipped.
 
-`{skill_dir}` = the absolute path of THIS skill's directory (resolve it the way
-the other plugin skills do). The script lives at `{skill_dir}/persona.mjs`.
+The script lives at `${CLAUDE_SKILL_DIR}/persona.mjs`.
 
 > **For `show`, `set`, and `off` you MUST invoke the Bash tool to run the script,
 > then report the persona from its `OK persona=<value>` output line. Do NOT merely
@@ -64,7 +63,7 @@ the other plugin skills do). The script lives at `{skill_dir}/persona.mjs`.
 because `node` is not found, do NOT claim the persona was changed. Instead tell the
 user that the persona feature (including its SessionStart hook) requires Node.js,
 and show the install hint for their platform read from the central prerequisite
-registry at `{skill_dir}/../../prerequisites.json` (entry `id: "node"`, field
+registry at `${CLAUDE_PLUGIN_ROOT}/prerequisites.json` (entry `id: "node"`, field
 `hints` — the registry is the single source of truth for install guidance).
 
 The persona also takes effect at the next session start (the hook injects it from
@@ -76,7 +75,7 @@ rest of the current session so the user sees it right away.
 Run with the Bash tool:
 
 ```bash
-node "{skill_dir}/persona.mjs" show
+node "${CLAUDE_SKILL_DIR}/persona.mjs" show
 ```
 
 From the `OK persona=<value>` line, report `⧉ persona: <value>`.
@@ -98,7 +97,7 @@ Output this table verbatim (no command needed):
 Run with the Bash tool:
 
 ```bash
-node "{skill_dir}/persona.mjs" off
+node "${CLAUDE_SKILL_DIR}/persona.mjs" off
 ```
 
 On `OK persona=off`, report `⧉ persona: off (updated)`, then respond with your
@@ -109,7 +108,7 @@ normal communication style for the rest of this session.
 Run with the Bash tool (substitute the chosen persona for `<persona>`):
 
 ```bash
-node "{skill_dir}/persona.mjs" set <persona>
+node "${CLAUDE_SKILL_DIR}/persona.mjs" set <persona>
 ```
 
 - On `OK persona=<persona>`: report `⧉ persona: <persona> (updated)` and apply that
