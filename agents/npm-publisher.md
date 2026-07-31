@@ -265,7 +265,7 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/scripts/version-sync-scan.mjs" 
 
 The scan is a tested script, not a shell block — it was copied into three Markdown files until issue #75, and each of the three defects before that (unquoted path #70, swallowed stderr #65, a missing extension in one copy of three #72) was found by reading and by no test. Its contract, which the report below depends on:
 
-- **stdout is always one JSON object** — `{ status, reason?, repoPath, scannedDirs, matches, errors }`. Each match carries `file`, `line`, `version` (plus `versions` for the rare line holding two) and `text`.
+- **stdout is always one JSON object** — `{ status, reason?, repoPath, scannedDirs, matches, errors }`. Each match carries `file`, `line`, `version`, `versions` (always present; it holds both values on the rare line carrying two constants, and `version` is its first entry) and `text`.
 - **`status: "scanned"` with an empty `matches` and an empty `errors` is the only state that means "in sync".**
 - **`status: "skipped"`** means nothing was searched — no source directory (`src`, `app/src`, `lib`) exists, or the repo path does not. It also prints `SKIPPED (...)` on stderr. A skipped scan is **not** a clean scan and must never be reported as a completed sync.
 - **`errors` is non-empty** when a directory or file could not be read. Those lines also go to stderr and the script exits non-zero; an empty `matches` alongside them means the scan failed, not that the repo is clean. Suppressing stderr here is what turned a failure into a silent false negative in the first place — do not add `2>/dev/null`.

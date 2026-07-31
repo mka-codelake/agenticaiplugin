@@ -10,6 +10,8 @@
 // One executed file, one test suite.
 //
 // Usage: node version-sync-scan.mjs <repoPath>
+//        node version-sync-scan.mjs --help    (prints the usage line and exits 0 — the one
+//                                              invocation whose stdout is not the report)
 //
 // Output contract (stdout is the authority, always a single JSON object):
 //

@@ -296,7 +296,9 @@ the audit depends on.
 
 **Output.** One JSON object on stdout:
 `{ status, reason?, repoPath, scannedDirs, matches, errors }`, each match carrying `file`,
-`line`, `version` and `text`. Exit 0 when the scan concluded, 2 when it hit real errors.
+`line`, `version`, `versions` (always present; it holds both values on the rare line carrying
+two constants, and `version` is its first entry) and `text`. Exit 0 when the scan concluded,
+2 when it hit real errors, 1 on a usage error.
 
 **Three states, deliberately distinguishable** — this is the substance of issue #70:
 
