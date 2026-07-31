@@ -281,7 +281,7 @@ Apply these before reporting findings to avoid noise:
 
 ## 4. Version Sync (Audit-Side Check)
 
-**Note:** As of plugin v0.16.0, version-sync remediation is performed in **Phase 2 Release Cutting** (see Section 11). The audit here is now informational — the cutting phase already syncs source-file VERSION constants to `package.json.version` whenever it bumps. A mismatch found in audit means cutting was skipped (e.g., audit-only mode) or a constant exists that the cutting-phase scan missed; in either case the user is informed.
+**Note:** As of plugin v0.16.0, version-sync remediation is performed in **Phase 2 Release Cutting** (see Section 9). The audit here is now informational — the cutting phase already syncs source-file VERSION constants to `package.json.version` whenever it bumps. A mismatch found in audit means cutting was skipped (e.g., audit-only mode) or a constant exists that the cutting-phase scan missed; in either case the user is informed.
 
 ### 4.1 Detection
 
