@@ -298,7 +298,8 @@ if [ ${#SRC_DIRS[@]} -eq 0 ]; then
 else
   grep -rEn "(VERSION|version)\s*[:=]\s*['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
     --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
-    --include="*.py" --include="*.go" --include="*.rs" --include="*.java" \
+    --include="*.py" --include="*.go" --include="*.rs" \
+    --include="*.java" --include="*.kt" --include="*.swift" --include="*.m" --include="*.mm" \
     "${SRC_DIRS[@]}"
 fi
 ```
@@ -317,9 +318,15 @@ Two things this shape buys, both load-bearing:
   found" and must never be reported as a passing check.
 
 `agents/npm-publisher.md` carries this block twice — Phase 2.4 Step F (cutting) and Phase 3b
-(audit). Keep all three in sync when the shape changes. Their `--include` lists already diverge
-today: Step F and the block above cover `*.java`, Phase 3b does not. That divergence is
-pre-existing and tracked separately — do not silently harmonize it here.
+(audit). All three copies must stay identical when the shape changes, `--include` list included:
+what the cutting phase rewrites, the audit has to be able to find again, and in `--audit-only`
+mode the audit block is the only sync defense there is. `version-sync-includes.test.mjs` next to
+this file extracts the three lists and fails the build if they drift.
+
+The extension list covers the JS/TS family plus the languages a published npm package routinely
+carries a *native* half in: Python, Go, Rust, and the full mobile bridge — Java **and** Kotlin on
+Android, Swift and Objective-C (`*.m`/`*.mm`) on iOS. React Native, Cordova and Capacitor
+packages ship both halves; covering only one of them was the defect behind issue #72.
 
 Common patterns:
 - `const VERSION = "1.2.3"` (CLI tools showing `--version`)
