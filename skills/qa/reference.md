@@ -242,7 +242,7 @@ The orchestrator spawns a `general-purpose` (`sonnet`) Phase Agent with this pro
 > 4. Write result to `claudedocs/system-view.md`
 > 5. Return your PHASE_SUMMARY (format in Section 3)
 
-Replace `{skill_dir}` with the absolute path to this skill's directory.
+Replace `{skill_dir}` with the concrete path from `SKILL.md` Step 0 before the prompt goes out.
 
 ### Round 1 Prompt (Explore Agent)
 
@@ -544,7 +544,7 @@ The orchestrator spawns a `general-purpose` (`sonnet`) Phase Agent with this pro
 > 2. Follow Post-Processing in Section 7
 > 3. Return your PHASE_SUMMARY (format in Section 3) — include stats: gaps_by_category, coverage_pct
 
-Replace `{skill_dir}` with the absolute path to this skill's directory.
+Replace `{skill_dir}` with the concrete path from `SKILL.md` Step 0 before the prompt goes out.
 
 ### Round 1 Prompt (Explore Agent)
 
