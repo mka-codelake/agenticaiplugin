@@ -296,7 +296,7 @@ done
 if [ ${#SRC_DIRS[@]} -eq 0 ]; then
   echo "SKIPPED (no source directory found: src, app/src, lib)" >&2
 else
-  grep -rEn "(VERSION|version)\s*[:=]\s*['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
+  grep -rEn "(VERSION|version)\s*[:=]\s*@?['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
     --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
     --include="*.py" --include="*.go" --include="*.rs" \
     --include="*.java" --include="*.kt" --include="*.swift" --include="*.m" --include="*.mm" \
@@ -318,15 +318,26 @@ Two things this shape buys, both load-bearing:
   found" and must never be reported as a passing check.
 
 `agents/npm-publisher.md` carries this block twice — Phase 2.4 Step F (cutting) and Phase 3b
-(audit). All three copies must stay identical when the shape changes, `--include` list included:
-what the cutting phase rewrites, the audit has to be able to find again, and in `--audit-only`
-mode the audit block is the only sync defense there is. `version-sync-includes.test.mjs` next to
-this file extracts the three lists and fails the build if they drift.
+(audit). All three copies must stay identical when the shape changes, `--include` list **and**
+grep pattern: what the cutting phase rewrites, the audit has to be able to find again, and in
+`--audit-only` mode the audit block is the only sync defense there is.
+`version-sync-includes.test.mjs` next to this file extracts both halves from all three copies and
+fails the build if either drifts.
 
-The extension list covers the JS/TS family plus the languages a published npm package routinely
-carries a *native* half in: Python, Go, Rust, and the full mobile bridge — Java **and** Kotlin on
-Android, Swift and Objective-C (`*.m`/`*.mm`) on iOS. React Native, Cordova and Capacitor
-packages ship both halves; covering only one of them was the defect behind issue #72.
+Two things decide what a copy finds, and the extension list is only the first of them:
+
+- **Which files are searched.** The list covers the JS/TS family plus the languages a published
+  npm package routinely carries a *native* half in: Python, Go, Rust, and the full mobile
+  bridge — Java **and** Kotlin on Android, Swift and Objective-C (`*.m`/`*.mm`) on iOS. React
+  Native, Cordova and Capacitor packages ship both halves; covering only one of them was the
+  defect behind issue #72.
+- **Which lines count as a version constant.** Admitting `*.m`/`*.mm` was not enough on its own:
+  the pattern expected the quote directly after `=`, so it saw only the C-style
+  `static const char *VERSION = "1.2.3";` and missed the idiomatic Objective-C literal
+  `static NSString *const VERSION = @"1.2.3";`. The optional `@?` closes that. It stays a single
+  optional character on purpose — no `r`/`f`/`b` for Python, no `r#` for Rust: none of those are
+  idiomatic for a version constant, and every prefix admitted widens the false-positive surface
+  of a pattern whose matches are offered to the user as edits.
 
 Common patterns:
 - `const VERSION = "1.2.3"` (CLI tools showing `--version`)

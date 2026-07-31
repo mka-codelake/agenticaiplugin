@@ -268,7 +268,7 @@ done
 if [ ${#SRC_DIRS[@]} -eq 0 ]; then
   echo "SKIPPED (no source directory found: src, app/src, lib)" >&2
 else
-  grep -rEn "(VERSION|version)\s*[:=]\s*['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
+  grep -rEn "(VERSION|version)\s*[:=]\s*@?['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
     --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
     --include="*.py" --include="*.go" --include="*.rs" \
     --include="*.java" --include="*.kt" --include="*.swift" --include="*.m" --include="*.mm" \
@@ -420,7 +420,7 @@ done
 if [ ${#SRC_DIRS[@]} -eq 0 ]; then
   echo "SKIPPED (no source directory found: src, app/src, lib)" >&2
 else
-  grep -rEn "(VERSION|version)\s*[:=]\s*['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
+  grep -rEn "(VERSION|version)\s*[:=]\s*@?['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
     --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
     --include="*.py" --include="*.go" --include="*.rs" \
     --include="*.java" --include="*.kt" --include="*.swift" --include="*.m" --include="*.mm" \
@@ -428,7 +428,7 @@ else
 fi
 ```
 
-Same pre-filter rationale as Phase 2.4 Step F. This block exists three times — here, Phase 2.4 Step F, and `skills/npm-publisher/reference.md` §4.1 — and all three must stay identical, `--include` list included; `skills/npm-publisher/version-sync-includes.test.mjs` fails the build if they drift. This check carries the stronger claim of the two: when Phase 2 was skipped it is the *only* sync defense, so an empty result is reported as "versions are in sync". A `SKIPPED (...)` line means nothing was searched — surface it as an informational finding rather than a clean check.
+Same pre-filter rationale as Phase 2.4 Step F. This block exists three times — here, Phase 2.4 Step F, and `skills/npm-publisher/reference.md` §4.1 — and all three must stay identical, both the `--include` list (*which files* are searched) and the grep pattern (*which lines* count as a version constant); `skills/npm-publisher/version-sync-includes.test.mjs` fails the build if either drifts. This check carries the stronger claim of the two: when Phase 2 was skipped it is the *only* sync defense, so an empty result is reported as "versions are in sync". A `SKIPPED (...)` line means nothing was searched — surface it as an informational finding rather than a clean check.
 
 For each match, compare against current `package.json.version`. Store: `version_mismatches` (list of `{file, line, found_version, expected_version}`).
 
