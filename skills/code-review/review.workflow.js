@@ -96,7 +96,7 @@ const SPECIALISTS = [
 const input = typeof args === "string" ? JSON.parse(args) : (args ?? {});
 const {
   mode = "diff",
-  skillDir = "skills/code-review",
+  skillDir,
   files = [],
   diff = null,
   ctx = {},
@@ -104,6 +104,10 @@ const {
   manifests = [],
   date = "",
 } = input;
+
+// No default for skillDir on purpose: every relative value is wrong here, and a wrong
+// one fails silently — see requireAbsoluteSkillDir().
+requireAbsoluteSkillDir(skillDir);
 
 // ════════════════════════════════════════════════════════════════════════
 // --renovate: single-specialist dependency audit, NO verify pass
@@ -203,6 +207,27 @@ return {
 // ════════════════════════════════════════════════════════════════════════
 // Helpers
 // ════════════════════════════════════════════════════════════════════════
+
+// skillDir goes into specialist prompts as a read instruction. A specialist runs with the
+// TARGET PROJECT as CWD, so a relative path resolves against the wrong tree: the specialist
+// reads no rules, no output format, no severity definitions — and reviews anyway. Fail loudly
+// at the entry instead (#69). Absolute means POSIX (/…), Windows drive (C:\… / C:/…) or UNC
+// (\\server\share) — the plugin cache lives under C:\Users\… on native Windows.
+function isAbsolutePath(p) {
+  if (typeof p !== "string" || p === "") return false;
+  return p.startsWith("/") || p.startsWith("\\\\") || /^[A-Za-z]:[\\/]/.test(p);
+}
+
+function requireAbsoluteSkillDir(dir) {
+  if (!isAbsolutePath(dir)) {
+    throw new Error(
+      `skillDir must be an absolute path to skills/code-review, got: ${JSON.stringify(dir)}. ` +
+      `Pass "skillDir": "\${CLAUDE_SKILL_DIR}" from SKILL.md — sub-agents run in the target ` +
+      `project, where a relative plugin path silently reads nothing.`
+    );
+  }
+  return dir;
+}
 
 // agent() that never throws and never rejects: null on any failure.
 async function safeAgent(prompt, opts) {
