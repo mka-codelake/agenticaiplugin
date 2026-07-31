@@ -163,6 +163,7 @@ The main model passes **one structured object**. Stable shape across all skills
 ```jsonc
 {
   "mode":  "diff",                 // "diff" | "single-file" | "complete" | "renovate" | …
+  "skillDir": "${CLAUDE_SKILL_DIR}", // REQUIRED, absolute — see the rule below
   "files": ["src/a.ts", "src/b.ts"],
   "diff":  "<unified diff text>",  // or full file contents for complete/single-file modes
   "ctx":   { "source": true, "tests": false, "infra": false, "layers": 3,
@@ -175,6 +176,12 @@ The main model passes **one structured object**. Stable shape across all skills
 
 Rules:
 
+- **`skillDir` is mandatory and must be absolute** — it is the one field the
+  "omit what you don't need" clause does not cover. Sub-agents run in the *target
+  project*, so a relative plugin path resolves against the wrong root and silently
+  reads nothing; both shipped scripts therefore reject a non-absolute value with a
+  thrown error (0.28.0, issue #69). `${CLAUDE_SKILL_DIR}` in the `SKILL.md` body is
+  the supported way to obtain it (see `plugin-howto.md` → *Path Substitution*).
 - **Flags are object fields** (`flags.quick`), never `args.includes("--quick")` — the
   IST-skeletons' array assumption is wrong.
 - **The script must `JSON.parse` when `typeof args === "string"`** (see §3). This is
