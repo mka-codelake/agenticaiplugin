@@ -165,8 +165,8 @@ The main model passes **one structured object**. Stable shape across all skills
   "mode":  "diff",                 // "diff" | "single-file" | "complete" | "renovate" | …
   "files": ["src/a.ts", "src/b.ts"],
   "diff":  "<unified diff text>",  // or full file contents for complete/single-file modes
-  "ctx":   { "source": true, "tests": false, "layers": 3, "newDeps": false,
-             "guidelines": true, "adrs": true },
+  "ctx":   { "source": true, "tests": false, "infra": false, "layers": 3,
+             "newDeps": false, "guidelines": true, "adrs": true },
   "flags": { "quick": false, "save": true, "stack": "node" }, // flags are FIELDS, not an array
   "scope": "src/module",          // optional path scope
   "date":  "2026-06-04"           // YYYY-MM-DD — pass in; Date.now()/new Date() throw in the sandbox
