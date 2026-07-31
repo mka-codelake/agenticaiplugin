@@ -281,63 +281,61 @@ Apply these before reporting findings to avoid noise:
 
 ## 4. Version Sync (Audit-Side Check)
 
-**Note:** As of plugin v0.16.0, version-sync remediation is performed in **Phase 2 Release Cutting** (see Section 11). The audit here is now informational — the cutting phase already syncs source-file VERSION constants to `package.json.version` whenever it bumps. A mismatch found in audit means cutting was skipped (e.g., audit-only mode) or a constant exists that the cutting-phase grep missed; in either case the user is informed.
+**Note:** As of plugin v0.16.0, version-sync remediation is performed in **Phase 2 Release Cutting** (see Section 9). The audit here is now informational — the cutting phase already syncs source-file VERSION constants to `package.json.version` whenever it bumps. A mismatch found in audit means cutting was skipped (e.g., audit-only mode) or a constant exists that the cutting-phase scan missed; in either case the user is informed.
 
 ### 4.1 Detection
 
-Search source files for hard-coded version strings that should match `package.json.version`:
+Source files are searched for hard-coded version strings that should match
+`package.json.version`. The search lives in **one executed, tested file** —
+`skills/npm-publisher/scripts/version-sync-scan.mjs` — which `agents/npm-publisher.md` calls in
+Phase 2.4 Step F (cutting) and Phase 3b (audit). This file no longer repeats the command: the
+call needs `${CLAUDE_PLUGIN_ROOT}`, which is substituted in an `agents/*.md` body but **not** in
+a companion file like this one, and a third copy of anything here is what issue #75 removed.
+Read the script for the exact call and the authoritative behaviour; what follows is the contract
+the audit depends on.
 
-```bash
-SRC_DIRS=()
-for d in "{repo_path}/src" "{repo_path}/app/src" "{repo_path}/lib"; do
-  [ -d "$d" ] && SRC_DIRS+=("$d")
-done
+**Output.** One JSON object on stdout:
+`{ status, reason?, repoPath, scannedDirs, matches, errors }`, each match carrying `file`,
+`line`, `version`, `versions` (always present; it holds both values on the rare line carrying
+two constants, and `version` is its first entry) and `text`. Exit 0 when the scan concluded,
+2 when it hit real errors, 1 on a usage error.
 
-if [ ${#SRC_DIRS[@]} -eq 0 ]; then
-  echo "SKIPPED (no source directory found: src, app/src, lib)" >&2
-else
-  grep -rEn "(VERSION|version)\s*[:=]\s*@?['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
-    --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
-    --include="*.py" --include="*.go" --include="*.rs" \
-    --include="*.java" --include="*.kt" --include="*.swift" --include="*.m" --include="*.mm" \
-    "${SRC_DIRS[@]}"
-fi
-```
+**Three states, deliberately distinguishable** — this is the substance of issue #70:
 
-Two things this shape buys, both load-bearing:
+| State | Report as |
+|---|---|
+| `status: "scanned"`, `matches` non-empty | mismatches to resolve (§4.2) |
+| `status: "scanned"`, `matches` and `errors` empty | **the only state that means "in sync"** |
+| `status: "skipped"` (+ `SKIPPED (...)` on stderr) | "not checked" — never a passing check, never a fix trigger |
+| `errors` non-empty | scan failed partway — an empty `matches` says nothing about sync |
 
-- **Quoting.** `{repo_path}` is quoted, so a repo path containing a space stays one argument.
-  Unquoted, `/my repo/src` splits into `/my` and `repo/src`, `grep` searches neither, and the
-  empty result reads as "versions are in sync" — a false clean check on a repo that was never
-  scanned.
-- **Pre-filtering instead of `2>/dev/null`.** The candidate directories are tested with `[ -d ]`
-  first, so there is no expected "No such file or directory" left to suppress for the two
-  candidates a given repo does not have. Suppressing stderr wholesale would also hide a real
-  error (unreadable directory, broken symlink) behind the same empty-and-therefore-clean result.
-  A repo with none of the three prints `SKIPPED (...)` — that is **not** "no VERSION constants
-  found" and must never be reported as a passing check.
+A skipped scan is not a clean scan. It happens when none of the candidate directories `src`,
+`app/src`, `lib` exists, or the repo path itself does not. In `--audit-only` mode the audit is
+the only sync defense there is, so an empty result being misread as clean is the expensive
+failure — hence the separate status rather than an empty result carrying two meanings. Never
+suppress stderr with `2>/dev/null`: doing so is what turned a failed scan into a silent false
+negative (issues #65, #70).
 
-`agents/npm-publisher.md` carries this block twice — Phase 2.4 Step F (cutting) and Phase 3b
-(audit). All three copies must stay identical when the shape changes, `--include` list **and**
-grep pattern: what the cutting phase rewrites, the audit has to be able to find again, and in
-`--audit-only` mode the audit block is the only sync defense there is.
-`version-sync-includes.test.mjs` next to this file extracts both halves from all three copies and
-fails the build if either drifts.
+**What is searched.** The extension list covers the JS/TS family plus the languages a published
+npm package routinely carries a *native* half in: Python, Go, Rust, and the full mobile bridge —
+Java **and** Kotlin on Android, Swift and Objective-C (`*.m`/`*.mm`) on iOS. React Native,
+Cordova and Capacitor packages ship both halves; covering only one of them was the defect behind
+issue #72.
 
-Two things decide what a copy finds, and the extension list is only the first of them:
+**What counts as a version constant.** `VERSION` or `version`, a `:` or `=`, then a quoted
+three-segment number — with an optional `@` before the quote for the idiomatic Objective-C
+literal `static NSString *const VERSION = @"1.2.3";`, which the C-style-only pattern missed
+(#72). That prefix stays a single optional character on purpose: no `r`/`f`/`b` for Python, no
+`r#` for Rust — none are idiomatic for a version constant, and every prefix admitted widens the
+false-positive surface of a pattern whose matches are offered to the user as edits. Known gap,
+carried over unchanged: a type annotation between separator and literal
+(`const version: string = "2.0.0"`) is not matched.
 
-- **Which files are searched.** The list covers the JS/TS family plus the languages a published
-  npm package routinely carries a *native* half in: Python, Go, Rust, and the full mobile
-  bridge — Java **and** Kotlin on Android, Swift and Objective-C (`*.m`/`*.mm`) on iOS. React
-  Native, Cordova and Capacitor packages ship both halves; covering only one of them was the
-  defect behind issue #72.
-- **Which lines count as a version constant.** Admitting `*.m`/`*.mm` was not enough on its own:
-  the pattern expected the quote directly after `=`, so it saw only the C-style
-  `static const char *VERSION = "1.2.3";` and missed the idiomatic Objective-C literal
-  `static NSString *const VERSION = @"1.2.3";`. The optional `@?` closes that. It stays a single
-  optional character on purpose — no `r`/`f`/`b` for Python, no `r#` for Rust: none of those are
-  idiomatic for a version constant, and every prefix admitted widens the false-positive surface
-  of a pattern whose matches are offered to the user as edits.
+**Three behaviours inherited from the original `grep -rEn`, each kept deliberately** (issue #75,
+point 8): symlinks are not followed (`grep -r`, not `-R`) though a candidate directory that is
+itself a symlink is still searched; binary files are skipped; `node_modules`/`dist`/`build`
+below a candidate directory are **not** excluded. Each is pinned by a test, so changing one is a
+decision rather than a drift.
 
 Common patterns:
 - `const VERSION = "1.2.3"` (CLI tools showing `--version`)
@@ -476,7 +474,7 @@ Pre-release suffixes (`-alpha.1`, `-rc.2`, etc.): if user is on a pre-release, t
 
 ### 9.4 Code-constant sync
 
-After the user confirms a bump, update `package.json.version`, then sync hard-coded VERSION constants in source files (same grep pattern as Section 4.1). For each match: ask the user whether to update (default Yes for `*VERSION` constants, default Skip for context-ambiguous matches like `version: "1.2.3"` in config objects).
+After the user confirms a bump, update `package.json.version`, then sync hard-coded VERSION constants in source files (same `version-sync-scan.mjs` as Section 4.1). For each match: ask the user whether to update (default Yes for `*VERSION` constants, default Skip for context-ambiguous matches like `version: "1.2.3"` in config objects).
 
 ### 9.5 CHANGELOG format (Keep a Changelog)
 
