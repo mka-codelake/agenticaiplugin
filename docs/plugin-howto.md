@@ -156,6 +156,49 @@ context: fork
 
 **Do NOT combine with a `*.workflow.js`:** a forked skill can never call the `Workflow` tool, so it silently takes the prompt fallback and the script becomes dead code (issue #51). A skill that ships a workflow script must run in the main session.
 
+### Path Substitution (`${CLAUDE_SKILL_DIR}` / `${CLAUDE_PLUGIN_ROOT}`)
+
+Plugin files must never carry absolute paths, yet a skill often has to name a file it ships
+with. Claude Code substitutes two variables — but only in some places. Measured with blind
+tests (plugin installed under a random name, no absolute paths in the content, all search
+tools blocked):
+
+| Context | `${CLAUDE_SKILL_DIR}` | `${CLAUDE_PLUGIN_ROOT}` |
+|---|---|---|
+| `SKILL.md` body | **substituted** | **substituted** |
+| Companion file loaded via `Read` (`reference.md`, `orchestration.md`, …) | raw text | raw text |
+| Sub-agent prompt | raw text | raw text |
+| `agents/*.md` body | **raw text** | **substituted** |
+| Shell environment variable | empty | empty |
+
+**Which variable — decided by the target, not by the context:**
+
+| Target | Variable |
+|---|---|
+| File in the skill's own directory | `${CLAUDE_SKILL_DIR}` |
+| File at plugin level (`hooks/`, `prerequisites.json`, another skill) | `${CLAUDE_PLUGIN_ROOT}` |
+| From an `agents/*.md` body (no `${CLAUDE_SKILL_DIR}` there) | `${CLAUDE_PLUGIN_ROOT}` |
+
+Write the variable straight into the usage site — no "resolve the path of this directory"
+preamble; the harness has already done it by the time the model reads the line.
+
+**Companion files need a bridge.** Nothing is substituted in a file loaded via `Read` or in a
+prompt you hand to a sub-agent, so those keep the plain `{skill_dir}` placeholder and the
+`SKILL.md` supplies its value:
+
+```markdown
+`{skill_dir}` = `${CLAUDE_SKILL_DIR}`. Companion files and sub-agent prompts are plain text —
+nothing is substituted in them. Wherever one writes `{skill_dir}`, put that concrete path in.
+```
+
+In use by `skills/qa/` (→ `reference.md`), `skills/code-review/` and
+`skills/architecture-audit/` (→ `orchestration.md`), and `agents/project-initializer.md`
+(→ its task files, via `{plugin_root}`).
+
+**Shell is the exception:** neither variable expands in a Bash command the model runs — the
+substituted literal path does the work there, and a hook script resolves its own files via
+`import.meta.url` (see the Hook Runtime Policy above).
+
 ### Agent Field (`agent`)
 
 Specify which agent type executes the skill:
@@ -234,7 +277,8 @@ exec form. No bash, no jq, no external dependencies (Node stdlib only).**
 - Use `os.homedir()`, `os.tmpdir()`, `path.join()` — never `$HOME`, `/tmp`, or
   string-concatenated paths.
 - Resolve files shipped with the plugin relative to the script itself
-  (`import.meta.url`), not `${CLAUDE_PLUGIN_ROOT}` (empty in tool contexts).
+  (`import.meta.url`), not `${CLAUDE_PLUGIN_ROOT}` as a shell environment variable
+  (empty there — it does substitute in markdown, see Path Substitution above).
 - Fail safe: a hook must never break the session — on unexpected state, emit
   nothing and exit 0.
 - `.gitattributes` pins `*.mjs`/`*.js` to LF; keep it that way.

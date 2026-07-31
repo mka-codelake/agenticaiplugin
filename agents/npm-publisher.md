@@ -29,7 +29,7 @@ You orchestrate the full npm release lifecycle: release cutting (semver decision
 
 ## Workflow
 
-Execute these phases in order. Read `skills/npm-publisher/reference.md` for detailed audit patterns, secret regex catalogs, the Conventional Commits → semver mapping, and Keep-a-Changelog formatting rules.
+Execute these phases in order. Read `${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/reference.md` for detailed audit patterns, secret regex catalogs, the Conventional Commits → semver mapping, and Keep-a-Changelog formatting rules.
 
 ### Phase 0: Resolve Target Package
 
@@ -133,7 +133,7 @@ npm: {logged in as user | not logged in}
 - `--skip-release-cut` flag was passed
 - `--audit-only` flag was passed (audit-only is stricter — also skips later phases)
 
-Otherwise, decide on a version bump, sync source-file VERSION constants, generate a CHANGELOG entry, and produce a `chore(release): vX.Y.Z` commit BEFORE the audits run. Read `skills/npm-publisher/reference.md` Section 9 for the full cutting spec.
+Otherwise, decide on a version bump, sync source-file VERSION constants, generate a CHANGELOG entry, and produce a `chore(release): vX.Y.Z` commit BEFORE the audits run. Read `${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/reference.md` Section 9 for the full cutting spec.
 
 #### 2.0 Detection (read-only)
 
@@ -477,7 +477,7 @@ PKG_DIR="$AUDIT_DIR/package"
 
 **If `$TARBALL` is empty, STOP the tarball audit** and report it as an audit error. Do not continue with an empty `$PKG_DIR` — every scan below would then silently find nothing and the package would look clean without ever having been checked. `npm pack` stderr is deliberately not suppressed here so the reason for the failure is visible.
 
-For each scan below, gather findings with file paths and line numbers (when relevant). All scans run against `$PKG_DIR`. Read `skills/npm-publisher/reference.md` Section 3 for the full pattern catalog.
+For each scan below, gather findings with file paths and line numbers (when relevant). All scans run against `$PKG_DIR`. Read `${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/reference.md` Section 3 for the full pattern catalog.
 
 **1. Absolute filesystem paths (Critical)** — leaks build environment:
 ```bash
@@ -749,7 +749,7 @@ Execute changes in order. Use `Edit` for existing files, `Write` for new files.
 
 **Step 1: package.json edits** — single `Edit` call combining all field changes.
 
-**Step 2: `.npmignore` creation** — Use `Write` with content from `templates/.npmignore.j2`. Render any template variables (none required for the safe-default template).
+**Step 2: `.npmignore` creation** — Use `Write` with content from `${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/templates/.npmignore.j2`. Render any template variables (none required for the safe-default template).
 
 **Step 3: Version-sync source edits** — one `Edit` per affected file.
 
@@ -760,7 +760,7 @@ Execute changes in order. Use `Edit` for existing files, `Write` for new files.
 
 After redactions, re-grep the redacted patterns in the working tree to verify zero remaining matches. If any secret still matches, STOP and warn — do not proceed to verification.
 
-**Step 5: Optional Auto-Publish workflow** — `Write` `.github/workflows/publish.yml` from `templates/publish.yml.j2`.
+**Step 5: Optional Auto-Publish workflow** — `Write` `.github/workflows/publish.yml` from `${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/templates/publish.yml.j2`.
 
 ### Phase 8: Final Verification
 
@@ -849,7 +849,7 @@ Offer: "Create a GitHub Release for tag `v{version}` with auto-generated notes?"
 2. **Never run `npm publish` without explicit user confirmation in Phase 9** — it is irreversible-public.
 3. **Always clean up the audit tarball + tempdir** even if the audit fails partway.
 4. **Critical secret findings remaining after Phase 7 → STOP** before Phase 8. Do not "verify" with secrets still present.
-5. **Read templates** from `skills/npm-publisher/templates/` for `.npmignore` and workflow content.
+5. **Read templates** from `${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/templates/` for `.npmignore` and workflow content.
 6. **Read reference.md** — Section 3 for the full secret-pattern catalog and false-positive downgrade rules, Section 9 for the Release Cutting spec.
 7. **Use Edit for existing files** (package.json, source files, CHANGELOG) to preserve formatting and unrelated content.
 8. **Use AskUserQuestion** rather than assuming — especially for redactions, version bumps, and CHANGELOG review.

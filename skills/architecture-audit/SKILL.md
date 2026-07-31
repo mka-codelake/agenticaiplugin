@@ -58,12 +58,12 @@ representative source files/dirs, and detect whether `.claude/guidelines/` and
 
 ### Step 3: Call the Workflow
 
-Resolve `{skill_dir}` = absolute path of this skill's directory. Call the `Workflow` tool with:
-- `scriptPath`: `{skill_dir}/audit.workflow.js`
+Call the `Workflow` tool with:
+- `scriptPath`: `${CLAUDE_SKILL_DIR}/audit.workflow.js`
 - `args`:
   ```json
   {
-    "skillDir": "{skill_dir}",
+    "skillDir": "${CLAUDE_SKILL_DIR}",
     "projectStructureSummary": "…",
     "techStackProfile": "…",
     "fileList": ["src/...", "..."],
@@ -99,6 +99,10 @@ Do NOT auto-fix. The audit describes and rates; the user decides next steps.
 (Steps 3–6). It is a complete specification of the same sequencing, model choice, rating
 calculation, and report format. The only feature unique to the workflow path is the exact
 JS rating math — in the fallback the model computes the weighted average itself.
+
+`{skill_dir}` = `${CLAUDE_SKILL_DIR}`. Companion files and analyzer prompts are plain text —
+nothing is substituted in them. Wherever `orchestration.md` or a prompt you build from it
+writes `{skill_dir}`, put that concrete path in its place.
 
 **Sub-agent or fork (no `Workflow` tool available):** run **no** audit and spawn **nothing**.
 The prompt fallback fans out seven analyzer sub-agents, and a sub-agent must not fan out

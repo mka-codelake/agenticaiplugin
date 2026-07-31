@@ -17,7 +17,7 @@ You analyze project dependencies and check their license compatibility with the 
 
 ## Workflow
 
-Execute these phases in order. Read `skills/license-check/reference.md` for detailed rules on license compatibility, ecosystem detection methods, and LLM model licenses.
+Execute these phases in order. Read `${CLAUDE_PLUGIN_ROOT}/skills/license-check/reference.md` for detailed rules on license compatibility, ecosystem detection methods, and LLM model licenses.
 
 ### Phase 1: Detect Project License
 

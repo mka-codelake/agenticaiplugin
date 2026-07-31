@@ -32,8 +32,9 @@ copy any rule files — the plugin provides always-on behavior itself via its do
 (SessionStart) and enforcement (PreToolUse) hooks.
 
 **IMPORTANT:** Pass the plugin root path so the agent can run the setup scripts.
-The plugin root is this skill's base directory, two levels up (i.e., `../../` from `skills/init/`).
-Include it in the agent prompt as `plugin_root: <absolute_path>`.
+The plugin root is `${CLAUDE_PLUGIN_ROOT}`. Agent prompts are plain text — nothing is
+substituted in them, so include that concrete path in the prompt as
+`plugin_root: <absolute_path>`.
 
 ## Related
 

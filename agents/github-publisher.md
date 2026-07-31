@@ -21,7 +21,7 @@ You prepare repositories for professional public release on GitHub.
 
 ## Workflow
 
-Execute these phases in order. Read `skills/github-publish/reference.md` for detailed rules on badges, licenses, logos, and README enhancement.
+Execute these phases in order. Read `${CLAUDE_PLUGIN_ROOT}/skills/github-publish/reference.md` for detailed rules on badges, licenses, logos, and README enhancement.
 
 ### Phase 0: Resolve Target Repository
 
@@ -344,7 +344,7 @@ Use `AskUserQuestion` with options: **Yes, proceed** / **Modify plan** / **Abort
 
 ### Phase 6: File Creation
 
-Execute in this order. Skip files that already exist (show "skipped" in summary). Read the templates from `skills/github-publish/templates/` for structure guidance. All file paths relative to `{repo_path}`.
+Execute in this order. Skip files that already exist (show "skipped" in summary). Read the templates from `${CLAUDE_PLUGIN_ROOT}/skills/github-publish/templates/` for structure guidance. All file paths relative to `{repo_path}`.
 
 **Step 1: LICENSE**
 
@@ -420,7 +420,7 @@ After redaction, re-run the relevant Grep scans to confirm zero findings remain 
 
 **Step 3: CONTRIBUTING.md**
 
-Use `templates/CONTRIBUTING.md.j2` as structure. Fill in:
+Use `${CLAUDE_PLUGIN_ROOT}/skills/github-publish/templates/CONTRIBUTING.md.j2` as structure. Fill in:
 - `project_name`: From package.json name, repo name, or directory name
 - `issues_url`: `https://github.com/{owner}/{repo}/issues`
 - `default_branch`: Detected in Phase 2
@@ -429,7 +429,7 @@ Use `templates/CONTRIBUTING.md.j2` as structure. Fill in:
 
 **Step 4: CODE_OF_CONDUCT.md**
 
-Use `templates/CODE_OF_CONDUCT.md.j2` as structure. The template branches on `contact_mode` (set in Phase 4 Q2). Fill in:
+Use `${CLAUDE_PLUGIN_ROOT}/skills/github-publish/templates/CODE_OF_CONDUCT.md.j2` as structure. The template branches on `contact_mode` (set in Phase 4 Q2). Fill in:
 - `contact_mode`: `github-native` | `email` | `both`
 - `issues_url`: `https://github.com/{owner}/{repo}/issues` (only used when mode is `github-native` or `both`)
 - `contact_email`: Only if mode is `email` or `both` (otherwise leave unset)
@@ -438,7 +438,7 @@ Do NOT ask for an email here — Q2 in Phase 4 already handled that decision.
 
 **Step 5: SECURITY.md**
 
-Use `templates/SECURITY.md.j2` as structure. The template branches on `contact_mode`. Fill in:
+Use `${CLAUDE_PLUGIN_ROOT}/skills/github-publish/templates/SECURITY.md.j2` as structure. The template branches on `contact_mode`. Fill in:
 - `contact_mode`: Same as Q2
 - `project_name`: From package.json name, repo name, or directory name
 - `advisory_url`: `https://github.com/{owner}/{repo}/security/advisories/new` (only used when mode is `github-native` or `both`)
@@ -446,14 +446,14 @@ Use `templates/SECURITY.md.j2` as structure. The template branches on `contact_m
 
 **Step 6: GitHub Actions release workflow**
 
-Only if user confirmed. Create `.github/workflows/release.yml` using `templates/release.yml.j2`.
+Only if user confirmed. Create `.github/workflows/release.yml` using `${CLAUDE_PLUGIN_ROOT}/skills/github-publish/templates/release.yml.j2`.
 If npm package: uncomment the publish-npm job section.
 
 **Step 7: Issue Templates**
 
 Create `.github/ISSUE_TEMPLATE/` directory with:
-- `bug_report.md` from `templates/issue-templates/bug_report.md.j2`
-- `feature_request.md` from `templates/issue-templates/feature_request.md.j2`
+- `bug_report.md` from `${CLAUDE_PLUGIN_ROOT}/skills/github-publish/templates/issue-templates/bug_report.md.j2`
+- `feature_request.md` from `${CLAUDE_PLUGIN_ROOT}/skills/github-publish/templates/issue-templates/feature_request.md.j2`
 
 **Step 8: Logo (if requested)**
 
@@ -590,8 +590,8 @@ Next steps:
 1. **Never overwrite existing files** without explicit user confirmation
 2. **Copyright holder is always `Michael Kagel`** — do not ask for this
 3. **Use Edit tool** for modifying existing files (README, package.json) to preserve content
-4. **Read templates** from the skill's templates/ directory for structural guidance
-5. **Read reference.md** for detailed badge URLs, license rules, and SVG guidelines
+4. **Read templates** from `${CLAUDE_PLUGIN_ROOT}/skills/github-publish/templates/` for structural guidance
+5. **Read `${CLAUDE_PLUGIN_ROOT}/skills/github-publish/reference.md`** for detailed badge URLs, license rules, and SVG guidelines
 6. **Ask when uncertain** — use AskUserQuestion rather than assuming
 7. **All changes on feature branch** — never commit directly to main/master
 8. **Plan before execute** — always show the action plan and get approval first

@@ -37,7 +37,7 @@ Each phase is delegated to an independent Phase Agent (`general-purpose`, `sonne
 ### Step 0: Initialization
 
 1. Read `reference.md` and all files in `shared/`
-2. Note the absolute path of this skill's directory — referred to as `{skill_dir}` below. Pass this path to all Phase Agents.
+2. `{skill_dir}` = `${CLAUDE_SKILL_DIR}`. `reference.md` and the Phase Agent prompts built from it are plain text — nothing is substituted in them, so put this concrete path in wherever they write `{skill_dir}`, and pass it to every Phase Agent.
 3. Detect first-run vs subsequent-run:
    - Check if `claudedocs/requirements.md` exists
    - Check if `claudedocs/test-cases.md` exists
@@ -51,7 +51,7 @@ Each phase is delegated to an independent Phase Agent (`general-purpose`, `sonne
 Spawn Phase Agent (`general-purpose`, `sonnet`). Construct the prompt from `reference.md` Section 4 — Phase Agent Prompt template.
 
 Pass to the agent:
-- `{skill_dir}`: absolute path to this skill's directory
+- `{skill_dir}`: the skill directory path from Step 0
 
 Expect back: `PHASE_SUMMARY` with `output_files` and stats (`components`, `interfaces`).
 
@@ -60,7 +60,7 @@ Expect back: `PHASE_SUMMARY` with `output_files` and stats (`components`, `inter
 Spawn Phase Agent (`general-purpose`, `sonnet`). Construct the prompt from `reference.md` Section 5 — Phase Agent Prompt template.
 
 Pass to the agent:
-- `{skill_dir}`: absolute path to this skill's directory
+- `{skill_dir}`: the skill directory path from Step 0
 - `{run_mode}`: first-run or subsequent-run (detected in Step 0)
 - `{force_rebuild}`: whether `--force-rebuild` was specified
 
@@ -71,7 +71,7 @@ Expect back: `PHASE_SUMMARY` with stats (`requirements`, `new`, `groups`).
 Spawn Phase Agent (`general-purpose`, `sonnet`). Construct the prompt from `reference.md` Section 6 — Phase Agent Prompt template.
 
 Pass to the agent:
-- `{skill_dir}`: absolute path to this skill's directory
+- `{skill_dir}`: the skill directory path from Step 0
 - `{run_mode}`: first-run or subsequent-run (detected in Step 0)
 - `{force_rebuild}`: whether `--force-rebuild` was specified
 
@@ -82,7 +82,7 @@ Expect back: `PHASE_SUMMARY` with stats (`test_cases`, `new`, `covered`, `uncove
 Spawn Phase Agent (`general-purpose`, `sonnet`). Construct the prompt from `reference.md` Section 7 — Phase Agent Prompt template.
 
 Pass to the agent:
-- `{skill_dir}`: absolute path to this skill's directory
+- `{skill_dir}`: the skill directory path from Step 0
 
 Expect back: `PHASE_SUMMARY` with stats (`gaps_by_category`, `coverage_pct`).
 

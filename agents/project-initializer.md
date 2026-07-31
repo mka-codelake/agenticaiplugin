@@ -34,6 +34,10 @@ runs a one-time transition that removes any legacy copied rules and completes th
 
 ## Dispatch Mechanism
 
+`{plugin_root}` is provided by the invoking skill; if the prompt did not carry it, use
+`${CLAUDE_PLUGIN_ROOT}`. The task files are plain text — nothing is substituted in them, so
+put that concrete path in wherever one writes `{plugin_root}`.
+
 Task files are located in `{plugin_root}/agents/project-initializer/`.
 To execute a task: Read the task file, then follow its instructions inline (single-context execution, no sub-agent spawning).
 

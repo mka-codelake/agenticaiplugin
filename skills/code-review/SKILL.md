@@ -51,8 +51,7 @@ before the call and write the report after it. See `docs/workflow-integration-ho
 
 ### Step 1: Determine Mode & Gather Inputs (you do this — the script cannot)
 
-Resolve `{skill_dir}` = absolute path of this skill's directory. The script is at
-`{skill_dir}/review.workflow.js`.
+The script is at `${CLAUDE_SKILL_DIR}/review.workflow.js`.
 
 **Git Diff (no parameter):**
 1. `git diff --name-only HEAD`, `git diff --name-only --staged`, `git ls-files --others --exclude-standard` → combine, dedupe → `files`.
@@ -82,12 +81,12 @@ Also set `date` = today's date `YYYY-MM-DD`.
 ### Step 2: Call the Workflow
 
 Call the `Workflow` tool with:
-- `scriptPath`: `{skill_dir}/review.workflow.js`
+- `scriptPath`: `${CLAUDE_SKILL_DIR}/review.workflow.js`
 - `args`:
   ```json
   {
     "mode": "diff|single-file|complete|renovate",
-    "skillDir": "{skill_dir}",
+    "skillDir": "${CLAUDE_SKILL_DIR}",
     "files": ["..."],
     "diff": "<unified diff or null>",
     "ctx": { "source": true, "tests": false, "infra": false, "layers": 3, "newDeps": false, "guidelines": false, "adrs": false },
@@ -125,6 +124,10 @@ Do NOT auto-fix. Let the user decide.
 (Steps 2–7). It is a complete specification of the same activation matrix, phase sequencing,
 model choice, and report format. The only feature unique to the workflow path is the
 adversarial verify pass.
+
+`{skill_dir}` = `${CLAUDE_SKILL_DIR}`. Companion files and specialist prompts are plain text —
+nothing is substituted in them. Wherever `orchestration.md` or a prompt you build from it
+writes `{skill_dir}`, put that concrete path in its place.
 
 **Sub-agent or fork (no `Workflow` tool available):** run **no** review and spawn **nothing**.
 Report back instead that the review has to happen at orchestrator level — an agent reviewing
