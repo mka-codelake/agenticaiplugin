@@ -4,9 +4,10 @@
 // audit them afterwards (Phase 3b).
 //
 // This replaces a bash block that lived in three copies of Markdown (issue #75). Three
-// defects in a row — unquoted repo path (#65), swallowed stderr (#70), a missing
-// extension in one copy of three (#72) — were all found by reading and by no test,
-// because a fenced block is never executed. One executed file, one test suite.
+// defects in a row — a fix landing in one copy and not the other (#65), an unquoted repo
+// path with suppressed stderr (#70), a missing extension in one copy of three (#72) —
+// were all found by reading and by no test, because a fenced block is never executed.
+// One executed file, one test suite.
 //
 // Usage: node version-sync-scan.mjs <repoPath>
 //
