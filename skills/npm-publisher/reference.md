@@ -281,7 +281,7 @@ Apply these before reporting findings to avoid noise:
 
 ## 4. Version Sync (Audit-Side Check)
 
-**Note:** As of plugin v0.16.0, version-sync remediation is performed in **Phase 2 Release Cutting** (see Section 11). The audit here is now informational — the cutting phase already syncs source-file VERSION constants to `package.json.version` whenever it bumps. A mismatch found in audit means cutting was skipped (e.g., audit-only mode) or a constant exists that the cutting-phase grep missed; in either case the user is informed.
+**Note:** As of plugin v0.16.0, version-sync remediation is performed in **Phase 2 Release Cutting** (see Section 11). The audit here is now informational — the cutting phase already syncs source-file VERSION constants to `package.json.version` whenever it bumps. A mismatch found in audit means cutting was skipped (e.g., audit-only mode) or a constant exists that the cutting-phase scan missed; in either case the user is informed.
 
 ### 4.1 Detection
 
@@ -472,7 +472,7 @@ Pre-release suffixes (`-alpha.1`, `-rc.2`, etc.): if user is on a pre-release, t
 
 ### 9.4 Code-constant sync
 
-After the user confirms a bump, update `package.json.version`, then sync hard-coded VERSION constants in source files (same grep pattern as Section 4.1). For each match: ask the user whether to update (default Yes for `*VERSION` constants, default Skip for context-ambiguous matches like `version: "1.2.3"` in config objects).
+After the user confirms a bump, update `package.json.version`, then sync hard-coded VERSION constants in source files (same `version-sync-scan.mjs` as Section 4.1). For each match: ask the user whether to update (default Yes for `*VERSION` constants, default Skip for context-ambiguous matches like `version: "1.2.3"` in config objects).
 
 ### 9.5 CHANGELOG format (Keep a Changelog)
 

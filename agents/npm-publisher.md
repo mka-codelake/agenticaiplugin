@@ -282,7 +282,7 @@ For each confirmed match: `Edit` the file.
 ls "{repo_path}/CHANGELOG.md" "{repo_path}/CHANGES.md" "{repo_path}/HISTORY.md" 2>/dev/null
 ```
 
-`2>/dev/null` stays here on purpose: at most one of the three names exists, so the suppressed stderr is the expected "not found" for the other two and carries no information. Unlike the version-sync greps, an empty result is not silently reported as a clean check — it turns into the explicit question below, with the user in the loop.
+`2>/dev/null` stays here on purpose: at most one of the three names exists, so the suppressed stderr is the expected "not found" for the other two and carries no information. Unlike the version-sync scan, an empty result is not silently reported as a clean check — it turns into the explicit question below, with the user in the loop.
 
 If none found, AskUserQuestion: "No CHANGELOG file found. Create CHANGELOG.md?"
 - **Yes (Recommended)** → create with Keep a Changelog header + first section
