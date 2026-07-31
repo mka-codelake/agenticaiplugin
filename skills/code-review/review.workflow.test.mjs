@@ -36,16 +36,18 @@ const BLOCKS = [
   cut(/^const SPECIALISTS = \[[\s\S]*?^\];$/m, 'SPECIALISTS'),
   cut(/^function skipsPhase2\([\s\S]*?^\}$/m, 'skipsPhase2()'),
   cut(/^function skipReason\([\s\S]*?^\}$/m, 'skipReason()'),
+  cut(/^function isAbsolutePath\([\s\S]*?^\}$/m, 'isAbsolutePath()'),
+  cut(/^function requireAbsoluteSkillDir\([\s\S]*?^\}$/m, 'requireAbsoluteSkillDir()'),
 ];
 
 const sandbox = {};
 vm.createContext(sandbox);
 vm.runInContext(
-  `${BLOCKS.join('\n\n')}\nglobalThis.__extracted = { SPECIALISTS, skipsPhase2, skipReason };`,
+  `${BLOCKS.join('\n\n')}\nglobalThis.__extracted = { SPECIALISTS, skipsPhase2, skipReason, requireAbsoluteSkillDir };`,
   sandbox,
   { filename: 'review.workflow.js (extracted blocks)' }
 );
-const { skipsPhase2, skipReason } = sandbox.__extracted;
+const { skipsPhase2, skipReason, requireAbsoluteSkillDir } = sandbox.__extracted;
 // Array.from re-homes the registry into this realm — a vm-realm array has a
 // foreign Array.prototype, which deepStrictEqual reports as unequal.
 const SPECIALISTS = Array.from(sandbox.__extracted.SPECIALISTS);
@@ -180,4 +182,49 @@ test('every specialist points at a rules file and only uses known model tiers', 
     assert.match(s.file, /^\d\d[ab]?-[a-z0-9-]+\.md$/, `specialist ${s.id} rules file`);
     assert.ok(['haiku', 'sonnet', 'opus'].includes(s.model), `specialist ${s.id} model: ${s.model}`);
   }
+});
+
+// ---- skillDir guard (#69) ----------------------------------------------
+// skillDir is interpolated into specialist prompts as a read instruction. A specialist
+// runs with the target project as CWD, so a relative value reads nothing and the review
+// proceeds without rules — the guard turns that silent failure into a loud one.
+
+test('the guard accepts absolute paths on every platform the plugin runs on', () => {
+  for (const dir of [
+    '/home/u/.claude/plugins/agenticaiplugin/skills/code-review', // POSIX
+    '/',
+    'C:\\Users\\Max\\.claude\\plugins\\p\\skills\\code-review',   // Windows drive, backslash
+    'c:/Users/Max/.claude/plugins/p/skills/code-review',          // Windows drive, forward slash
+    '\\\\server\\share\\plugins\\p\\skills\\code-review',         // UNC
+  ]) {
+    assert.equal(requireAbsoluteSkillDir(dir), dir, `should accept ${dir}`);
+  }
+});
+
+test('the guard rejects relative paths — including the removed default', () => {
+  for (const dir of [
+    'skills/code-review', // the default this guard replaced
+    './skills/code-review',
+    '../code-review',
+    'C:relative\\path',   // drive-relative, not absolute
+    '\\rooted-no-drive',  // drive-less root, not absolute on Windows
+  ]) {
+    assert.throws(() => requireAbsoluteSkillDir(dir), /skillDir must be an absolute path/, `should reject ${dir}`);
+  }
+});
+
+test('the guard rejects a missing or non-string skillDir', () => {
+  for (const dir of [undefined, null, '', 0, {}, ['/abs']]) {
+    assert.throws(() => requireAbsoluteSkillDir(dir), /skillDir must be an absolute path/, `should reject ${JSON.stringify(dir)}`);
+  }
+});
+
+test('the guard error names the offending value so it is diagnosable', () => {
+  assert.throws(() => requireAbsoluteSkillDir('skills/code-review'), /"skills\/code-review"/);
+  assert.throws(() => requireAbsoluteSkillDir(undefined), /undefined/);
+});
+
+test('review.workflow.js declares no default for skillDir and calls the guard', () => {
+  assert.doesNotMatch(SRC, /skillDir\s*=\s*["']/, 'skillDir must not have a default value');
+  assert.match(SRC, /^requireAbsoluteSkillDir\(skillDir\);$/m, 'the guard must run at the input block');
 });

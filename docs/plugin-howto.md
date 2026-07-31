@@ -195,6 +195,19 @@ In use by `skills/qa/` (→ `reference.md`), `skills/code-review/` and
 `skills/architecture-audit/` (→ `orchestration.md`), and `agents/project-initializer.md`
 (→ its task files, via `{plugin_root}`).
 
+The companion file states the obligation on its own side too — it is the file the model has
+in front of it when it builds the prompt, and an unresolved `{skill_dir}` reaching a sub-agent
+produces no error, just an agent working without its rules (issue #69).
+
+**A workflow script takes the path as an argument and must reject a relative one.** The
+sandbox has no `process.cwd()` and the sub-agents it spawns run with the *target project* as
+CWD, so a relative `skillDir` can never be right — and it fails silently, because a failed
+`Read` does not stop an analysis. Pass `"skillDir": "${CLAUDE_SKILL_DIR}"` from `SKILL.md`,
+give the parameter **no default**, and guard it at the input block (`skills/code-review/`,
+`skills/architecture-audit/`). Absolute means POSIX `/…`, Windows drive `C:\…` / `C:/…`, or
+UNC `\\server\share` — the plugin cache lives under `C:\Users\…` on native Windows, so a
+`startsWith("/")` check alone would break the plugin there.
+
 **Shell is the exception:** neither variable expands in a Bash command the model runs — the
 substituted literal path does the work there, and a hook script resolves its own files via
 `import.meta.url` (see the Hook Runtime Policy above).
