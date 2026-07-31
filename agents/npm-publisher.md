@@ -260,23 +260,15 @@ Use `Edit` to replace the `"version": "..."` line.
 **Step F — Sync source-file VERSION constants:**
 
 ```bash
-SRC_DIRS=()
-for d in "{repo_path}/src" "{repo_path}/app/src" "{repo_path}/lib"; do
-  [ -d "$d" ] && SRC_DIRS+=("$d")
-done
-
-if [ ${#SRC_DIRS[@]} -eq 0 ]; then
-  echo "SKIPPED (no source directory found: src, app/src, lib)" >&2
-else
-  grep -rEn "(VERSION|version)\s*[:=]\s*@?['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
-    --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
-    --include="*.py" --include="*.go" --include="*.rs" \
-    --include="*.java" --include="*.kt" --include="*.swift" --include="*.m" --include="*.mm" \
-    "${SRC_DIRS[@]}"
-fi
+node "${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/scripts/version-sync-scan.mjs" "{repo_path}"
 ```
 
-The candidate directories are pre-filtered instead of handed to `grep` wholesale, so `2>/dev/null` is not needed to hide the expected "No such file or directory" for the two candidates a given repo does not have. A repo with none of them prints `SKIPPED (...)` on stderr — that is **not** the same as "no VERSION constants found", and it must not be treated as a completed sync. Any stderr that survives now (unreadable directory, broken symlink) is a real error and stays visible.
+The scan is a tested script, not a shell block — it was copied into three Markdown files until issue #75, and each of the three defects before that (unquoted path #70, swallowed stderr #65, a missing extension in one copy of three #72) was found by reading and by no test. Its contract, which the report below depends on:
+
+- **stdout is always one JSON object** — `{ status, reason?, repoPath, scannedDirs, matches, errors }`. Each match carries `file`, `line`, `version` (plus `versions` for the rare line holding two) and `text`.
+- **`status: "scanned"` with an empty `matches` and an empty `errors` is the only state that means "in sync".**
+- **`status: "skipped"`** means nothing was searched — no source directory (`src`, `app/src`, `lib`) exists, or the repo path does not. It also prints `SKIPPED (...)` on stderr. A skipped scan is **not** a clean scan and must never be reported as a completed sync.
+- **`errors` is non-empty** when a directory or file could not be read. Those lines also go to stderr and the script exits non-zero; an empty `matches` alongside them means the scan failed, not that the repo is clean. Suppressing stderr here is what turned a failure into a silent false negative in the first place — do not add `2>/dev/null`.
 
 For each match: AskUserQuestion (default Yes for `*VERSION` constants, default Skip for ambiguous `version: "..."` matches in config-like contexts).
 
@@ -412,25 +404,14 @@ If Phase 2 ran, this is informational — Phase 2.4 Step F already synced source
 If Phase 2 was skipped (`--skip-release-cut`, `--audit-only`, or user-skipped), this check is the only sync defense — mismatches are critical findings.
 
 ```bash
-SRC_DIRS=()
-for d in "{repo_path}/src" "{repo_path}/app/src" "{repo_path}/lib"; do
-  [ -d "$d" ] && SRC_DIRS+=("$d")
-done
-
-if [ ${#SRC_DIRS[@]} -eq 0 ]; then
-  echo "SKIPPED (no source directory found: src, app/src, lib)" >&2
-else
-  grep -rEn "(VERSION|version)\s*[:=]\s*@?['\"][0-9]+\.[0-9]+\.[0-9]+['\"]" \
-    --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
-    --include="*.py" --include="*.go" --include="*.rs" \
-    --include="*.java" --include="*.kt" --include="*.swift" --include="*.m" --include="*.mm" \
-    "${SRC_DIRS[@]}"
-fi
+node "${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/scripts/version-sync-scan.mjs" "{repo_path}"
 ```
 
-Same pre-filter rationale as Phase 2.4 Step F. This block exists three times — here, Phase 2.4 Step F, and `skills/npm-publisher/reference.md` §4.1 — and all three must stay identical, both the `--include` list (*which files* are searched) and the grep pattern (*which lines* count as a version constant); `skills/npm-publisher/version-sync-includes.test.mjs` fails the build if either drifts. This check carries the stronger claim of the two: when Phase 2 was skipped it is the *only* sync defense, so an empty result is reported as "versions are in sync". A `SKIPPED (...)` line means nothing was searched — surface it as an informational finding rather than a clean check.
+Same script and the same contract as Phase 2.4 Step F — one tested implementation now serves both phases, which is the point of issue #75: what the cutting phase rewrites, the audit has to be able to find again, and a second copy is how that coupling broke twice (#65, #72).
 
-For each match, compare against current `package.json.version`. Store: `version_mismatches` (list of `{file, line, found_version, expected_version}`).
+This check carries the stronger claim of the two: when Phase 2 was skipped it is the *only* sync defense, so an empty result is reported as "versions are in sync". Report that **only** for `status: "scanned"` with `matches` and `errors` both empty. A `status: "skipped"` (plus its `SKIPPED (...)` line on stderr) means nothing was searched — surface it as an informational finding, never as a clean check. A non-empty `errors` means the scan failed partway; treat it the same way.
+
+For each entry in `matches`, compare its `version` against current `package.json.version`. Store: `version_mismatches` (list of `{file, line, found_version, expected_version}` — `found_version` is the match's `version`).
 
 #### 3c. License Compliance
 
