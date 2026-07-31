@@ -10,6 +10,15 @@ Detailed orchestration logic for the multi-specialist code review architecture.
 > Workflow feature is unavailable or declined. Keep the two consistent: if you change
 > activation/model/sequencing, change it in the script and reflect it here.
 
+> **Resolving `{skill_dir}` before a prompt goes out.** The specialist prompts below address
+> plugin files through `{skill_dir}` — the absolute path of this skill's own directory,
+> which `SKILL.md` states (`${CLAUDE_SKILL_DIR}`, resolved there). This file and the prompts
+> you build from it are plain text: **nothing substitutes the placeholder for you.** Put the
+> concrete path in every `{skill_dir}` yourself. A specialist sub-agent runs with the *target
+> project* as CWD, where no plugin-relative path exists — leave the placeholder in and it
+> reads neither its rules nor the output format nor the severity definitions, and reviews
+> blind without saying so. `review.workflow.js` does the same thing through `skillDir`.
+
 ## Fundamental Principle: Findings Only
 
 **CRITICAL:** Specialists ONLY identify and report issues. They do NOT:
@@ -179,15 +188,15 @@ This ensures your review is based on up-to-date standards, not outdated patterns
 
 ## Step 2: Read Your Rules
 Read your review rules file:
-skills/code-review/specialists/{specialist_file}
+{skill_dir}/specialists/{specialist_file}
 
 ## Output Format
 Follow the output format defined in:
-skills/code-review/shared/specialist-output-format.md
+{skill_dir}/shared/specialist-output-format.md
 
 ## Severity Definitions
 Use the severity classification from:
-skills/code-review/shared/issue-classification.md
+{skill_dir}/shared/issue-classification.md
 (Focus on: {relevant_severity_sections})
 
 {IF project_guidelines_exist}
@@ -412,16 +421,16 @@ You are the Dependency Audit specialist. You perform a comprehensive dependency
 audit for the entire project (not just changed files).
 
 ## Your Rules
-Read: skills/code-review/specialists/01-dependencies-versions.md
+Read: {skill_dir}/specialists/01-dependencies-versions.md
 
 ## Registry APIs & Manifest Detection
-Read: skills/code-review/shared/known-deprecations.md
+Read: {skill_dir}/shared/known-deprecations.md
 
 ## Severity Definitions
-Read: skills/code-review/shared/issue-classification.md
+Read: {skill_dir}/shared/issue-classification.md
 
 ## Output Format
-Read: skills/code-review/shared/specialist-output-format.md
+Read: {skill_dir}/shared/specialist-output-format.md
 
 ## Scope
 Check ALL dependencies in the project, not just changed ones.

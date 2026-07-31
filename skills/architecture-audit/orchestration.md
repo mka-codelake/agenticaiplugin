@@ -12,6 +12,15 @@ Detailed orchestration logic for the multi-analyzer architecture audit.
 > Keep the two consistent: if you change sequencing/model choice/rating math, change it in
 > the script and reflect it here.
 
+> **Resolving `{skill_dir}` before a prompt goes out.** The analyzer prompts below address
+> plugin files through `{skill_dir}` — the absolute path of this skill's own directory,
+> which `SKILL.md` states (`${CLAUDE_SKILL_DIR}`, resolved there). This file and the prompts
+> you build from it are plain text: **nothing substitutes the placeholder for you.** Put the
+> concrete path in every `{skill_dir}` yourself. An analyzer sub-agent runs with the *target
+> project* as CWD, where no plugin-relative path exists — leave the placeholder in and it
+> reads neither its rules nor the output format nor the rating scale, and rates blind
+> without saying so. `audit.workflow.js` does the same thing through `ctx.skillDir`.
+
 ## Fundamental Principle: Describe & Assess
 
 **CRITICAL:** This is an architecture AUDIT, not a code review. The goal is to:
@@ -162,15 +171,15 @@ DESCRIBE and ASSESS, not find bugs or demand fixes.
 
 ## Your Analysis Dimension
 Read your analysis rules:
-skills/architecture-audit/analyzers/01-pattern-recognition.md
+{skill_dir}/analyzers/01-pattern-recognition.md
 
 ## Output Format
 Follow the format in:
-skills/architecture-audit/shared/analyzer-output-format.md
+{skill_dir}/shared/analyzer-output-format.md
 
 ## Rating Scale
 Use the definitions from:
-skills/architecture-audit/shared/rating-scale.md
+{skill_dir}/shared/rating-scale.md
 
 ## Project Structure
 {project_structure_summary}
@@ -246,15 +255,15 @@ DESCRIBE and ASSESS, not find bugs or demand fixes.
 
 ## Your Analysis Dimension
 Read your analysis rules:
-skills/architecture-audit/analyzers/{analyzer_file}
+{skill_dir}/analyzers/{analyzer_file}
 
 ## Output Format
 Follow the format in:
-skills/architecture-audit/shared/analyzer-output-format.md
+{skill_dir}/shared/analyzer-output-format.md
 
 ## Rating Scale
 Use the definitions from:
-skills/architecture-audit/shared/rating-scale.md
+{skill_dir}/shared/rating-scale.md
 
 ## Project Structure
 {project_structure_summary}
