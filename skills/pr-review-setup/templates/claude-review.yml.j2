@@ -58,6 +58,13 @@ jobs:
           show_full_output: true
           # Prompt-driven review with explicit posting via `gh pr comment` —
           # deterministic and visible even when inline-comment flows fail.
+          {#- The loops below deliberately do NOT use the `-%}` whitespace trim
+              that every other template in this repo uses. Those render Markdown
+              in column 0, where trimming costs a blank line and nothing else.
+              This one renders into a YAML block scalar: `-%}` eats the newline
+              AND the following line's indentation, the list items land in
+              column 0, and the file stops parsing. Measured, not assumed —
+              see reference.md §4.2, which checks for exactly that outcome. #}
           prompt: |
             You are the automated code reviewer for pull request
             #{{ '${{ github.event.pull_request.number }}' }} in
