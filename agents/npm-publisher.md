@@ -589,11 +589,53 @@ PKG_VERSION=$(node -p 'JSON.parse(require("fs").readFileSync(process.argv[1], "u
 
 # Does package exist on registry?
 npm view "$PKG_NAME" version 2>&1
-npm view "$PKG_NAME" versions --json 2>&1
 npm view "$PKG_NAME" maintainers 2>&1
+
+# Full version list — filtered, because it is unbounded
+npm view "$PKG_NAME" versions --json | node -e '
+let d;
+try { d = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { d = null; }
+if (d && typeof d === "object" && d.error && d.error.code === "E404") {
+  console.log(JSON.stringify({ exists: false }, null, 2));
+  process.exit(0);
+}
+const all = typeof d === "string" ? [d] : d;
+const looksLikeVersion = (v) => typeof v === "string" && /^[0-9]/.test(v);
+if (!Array.isArray(all) || all.length === 0 || !all.every(looksLikeVersion)) {
+  console.error("npm view returned no version list - see the npm error above");
+  process.exit(1);
+}
+console.log(JSON.stringify({
+  exists: true,
+  count: all.length,
+  latest: all[all.length - 1],
+  recent: all.slice(-10),
+}, null, 2));
+'
 ```
 
-**If package doesn't exist (404 from `npm view`):** This is a first publish.
+`versions --json` is the one unbounded call of the three — it returns *every* version ever
+published, which for a package with a canary channel is 105 KB (measured: `react`, 2896
+versions). `version` and `maintainers` are a handful of bytes and stay as they are.
+The filter prints `{exists, count, latest, recent}` with the last ten versions, which is
+what the checks below actually consult.
+
+**The `2>&1` is dropped only on the filtered call**, and deliberately: under `--json` npm
+puts the machine-readable error on **stdout** and the human-readable cause on stderr, so
+folding stderr into the pipe would feed it to the filter instead of you. On the two
+unfiltered calls `2>&1` is what makes the 404 visible in the first place — keep it there.
+
+**Two shapes that are not errors and must not be treated as one:** a package with exactly
+one published version makes npm print a bare string (`"1.0.0"`) instead of an array, and a
+first publish makes it print an `E404` object on stdout. The filter normalises the first to
+a one-element list and answers the second with `{"exists": false}` and exit 0 — an abort
+there would contradict the first-publish case documented immediately below. Anything else
+that is not a list of version-shaped strings aborts with exit 1. That last guard is
+load-bearing: the npm registry answers some failures with the bare JSON string
+`"Not Found"`, which survives `JSON.parse`, survives a truthiness check, and would
+otherwise be normalised into a package whose latest version is `Not Found`.
+
+**If package doesn't exist (404 from `npm view`, i.e. `{"exists": false}`):** This is a first publish.
 - Verify name availability (404 means free)
 - Note: first publish, no version-bump check applies
 
