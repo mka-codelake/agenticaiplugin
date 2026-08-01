@@ -149,7 +149,9 @@ The loops in the template are indentation-sensitive and the prompt block is a
 YAML block scalar, so a rendering slip produces a file that looks plausible and
 fails at parse time on the runner. After writing, read the file back and verify:
 
-- No leftover template markers anywhere: no `{{`, no `}}`, no `{%`, no `%}`.
+- No leftover template markers: no `{{ '`, no `' }}`, no `{%`, no `%}`. Literal
+  `${{ ... }}` Actions expressions are expected and correct — they are the point
+  of the escaping in §4.1.
 - Both `if: steps.token.outputs.present == 'true'` guards are present.
 - The `prompt: |` block scalar is uniformly indented; no line inside it is
   outdented below the block's own indentation.

@@ -149,7 +149,9 @@ with write access to pull requests. Therefore:
    expressions in the rendered file.
 3. **Run the post-render check** from reference.md §4.2 — it is mandatory. Read
    the written file back and verify:
-   - no leftover template markers anywhere (`{{`, `}}`, `{%`, `%}`),
+   - no leftover template markers (`{{ '`, `' }}`, `{%`, `%}`) — literal
+     `${{ ... }}` Actions expressions are expected and correct, they are the
+     point of the escaping in reference.md §4.1,
    - both `if: steps.token.outputs.present == 'true'` guards present,
    - the `prompt: |` block scalar uniformly indented, nothing outdented below
      the block's own indentation,
