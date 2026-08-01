@@ -153,6 +153,7 @@ with write access to pull requests. Therefore:
      `${{ ... }}` Actions expressions are expected and correct, they are the
      point of the escaping in reference.md §4.1,
    - both `if: steps.token.outputs.present == 'true'` guards present,
+   - the data-not-instructions paragraph present and above the context list,
    - the `prompt: |` block scalar uniformly indented, nothing outdented below
      the block's own indentation,
    - the `--allowed-tools` value quoted and on one line,
@@ -211,9 +212,15 @@ findings and only restatements.
   the file may name is the one it lives in, via the `github.repository` context.
 - **Never commit directly.** Use the skill `agenticaiplugin:git-smart-commit`.
 - **Never weaken the fixed parts of the template** listed in reference.md §1 —
-  the token-detection skip, the sandbox constraints paragraph, the comment
-  format, the quoted allow-list, `Write` in the allow-list. Each one is there
-  because its absence produced a silent failure in practice.
+  the token-detection skip, the sandbox constraints paragraph, the
+  data-not-instructions paragraph, the comment format, the quoted allow-list,
+  `Write` in the allow-list. Each one is there because its absence produced a
+  silent failure in practice, and the data-not-instructions paragraph because
+  its absence hands the reviewer's instructions to whoever opens a pull request
+  (reference.md §3).
+- **Do not widen the allow-list.** It carries what the prompt uses and nothing
+  else. `gh api repos/` in particular stays out: the prefix covers writing calls
+  and the job holds `issues: write`.
 - **Do not set up secrets yourself** and do not ask the user to paste a token
   into the conversation. The token goes from `claude setup-token` into
   `gh secret set` on the user's own machine, and nowhere else.
