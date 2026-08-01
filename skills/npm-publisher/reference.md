@@ -586,10 +586,13 @@ Then parse each commit's subject:
 
 Aggregate across all commits — the highest-impact signal wins (any `major` → bump major; else any `feat` → minor; else patch).
 
-**Filter out:**
+**Filter out** — both recognisable by subject, which is all the filter above returns:
 - Merge commits (`Merge branch ...`, `Merge pull request ...`) — auto-generated, no semantic value
 - Previous `chore(release):` commits — these mark prior releases, not new content
-- Co-author trailer lines from bodies (`Co-Authored-By: ...`)
+
+Co-author trailers used to need filtering here as well. They do not any more: they live in the
+body, and the body no longer leaves the filter — only the `breaking` boolean derived from it
+does.
 
 ### 9.3 Bump computation
 

@@ -310,26 +310,53 @@ const raw = require("fs").readFileSync(0, "utf8");
 const lines = raw.split("\n");
 const mods = new Set();
 let built = false;
+let odd = 0;
 for (const line of lines) {
   if (line.indexOf("BUILD SUCCESS") >= 0) { built = true; continue; }
-  const m = line.match(/^\[INFO\][ |+\\-]*([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+):[a-z-]+:([A-Za-z0-9_.-]+):([a-z]+)/);
-  if (m) mods.add(m[1] + ":" + m[2] + ":" + m[3] + ":" + m[4]);
+  const t = line.replace(/^\[INFO\][ |+\\-]*/, "");
+  if (t === line || t.split(":").length < 5) continue;
+  if (!/^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+:/.test(t)) continue;
+  const m = t.match(/^([A-Za-z0-9_.-]+(?::[A-Za-z0-9_.+-]+){4,5})(?![A-Za-z0-9_.:+-])/);
+  if (!m) { odd++; continue; }
+  const f = m[1].split(":");
+  const classifier = f.length === 6 ? f[3] + ":" : "";
+  mods.add(f[0] + ":" + f[1] + ":" + classifier + f[f.length - 2] + ":" + f[f.length - 1]);
 }
-if (!built || mods.size === 0) {
+if (!built || mods.size === 0 || odd > 0) {
   for (const line of lines) {
     if (line.indexOf("[ERROR]") >= 0 || line.indexOf("BUILD FAILURE") >= 0) console.error(line);
   }
-  console.error(built
-    ? "mvn built successfully but printed no dependency coordinates - empty tree, or the output format changed"
-    : "mvn did not report BUILD SUCCESS - no pom.xml here, or the build failed");
+  console.error(!built
+    ? "mvn did not report BUILD SUCCESS - no pom.xml here, or the build failed"
+    : odd > 0
+      ? "mvn printed " + odd + " coordinate-shaped lines this filter could not read - the result is incomplete, do not report it as a full scan"
+      : "mvn built successfully but printed no dependency coordinates - empty tree, or the output format changed");
   process.exit(1);
 }
 console.log([...mods].sort().join("\n"));
 '
 ```
-Prints one sorted `groupId:artifactId:version:scope` line per distinct coordinate. License
-extraction requires checking each dependency's POM; `scope` is kept because `test` and
+Prints one sorted `groupId:artifactId[:classifier]:version:scope` line per distinct coordinate.
+License extraction requires checking each dependency's POM; `scope` is kept because `test` and
 `provided` dependencies are judged differently (see the field table above).
+
+**A Maven coordinate has five fields or six, and reading only five drops dependencies without
+a sound.** A classified artifact prints as
+`groupId:artifactId:packaging:classifier:version:scope` — measured against
+`io.netty:netty-transport-native-epoll:jar:linux-x86_64:4.1.111.Final:compile`, a direct
+dependency that a five-field pattern skips entirely while the seven unclassified rows around it
+parse fine, so no guard fires and the licence report is short one package. Native-transport and
+`test-jar`/`sources` dependencies are exactly where classifiers occur, which is why the fields
+are counted from the **end** (scope last, version second-to-last) rather than by position, and
+why the classifier is carried into the key — two rows differing only in classifier are two
+artifacts with potentially different licences.
+
+**The `odd` counter is the other half of that lesson.** Whatever else this filter does, it must
+not let a line it cannot read pass as a line that was not there: any row that still looks like
+a coordinate but does not parse aborts the whole scan. Two shapes are excluded from that count
+on purpose, both verified against real output — the root project line
+(`com.example:probe:jar:1.0.0`, four fields and no scope, since the project is not a dependency
+of itself) and Maven's `Finished at: 2026-…T…:…:…` footer, whose colons come from the clock.
 
 **Maven's problem is not the tree, it is everything around it.** Against a cold local
 repository — the normal state on a build agent — `mvn dependency:tree` for a project with a
