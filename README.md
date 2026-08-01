@@ -91,6 +91,7 @@ own doctrine (SessionStart) and enforcement (PreToolUse) hooks.
 | Command | Description |
 |---------|-------------|
 | `github-publish` | Prepare repo for public release (README, license, badges, logo, etc.) |
+| `pr-review-setup` | Install an automated PR review GitHub Action; derives the project-specific review prompt from the project's own docs and requires explicit approval before writing |
 | `npm-publish` | End-to-end npm release: cut release (semver bump from Conventional Commits + CHANGELOG generation) + pre-publish audit (package.json, tarball content, secrets, version sync) |
 | `gitme` | Smart Git commits with logical grouping |
 | `code-review` | Multi-specialist code review (4 modes: diff, file, complete, renovate; `--complete` is a milestone audit — orders of magnitude costlier than diff mode, scales with project size) |
@@ -151,6 +152,17 @@ Findings are deduplicated, sorted by severity, and consolidated into a single re
 ```
 
 Creates a `feat/github-publish` branch with: LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, project logo (SVG), badges, status banner, GitHub Actions release workflow, and issue templates. Detects default/placeholder versions and suggests appropriate versioning based on development status. Audits for non-English content (German detection) and offers per-category translation of documentation, code comments, and user-facing strings to English. Scans for sensitive content (API keys, tokens, private email addresses, internal infrastructure references, local filesystem paths) and offers interactive redaction before publish. Shows a plan preview before making changes. Optionally offers a license compatibility check after completion.
+
+### PR Review Setup
+
+```bash
+/agenticaiplugin:pr-review-setup                 # Set up PR review in the current repo
+/agenticaiplugin:pr-review-setup --repo /path    # Target a different repo
+```
+
+Installs `.github/workflows/claude-review.yml` — a GitHub Action that reviews every pull request and posts its findings as a single PR comment in a fixed format. The workflow skeleton is fixed and carries over between projects of different languages unchanged (token detection with a green skip so the workflow can land before the secret exists, sandbox constraints, quoted allow-list, workspace-relative output). **Only the prompt block is project-specific:** the agent derives it from the project's own documentation (`CLAUDE.md`, `.claude/guidelines/`, `.claude/adrs/`, `CONTRIBUTING.md`, build manifest) into context files, Critical/Warning rules, and stack facts.
+
+The rendered prompt block is shown in full and must be explicitly approved before anything is written — a security boundary, not a convenience step, because the block becomes the standing instruction set of an agent holding `pull-requests: write`. There is no flag that skips it. The workflow is written onto a feature branch; authorizing the GitHub App and minting the token stay with the repository owner and are handed over in the order that keeps the first run from failing.
 
 ### NPM Publish
 
@@ -257,6 +269,7 @@ agenticaiplugin/
 │   ├── github-publisher.md      # GitHub publish workflow
 │   ├── license-checker.md       # License compatibility scanning
 │   ├── npm-publisher.md         # npm publish audit and remediation
+│   ├── pr-review-installer.md   # Automated PR review action setup
 │   ├── project-initializer/     # Project setup and update sub-agents
 │   │   ├── init-agenticai.md
 │   │   ├── update-agenticai.md
@@ -279,6 +292,7 @@ agenticaiplugin/
 │   ├── markdown-converter/      # File-to-Markdown conversion
 │   ├── npm-publisher/           # npm release cut + pre-publish audit
 │   ├── persona/                 # Agent communication personas
+│   ├── pr-review-setup/         # Automated PR review action setup
 │   ├── promote-perms/           # Permission promotion
 │   ├── qa/                      # Quality Square traceability
 │   ├── update-plugin/           # Plugin update management

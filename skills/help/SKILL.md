@@ -50,6 +50,7 @@ Show the user the following overview:
 |---------|-------------|
 | **gitme** | Intelligent Git commits: analyzes all changes, groups them logically, and creates meaningful commit messages. Can create multiple commits when appropriate |
 | **code-review** | Runs an intelligent code review. Four modes: no parameter = Git diff (default), with file = single file, `--complete` = milestone / end-of-project audit over all source files (orders of magnitude costlier than diff mode, scales with project size — run `architecture-audit` first), `--renovate` = dependency audit (options: `--stack jvm/js/python`, `--quick`, `--save`) |
+| **pr-review-setup** | Installs an automated PR review GitHub Action (`.github/workflows/claude-review.yml`) that reviews every pull request and posts its findings as one PR comment. The workflow skeleton is fixed; only the prompt block is project-specific and is derived from the project's own documentation (context files, Critical/Warning rules, stack). The rendered block is shown in full and must be explicitly approved before anything is written — a security boundary, since it becomes the standing instruction set of an agent holding `pull-requests: write`; there is no skip flag. Option: `--repo <path>` (target a different repo) |
 | **architecture-audit** | Comprehensive architecture audit: detects patterns, evaluates 7 dimensions (Boundaries, Dependencies, Naming, APIs, Wiring, Visibility), produces a scored report (A-E scale). Options: `--scope <path>` for partial audits |
 | **qa** | Quality Assurance: manages bidirectional traceability between requirements, code, test cases, and tests ("Quality Square"). Analyzes code, extracts requirements, derives test cases, produces gap analysis. Option: `--force-rebuild` |
 | **create-cli** | Designs CLI interfaces: arguments, flags, subcommands, help text, output formats, exit codes, prompts. Produces a compact spec for implementation |
@@ -135,6 +136,7 @@ Agents are isolated contexts for specific tasks.
 | **github-publisher** | Prepares repositories for public release on GitHub (including README creation) |
 | **license-checker** | Scans project dependencies and checks license compatibility |
 | **npm-publisher** | Cuts and audits npm releases (Phase 2: semver bump from Conventional Commits + CHANGELOG generation; Phase 3+: package.json hygiene, version sync, tarball content, secrets, dotfile leaks, registry state) |
+| **pr-review-installer** | Sets up the automated PR review GitHub Action: derives the project-specific prompt block, takes mandatory approval, writes the workflow onto a feature branch, hands over App authorization and token |
 | **project-initializer** | Sets up projects for the plugin and performs updates |
 
 ---
