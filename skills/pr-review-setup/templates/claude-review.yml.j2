@@ -47,13 +47,13 @@ jobs:
       # when they differ — exiting green, without a review. A PR that changes
       # it therefore loses the review for *every* file it carries, silently.
       # So insist the change stands alone: then only the workflow diff goes
-      # unreviewed, and that one has to be read by hand regardless (Section 6.2).
+      # unreviewed, and that one has to be read by hand regardless.
       #
       # Behind the token guard on purpose. Without a token no review was
-      # expected in the first place, and turning that PR red would break the
-      # promise the bootstrap order rests on (Section 5) — the workflow lands
-      # before the token exists without ever showing a red check. A file that
-      # is `added` rather than `modified` is that bootstrap PR and stays green.
+      # expected in the first place, and turning that PR red would break what
+      # the setup order depends on: this workflow can land before the token
+      # exists without ever showing a red check. A file that is `added` rather
+      # than `modified` is that first PR, and stays green as well.
       #
       # The path is read from GITHUB_WORKFLOW_REF instead of being written in:
       # renaming this file would otherwise leave the guard comparing against a
