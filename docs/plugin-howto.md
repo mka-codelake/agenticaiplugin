@@ -833,6 +833,47 @@ Every user-invocable skill that acts as a command MUST include two standardized 
 
 **Applies to:** All user-invocable skills that perform an action. Pure knowledge skills (auto-activated only, `user-invocable: false`) may skip this.
 
+### Parsing Command Output (skills & agents: `node`, not `jq`)
+
+**Bash snippets in SKILL.md and agent instructions parse JSON with `node`, never with
+`jq`.** This is *not* the Hook Runtime Policy above — that one governs what the plugin
+itself executes and is stricter. This one governs commands we hand to an agent to run.
+Both land on Node for the same reason: `node` is an ungated mandatory prerequisite
+(`prerequisites.json`); `jq` is not listed there and is regularly absent on Windows.
+
+Shape — script in single quotes, only double quotes inside, no `'` and no `$`, so it
+survives both `$( )` and a free-standing pipeline:
+
+```bash
+some-command --json | node -e '
+let d;
+try { d = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { d = null; }
+if (!d || !Array.isArray(d.items)) {
+  console.error("some-command produced no item list - see the error above");
+  process.exit(1);
+}
+console.log(JSON.stringify(d.items.map(i => ({ name: i.name })), null, 2));
+'
+```
+
+**A missing tool here does not just fail — it forges a plausible answer.** `jq -r .token`
+against a response with no `token` field writes the literal string `null` into the
+variable; the next call sends `Authorization: Bearer null`, and GHCR answers *that* for a
+public image with HTTP 200 and a full tag list (an empty token gives 403, no header 401 —
+the one value a naive read produces is the one that passes). So always assert the shape
+you depend on and abort loudly when it is missing.
+
+Two corollaries, each from a measured false negative (#63):
+
+- **Never truncate a JSON stream with `head`.** It leaves an invalid fragment, and summary
+  fields sit at the *end*: `npm audit --json | head -200` cut `metadata.vulnerabilities`
+  away completely. The filter script is what keeps the output small — not `head`.
+- **Never redirect the diagnosing stream away** — neither `2>/dev/null` nor `2>&1` into the
+  pipe. Under `--json` these tools put the machine-readable error on stdout and the
+  human-readable cause on stderr; folding stderr into the pipe feeds it to the filter
+  instead of the reader, and `2>/dev/null` turns "the tool is not installed" into
+  "this project has no dependencies".
+
 ### Auto-Activation in Skills
 ```markdown
 ---

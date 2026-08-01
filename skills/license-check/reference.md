@@ -138,9 +138,25 @@ For each dependency. If pip not installed, fall back to quick mode.
 
 **Full mode:**
 ```bash
-cargo metadata --format-version 1 2>/dev/null | jq '.packages[] | {name: .name, license: .license, source: .source}'
+cargo metadata --format-version 1 | node -e '
+let meta;
+try { meta = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { meta = null; }
+if (!meta || !Array.isArray(meta.packages)) {
+  console.error("cargo metadata produced no package list - see the cargo error above");
+  process.exit(1);
+}
+const rows = meta.packages.map(p => ({ name: p.name, license: p.license, source: p.source }));
+console.log(JSON.stringify(rows, null, 2));
+'
 ```
-Returns license for every dependency (direct + transitive). Most reliable ecosystem for license detection.
+Prints a JSON array with one `{name, license, source}` row per dependency (direct +
+transitive). Most reliable ecosystem for license detection.
+
+`cargo`'s stderr is deliberately **not** redirected to `/dev/null`: a missing `cargo`
+otherwise exits 0 with no output, which is indistinguishable from "this project has no
+Rust dependencies". If the command aborts with `cargo metadata produced no package list`,
+the cause is printed directly above it — fall back to quick mode instead of reporting an
+empty dependency set.
 
 **Lock files:** `Cargo.lock`
 
