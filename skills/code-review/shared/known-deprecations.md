@@ -30,18 +30,28 @@ curl -s "https://hub.docker.com/v2/repositories/library/{image}/tags?page_size=1
 curl -s "https://hub.docker.com/v2/repositories/{namespace}/{image}/tags?page_size=100&ordering=last_updated"
 ```
 
-**Container images (GHCR):** token first, then the tag list.
+**Container images (GHCR):** anonymous pull token first, then the tag list with that token as bearer.
 ```bash
-# 1. anonymous pull token — read the "token" field out of the JSON response yourself
-curl -s "https://ghcr.io/token?scope=repository:{owner}/{image}:pull"
-# 2. tag list, with that token as bearer
-curl -s -H "Authorization: Bearer {token}" "https://ghcr.io/v2/{owner}/{image}/tags/list"
-```
-Optional shortcut, only where `jq` happens to be installed (not on plain Windows) — same two calls as one line:
-```bash
-TOKEN=$(curl -s "https://ghcr.io/token?scope=repository:{owner}/{image}:pull" | jq -r .token)
+TOKEN=$(curl -s "https://ghcr.io/token?scope=repository:{owner}/{image}:pull" | node -e '
+let res;
+try { res = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { res = null; }
+if (!res || typeof res.token !== "string") {
+  console.error("ghcr.io returned no token field - cannot list tags anonymously");
+  process.exit(1);
+}
+console.log(res.token);
+')
 curl -s -H "Authorization: Bearer $TOKEN" "https://ghcr.io/v2/{owner}/{image}/tags/list"
 ```
+**Keep the token check.** When the scope is denied, the token endpoint answers
+`{"errors":[{"code":"DENIED",…}]}` — with no `token` field at all. Reading that field
+without checking (`jq -r .token`, or eyeballing the response) yields the literal string
+`null`, and against the same public image GHCR treats it as valid: `Bearer null` → **HTTP
+200 with a full tag list**, whereas an empty token → 403 and no header at all → 401. The
+one broken value that a naive read produces is the one value that fails silently, so a
+missing token must abort here instead of yielding a tag list you would otherwise trust.
+A genuinely denied scope is the "private image" case under Error handling below: report
+it as unverifiable.
 
 **Container images (Quay):**
 ```bash
