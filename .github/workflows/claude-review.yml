@@ -25,8 +25,8 @@ jobs:
       # The secrets context is not allowed in `if:` expressions, so detect the
       # token via env indirection. All later steps are skipped (job stays
       # green) until the CLAUDE_CODE_OAUTH_TOKEN secret is configured
-      # (subscription-based auth, same setup as aiknowledgedb: token from
-      # `claude setup-token`, stored via `gh secret set CLAUDE_CODE_OAUTH_TOKEN`).
+      # (subscription-based auth: token from `claude setup-token`, stored via
+      # `gh secret set CLAUDE_CODE_OAUTH_TOKEN`).
       - name: Detect OAuth token
         id: token
         env:
@@ -54,8 +54,7 @@ jobs:
           # (the default hides them).
           show_full_output: true
           # Prompt-driven review with explicit posting via `gh pr comment` —
-          # deterministic and visible even when inline-comment flows fail
-          # (pattern proven in the aiknowledgedb repo).
+          # deterministic and visible even when inline-comment flows fail.
           prompt: |
             You are the automated code reviewer for pull request
             #${{ github.event.pull_request.number }} in

@@ -354,7 +354,7 @@ For each mismatch found in audit (i.e., not handled by cutting):
 
 ### 4.3 Why this is critical
 
-Real example from `aiknowledgedb` v2.1.0 publish: `package.json` was bumped to `2.1.0`, but `app/src/cli.ts:43` retained `const VERSION = '2.0.0'`. The published binary reported `aiknowledgedb --version` → `2.0.0`, contradicting the registry metadata. Caught only because the publisher manually verified — without an audit, it would have shipped wrong.
+Observed failure mode on a real npm publish of a Node CLI: `package.json` was bumped to the new version, but the `const VERSION = '…'` in the CLI entry point still held the previous one. The published binary reported the old version via `--version`, contradicting the registry metadata. Caught only because the publisher manually verified — without an audit, it would have shipped wrong.
 
 Better solutions exist (e.g., `import {version} from '../package.json' assert {type: 'json'}`), but they require build-time tooling. The Phase 2 cutting workflow + audit-side check together provide pragmatic defense-in-depth.
 
