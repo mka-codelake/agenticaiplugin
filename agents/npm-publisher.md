@@ -205,10 +205,54 @@ else
   RANGE="HEAD"   # all commits, less reliable
 fi
 
-git -C "{repo_path}" log $RANGE --pretty=format:"%H|%s|%b%n---END---" 2>/dev/null
+set -o pipefail   # required: see below
+git -C "{repo_path}" log $RANGE --pretty=format:"%H%x1f%s%x1f%b%x1e" | node -e '
+const raw = require("fs").readFileSync(0, "utf8");
+if (raw.trim().length === 0) {
+  console.log(JSON.stringify({ commits: [] }, null, 2));
+  process.exit(0);
+}
+const out = [];
+for (const rec of raw.split("\u001e")) {
+  const r = rec.replace(/^\n/, "");
+  if (r.trim().length === 0) continue;
+  const parts = r.split("\u001f");
+  if (parts.length < 3 || parts[0].length !== 40) {
+    console.error("git log record is not hash/subject/body - the format string did not survive");
+    process.exit(1);
+  }
+  out.push({
+    hash: parts[0].slice(0, 12),
+    subject: parts[1],
+    breaking: /(^|\n)BREAKING CHANGE:/.test(parts.slice(2).join("\u001f")),
+  });
+}
+console.log(JSON.stringify({ commits: out }, null, 2));
+'
 ```
 
-If no commits since last tag:
+**Why this is not `%H|%s|%b`** — see reference.md Section 9.2 for the measurements. Short
+version: `%b` carried every commit body in full (39,028 B over four releases of this repo, for
+a decision that needs one boolean per commit), and the `|` separator cannot be parsed at all,
+because a pipe in a subject splits into the wrong fields and a multi-line body is
+indistinguishable from further commits.
+
+**`2>/dev/null` is gone and `$RANGE` failures now surface.** A `$LAST_TAG` that no longer
+exists makes git exit 128 and write `fatal: ambiguous argument` to stderr with nothing on
+stdout — suppressed, that read as "no commits since the last release" and would have proposed
+a patch release of a repository full of features.
+
+**`set -o pipefail` is what makes that distinction survive the pipe, and it is not optional.**
+An empty range is a legitimate answer here — the branch immediately below is what handles it,
+so the filter answers `{"commits": []}` and exits 0 rather than aborting, which is deliberately
+unlike reference.md Section 9.2 where nothing catches an abort. But a broken range and an empty
+range look *identical* to the filter: git writes nothing to stdout in both cases. Only the exit
+code separates them, and without `pipefail` the pipeline reports the filter's 0 and the failure
+is read as "nothing to release". **Check the exit code, not just the JSON:** 0 with an empty
+`commits` array means there is nothing to release, anything non-zero means the question was
+never answered.
+
+If no commits since last tag (`{"commits": []}`):
 ```
 ⚠ No new commits since v{PUBLISHED_LATEST}. Nothing to release.
 ```
@@ -216,13 +260,15 @@ AskUserQuestion: **Skip Phase 2** / **Force re-release with empty CHANGELOG** / 
 
 **Step B — Detect bump type per reference.md Section 9.2:**
 
-Parse each commit subject + body. Aggregate the highest-impact signal:
+Aggregate the highest-impact signal across the rows above:
 
-- ANY commit has `<type>!:` in subject OR `BREAKING CHANGE:` in body → `major`
+- ANY commit has `<type>!:` in subject OR `breaking: true` → `major`
 - ELSE ANY commit has `feat:` or `feat(...):` → `minor`
 - ELSE → `patch`
 
-Filter out: merge commits, previous `chore(release):` commits, co-author trailer lines.
+Filter out: merge commits and previous `chore(release):` commits — both recognisable by
+subject. Co-author trailers need no filtering any more: they live in the body, which no longer
+reaches you.
 
 **Step C — Compute next version per reference.md Section 9.3:**
 
@@ -462,28 +508,45 @@ PKG_DIR="$AUDIT_DIR/package"
 
 For each scan below, gather findings with file paths and line numbers (when relevant). All scans run against `$PKG_DIR`. Read `${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/reference.md` Section 3 for the full pattern catalog.
 
+**Every scan below runs `grep -o`, and none of them redirects stderr.** A published tarball is
+mostly *minified* code, where a file is one single line — so `grep -n` without `-o` answers a
+one-byte match with the whole megabyte around it. Measured against a 2.8 MB source-map whose
+`sources` array holds 200 build paths, the absolute-path scan returned **2,812,052 B**; with
+`-o` and the match extended to the full path it returns **37,636 B**, and a single hit in that
+map costs a line instead of the file. `2>/dev/null` is gone for the same reason it went
+everywhere else: it turns "the directory does not exist" into "this package is clean". See
+reference.md Section 3.1 for the per-pattern measurements and for the three patterns that
+needed an upper bound on top of `-o`.
+
+**Empty output is only a clean result if grep did not also print an error.** grep exits 1 when
+it finds nothing and ≥ 2 when it could not look — read the exit code before recording a scan
+as passed.
+
 **1. Absolute filesystem paths (Critical)** — leaks build environment:
 ```bash
-grep -rnE "/home/[a-zA-Z]|/Users/[a-zA-Z]|/root/[a-zA-Z]|/mnt/[a-z]/|C:\\\\[Uu]sers" \
-  "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.map" 2>/dev/null
+grep -rnoE "(/home/[a-zA-Z]|/Users/[a-zA-Z]|/root/[a-zA-Z]|/mnt/[a-z]/)[A-Za-z0-9._/-]{0,200}|C:\\\\[Uu]sers[A-Za-z0-9._\\\\-]{0,200}" \
+  "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.map"
 ```
+The trailing `{0,200}` is what makes the match worth printing: the bare prefix pattern matches
+`/home/b` and tells you nothing about which path leaked. It cannot cost a finding — a `{0,n}`
+tail matches the empty string, so every hit the prefix alone would have found is still found.
 
 **2. Email addresses (Warning)** — except those in NOTICE/package.json author/maintainer fields:
 ```bash
-grep -rnE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" "$PKG_DIR" \
-  --include="*.js" --include="*.json" --include="*.md" --include="*.txt" 2>/dev/null
+grep -rnoE "[a-zA-Z0-9._%+-]{1,64}@[a-zA-Z0-9.-]{1,255}\.[a-zA-Z]{2,24}" "$PKG_DIR" \
+  --include="*.js" --include="*.json" --include="*.md" --include="*.txt"
 ```
 Apply whitelist: emails in `NOTICE`, `LICENSE` (Apache contains contact email in boilerplate), and `package.json.author` are expected.
 
 **3. IP addresses (Warning)** — except `127.0.0.1`, `0.0.0.0`, broadcast `255.x`, documentation ranges (`192.0.2.x`, `198.51.100.x`, `203.0.113.x`):
 ```bash
-grep -rnE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" 2>/dev/null
+grep -rnoE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md"
 ```
 
 **4. Hostnames (Warning)** — internal/private patterns:
 ```bash
-grep -rnE "\b(localhost|[a-z0-9-]+\.local|[a-z0-9-]+\.lan|[a-z0-9-]+\.intern|[a-z0-9-]+\.corp|[a-z0-9-]+\.intranet|raspberry[a-z0-9-]*|rpi[0-9-]*|pihole[a-z0-9-]*|homelab[a-z0-9-]*)\b" "$PKG_DIR" \
-  --include="*.js" --include="*.json" --include="*.md" --include="*.txt" 2>/dev/null
+grep -rnoE "\b(localhost|[a-z0-9-]{1,253}\.local|[a-z0-9-]{1,253}\.lan|[a-z0-9-]{1,253}\.intern|[a-z0-9-]{1,253}\.corp|[a-z0-9-]{1,253}\.intranet|raspberry[a-z0-9-]{0,253}|rpi[0-9-]{0,253}|pihole[a-z0-9-]{0,253}|homelab[a-z0-9-]{0,253})\b" "$PKG_DIR" \
+  --include="*.js" --include="*.json" --include="*.md" --include="*.txt"
 ```
 Downgrade `localhost` and standalone "local" usage to informational — they're often legitimate.
 
@@ -492,27 +555,37 @@ Downgrade `localhost` and standalone "local" usage to informational — they're 
 **6. Secret patterns (CRITICAL)** — see reference.md Section 3.6 for full regex catalog. Minimum coverage:
 ```bash
 # JWT
-grep -rnE "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+" "$PKG_DIR" 2>/dev/null
+grep -rnoE "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+" "$PKG_DIR"
 # npm token
-grep -rnE "npm_[A-Za-z0-9]{36,}" "$PKG_DIR" 2>/dev/null
+grep -rnoE "npm_[A-Za-z0-9]{36,}" "$PKG_DIR"
 # GitHub PAT
-grep -rnE "ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{82,}" "$PKG_DIR" 2>/dev/null
+grep -rnoE "ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{82,}" "$PKG_DIR"
 # OpenAI API
-grep -rnE "sk-[A-Za-z0-9]{32,}|sk-proj-[A-Za-z0-9_-]{40,}" "$PKG_DIR" 2>/dev/null
+grep -rnoE "sk-[A-Za-z0-9]{32,}|sk-proj-[A-Za-z0-9_-]{40,}" "$PKG_DIR"
 # Anthropic API
-grep -rnE "sk-ant-[A-Za-z0-9_-]{32,}" "$PKG_DIR" 2>/dev/null
+grep -rnoE "sk-ant-[A-Za-z0-9_-]{32,}" "$PKG_DIR"
 # Slack
-grep -rnE "xox[bpaorsl]-[A-Za-z0-9-]{10,}" "$PKG_DIR" 2>/dev/null
+grep -rnoE "xox[bpaorsl]-[A-Za-z0-9-]{10,}" "$PKG_DIR"
 # AWS access key
-grep -rnE "AKIA[0-9A-Z]{16}" "$PKG_DIR" 2>/dev/null
+grep -rnoE "AKIA[0-9A-Z]{16}" "$PKG_DIR"
 # Generic high-entropy assignments
 # Scans ALL files (not just *.js/*.json): generic/prefixless credentials (DB passwords,
 # bearer tokens) also live in config files (.env, .ini, .conf, renamed variants).
 # Quotes are optional so unquoted KEY=value config lines are caught too.
 # -I skips binaries, --exclude-dir=node_modules drops dependency noise.
-grep -rinIE "(api[_-]?key|password|secret|token|bearer|credential)\s*[:=]\s*['\"]?[^'\"]{16,}['\"]?" "$PKG_DIR" \
-  --exclude-dir=node_modules 2>/dev/null
+# The {16,512} bound is not cosmetic — see below.
+grep -rinoIE "(api[_-]?key|password|secret|token|bearer|credential)\s*[:=]\s*['\"]?[^'\"]{16,512}['\"]?" "$PKG_DIR" \
+  --exclude-dir=node_modules
 ```
+
+**The seven prefixed patterns needed nothing but `-o`** — each one ends at the first character
+outside its own alphabet, so the match is the token and nothing more (measured: 145–252 B each
+against a 1.4 MB minified bundle, down from 1,400,642 B). **The generic catch-all is the
+exception, and it is the reason for the upper bound.** Its tail is `[^'"]`, which in an
+unquoted minified config line runs to the end of the file: with `-o` and no bound it still
+returned **1,500,136 B** for one match. Bounded at 512 it returns **215 B**. The bound cannot
+hide a credential — a value longer than 512 characters still matches, it is just printed
+truncated.
 
 Apply false-positive downgrades: matches in `*.test.js`, `*.spec.js`, `fixtures/`, `*.example`, `*.sample` are warnings (still report), not critical.
 

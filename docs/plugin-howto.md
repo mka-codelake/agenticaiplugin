@@ -882,6 +882,35 @@ around, which is why Maven Central (< 1 KB) and GHCR `tags/list` (< 4 KB) stay u
 Measure the real endpoint before deciding: 0.29.0 shipped a fresh 553 KB unfiltered call in
 a newly written file precisely because no threshold was written down anywhere (#63).
 
+**Measure the filtered form too — a filter can make the output bigger.** JSON objects cost
+more than the lines they replace when the source is already line-shaped and the row count is
+modest: `mvn dependency:tree` warm is 1,966 B, and a JSON array over the same 19 modules is
+2,413 B. Both `go mod graph` and `mvn dependency:tree` therefore emit sorted plain lines. Reach
+for JSON when the fields need names, for lines when the source already is lines.
+
+**`grep` in a skill needs `-o`, and its quantifiers need upper bounds** (#86). Both only bite
+on *minified* input, which is most of what a published tarball or a `dist/` directory contains
+— and there a file is one single line, so `grep -n` answers a twenty-byte match with the whole
+megabyte around it. Measured on the npm tarball audit: 2.8 MB returned for one hit in a
+source-map, 1.4 MB per secret pattern against one minified bundle. Two rules follow, and the
+second is not optional:
+
+- **`-o` prints the match instead of the line.** For a pattern that ends at the first character
+  outside its own alphabet — an API-token prefix, an IP address — that is the entire fix.
+- **`-o` does nothing for a quantifier that is itself unbounded.** `[^'"]{16,}` in a generic
+  secret pattern runs to the end of an unquoted minified line: still 1.5 MB *with* `-o`. Worse,
+  an unbounded `+` in front of an anchor — `[a-zA-Z0-9._%+-]+@` — makes the scan quadratic in
+  line length, and the email scan did not finish in 45 s on a 1.4 MB line while the address it
+  was looking for sat in the file. **That failure mode is a silent miss, not a large output.**
+  Bound such quantifiers at a documented real-world limit (RFC 5321 gives 64 for an email local
+  part, RFC 1035 gives 253 for a domain name).
+
+Bound only the tail, never a segment that something else must follow: `{36,72}` on a token
+prefix still matches a longer token and merely truncates the print, but the same edit on a
+multi-segment pattern like a JWT removes findings outright, because a bounded first segment
+leaves no room for the separator after it. Diff the *hit locations* before and after — not the
+output — whenever you touch a pattern that a security scan depends on.
+
 ### Auto-Activation in Skills
 ```markdown
 ---

@@ -151,8 +151,15 @@ dependency in the same tree, only the required one raises the count and the comm
 
 **Per-dependency license check:**
 ```bash
-npm info {package} license 2>/dev/null
+npm info {package} license
 ```
+Seven bytes on success (`WTFPL`, measured against `left-pad`), so there is nothing here worth
+filtering — but the `2>/dev/null` had to go. An unknown or unpublished package makes npm write
+**nothing** to stdout and put its 488-byte `E404` explanation on stderr, and the redirect left
+an empty line that reads exactly like a package which declares no licence at all. Run once per
+dependency, that silently turns unverifiable packages into unlicensed ones. **An empty answer
+here is not "no licence declared"** — check the exit code and treat a non-zero one as
+unverifiable.
 
 **Lock files:** `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`
 
@@ -174,9 +181,24 @@ npm info {package} license 2>/dev/null
 
 **Full mode:**
 ```bash
-pip show {package} 2>/dev/null | grep -i "^License:"
+pip show -v {package} | grep -iE "^License:|^ +License :: "
 ```
 For each dependency. If pip not installed, fall back to quick mode.
+
+**`pip show` alone answers `License:` with an empty value for packages that do have one.**
+Measured on this machine: `setuptools` and `wheel` both print `License: ` with nothing after
+it, while their metadata carries `License :: OSI Approved :: MIT License` in the classifier
+block that only `-v` prints. Reading the `License:` line alone therefore reports two MIT
+packages as undeclared. Matching both lines costs 51–73 B of output per dependency (the raw
+`pip show -v` is 1.1–3.7 KB, which the grep never lets through) and answers `pip` with
+`License: MIT` plus its classifier, `requests` with `Apache 2.0`.
+
+**The `2>/dev/null` went for the reason it went in the JavaScript section.** A package that is
+not installed makes pip write `WARNING: Package(s) not found: …` to stderr and nothing to
+stdout, so the grep matches nothing and exits 1 — output identical to a package whose metadata
+declares no licence. With stderr visible those two are one line apart. The empty-`License:`
+case above shows why this matters here specifically: an empty result is *common* in this
+ecosystem and must not be conflated with a failed lookup.
 
 **Lock files:** `poetry.lock`, `Pipfile.lock`, `uv.lock`
 
@@ -283,9 +305,88 @@ empty dependency set indistinguishable from a Go project without dependencies.
 
 **Full mode:**
 ```bash
-mvn dependency:tree -DoutputType=text 2>/dev/null
+mvn -B dependency:tree -DoutputType=text | node -e '
+const raw = require("fs").readFileSync(0, "utf8");
+const lines = raw.split("\n");
+const mods = new Set();
+let built = false;
+let odd = 0;
+for (const line of lines) {
+  if (line.indexOf("BUILD SUCCESS") >= 0) { built = true; continue; }
+  const t = line.replace(/^\[INFO\][ |+\\-]*/, "");
+  if (t === line || t.split(":").length < 5) continue;
+  if (!/^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+:/.test(t)) continue;
+  const m = t.match(/^([A-Za-z0-9_.-]+(?::[A-Za-z0-9_.+-]+){4,5})(?![A-Za-z0-9_.:+-])/);
+  if (!m) { odd++; continue; }
+  const f = m[1].split(":");
+  const classifier = f.length === 6 ? f[3] + ":" : "";
+  mods.add(f[0] + ":" + f[1] + ":" + classifier + f[f.length - 2] + ":" + f[f.length - 1]);
+}
+if (!built || mods.size === 0 || odd > 0) {
+  for (const line of lines) {
+    if (line.indexOf("[ERROR]") >= 0 || line.indexOf("BUILD FAILURE") >= 0) console.error(line);
+  }
+  console.error(!built
+    ? "mvn did not report BUILD SUCCESS - no pom.xml here, or the build failed"
+    : odd > 0
+      ? "mvn printed " + odd + " coordinate-shaped lines this filter could not read - the result is incomplete, do not report it as a full scan"
+      : "mvn built successfully but printed no dependency coordinates - empty tree, or the output format changed");
+  process.exit(1);
+}
+console.log([...mods].sort().join("\n"));
+'
 ```
-Returns full dependency tree. License extraction requires checking each dependency's POM.
+Prints one sorted `groupId:artifactId[:classifier]:version:scope` line per distinct coordinate.
+License extraction requires checking each dependency's POM; `scope` is kept because `test` and
+`provided` dependencies are judged differently (see the field table above).
+
+**A Maven coordinate has five fields or six, and reading only five drops dependencies without
+a sound.** A classified artifact prints as
+`groupId:artifactId:packaging:classifier:version:scope` — measured against
+`io.netty:netty-transport-native-epoll:jar:linux-x86_64:4.1.111.Final:compile`, a direct
+dependency that a five-field pattern skips entirely while the seven unclassified rows around it
+parse fine, so no guard fires and the licence report is short one package. Native-transport and
+`test-jar`/`sources` dependencies are exactly where classifiers occur, which is why the fields
+are counted from the **end** (scope last, version second-to-last) rather than by position, and
+why the classifier is carried into the key — two rows differing only in classifier are two
+artifacts with potentially different licences.
+
+**The `odd` counter is the other half of that lesson.** Whatever else this filter does, it must
+not let a line it cannot read pass as a line that was not there: any row that still looks like
+a coordinate but does not parse aborts the whole scan. Two shapes are excluded from that count
+on purpose, both verified against real output — the root project line
+(`com.example:probe:jar:1.0.0`, four fields and no scope, since the project is not a dependency
+of itself) and Maven's `Finished at: 2026-…T…:…:…` footer, whose colons come from the clock.
+
+**Maven's problem is not the tree, it is everything around it.** Against a cold local
+repository — the normal state on a build agent — `mvn dependency:tree` for a project with a
+*single* dependency printed **144,391 B in 458 lines, of which 442 were download progress and
+3 were the answer**; the filter reduces that to 128 B. `-B` (batch mode) alone already halves
+it to 63,575 B by dropping the byte-by-byte progress bars, which is why it is in the command
+rather than left to the filter.
+
+**The output is lines, not JSON, and that is a measured choice.** Warm — everything cached, 19
+modules — the raw command is 1,966 B, and a JSON array of `{group, artifact, version, scope}`
+objects over the same 19 modules came to **2,413 B**: the filter made the output *larger* than
+what it filtered. The same trade-off decided the Go section above. Coordinate lines are
+shorter than Maven's tree lines because the `[INFO] +- ` prefix and the `:jar:` packaging
+segment fall away, so the line form wins in both the warm and the cold case.
+
+**`2>/dev/null` was not just useless here, it was misleading.** Maven writes its entire log —
+including build failures — to **stdout**; stderr stays empty. Running without a `pom.xml`
+produces exit 1 and 1,323 B of Maven log on stdout, so the redirect suppressed nothing at all
+while implying the failure path was handled. What it *did* hide is the one case that matters:
+with Maven not installed, the shell writes `mvn: command not found` to stderr, leaves stdout
+empty, and exits 127 — the redirect turned an absent toolchain into a project with no
+dependencies.
+
+**Because Maven diagnoses on stdout, the filter has to hand the diagnosis back itself.** This
+is the opposite of every other command in this file, where "do not redirect stderr" is enough:
+here the explanation travels *inside the pipe*, so a filter that only prints its own message
+swallows the very lines that say what went wrong. Hence the `[ERROR]` replay before the abort
+— without it the caller gets a one-line complaint and no Maven output at all. The
+`BUILD SUCCESS` assertion is the matching half: it is the only marker in that stream that
+tells a real tree from a log which merely contains the word "dependency".
 
 **License name normalization (Maven uses free-form text):**
 - `"The Apache Software License, Version 2.0"` → `Apache-2.0`
@@ -306,14 +407,49 @@ Returns full dependency tree. License extraction requires checking each dependen
 
 **Full mode:**
 ```bash
-gradle dependencies --configuration runtimeClasspath 2>/dev/null
+gradle -q dependencies --configuration runtimeClasspath | node -e '
+const raw = require("fs").readFileSync(0, "utf8");
+const mods = new Set();
+for (const line of raw.split("\n")) {
+  const m = line.match(/^[ |+\\-]*(?:---)? *([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+):([A-Za-z0-9_.+-]+)/);
+  if (!m) continue;
+  const version = (line.match(/-> ([A-Za-z0-9_.+-]+)/) || [])[1] || m[3];
+  mods.add(m[1] + ":" + m[2] + ":" + version);
+}
+if (mods.size === 0) {
+  console.error("gradle printed no dependency coordinates - not a gradle project, wrong configuration name, or the build failed; see the gradle output above");
+  process.exit(1);
+}
+console.log([...mods].sort().join("\n"));
+'
 ```
-or
-```bash
-./gradlew dependencies --configuration runtimeClasspath 2>/dev/null
-```
+Prints one sorted `group:artifact:version` line per distinct coordinate — same line form and
+same reasoning as Maven and Go above. No scope column here: the configuration is chosen in the
+command, so every row shares it.
+
+Use `./gradlew` in place of `gradle` where the project ships a wrapper — which is the common
+case and the one to prefer, since it pins the Gradle version.
 
 License detection same as Maven (POM-based).
+
+**Two things this pattern has to handle that Maven's does not.** Gradle prints a header and a
+configuration description before the tree and the line `(n) - dependencies omitted` after it,
+none of which carry coordinates, so the filter selects lines rather than trimming them. And
+Gradle reports conflict resolution inline as `1.2.3 -> 1.4.0`; the version after the arrow is
+the one actually on the classpath, so that is the one recorded — taking `m[3]` would report a
+version that is not in the build.
+
+**The `2>/dev/null` here was the pure form of the failure this fixes.** With Gradle absent the
+shell writes `command not found` to stderr, stdout stays empty, exit is 127 — measured, both
+for `gradle` and for `./gradlew` in a directory without a wrapper (151 B and 162 B of stderr
+respectively). With stderr discarded, all of that reaches the caller as an empty dependency
+list.
+
+> **Not verified against a running Gradle.** Gradle is not installed in the environment where
+> this change was made, so the shape of the filter is carried over from the Maven and Go cases
+> and from Gradle's documented tree format — the *failure* forms above are measured, the
+> *success* parse is not. Treat an unexpected abort here as a bug in this snippet before
+> treating it as a broken project.
 
 ### 2.7 .NET (C#)
 
@@ -327,8 +463,65 @@ License detection same as Maven (POM-based).
 
 **Full mode:**
 ```bash
-dotnet list package --include-transitive 2>/dev/null
+dotnet list package --include-transitive --format json | node -e '
+let d;
+try { d = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { d = null; }
+if (!d || typeof d !== "object" || !Array.isArray(d.projects)) {
+  console.error("dotnet list package returned no project list - not a project directory, restore not run, or the command failed; see the error above");
+  process.exit(1);
+}
+const mods = new Map();
+for (const p of d.projects) {
+  for (const f of p.frameworks || []) {
+    for (const kind of ["topLevelPackages", "transitivePackages"]) {
+      for (const pkg of f[kind] || []) {
+        const version = pkg.resolvedVersion || pkg.requestedVersion;
+        if (!pkg.id || !version) continue;
+        mods.set(pkg.id + ":" + version, { id: pkg.id, version, transitive: kind === "transitivePackages" });
+      }
+    }
+  }
+}
+if (mods.size === 0) {
+  console.error("dotnet reported projects but no packages - run dotnet restore first, or this project has no PackageReference");
+  process.exit(1);
+}
+console.log(JSON.stringify([...mods.values()], null, 2));
+'
 ```
+
+**`--format json` is the point of this rewrite, not the filter around it.** The default output
+is a per-framework table of aligned columns, repeated for every target framework of every
+project in the solution, with an `(A)` marker column and a trailing legend — no stable field
+boundaries to parse. The JSON form carries the same data keyed by name, exposes
+`resolvedVersion` (what is actually on disk) separately from the `requestedVersion` range in
+the project file, and separates top-level from transitive packages, a distinction the licence
+report needs and the table conveys only by which section a row happens to sit in.
+
+**`2>/dev/null` hid the same 127 as everywhere else.** Without the .NET SDK the shell writes
+`command not found` to stderr, prints nothing to stdout, and exits 127 (measured: 151 B of
+stderr) — indistinguishable from a clean scan once stderr is gone. The second guard covers the
+quieter case: on SDK 9 and earlier the command does not restore on its own, so run before
+`dotnet restore` it reports the projects but no packages — valid JSON that would otherwise pass
+as an empty, successful licence scan.
+
+**A `transitivePackages` entry is not necessarily a NuGet package.** Project-to-project
+references appear in that array alongside real packages with no field distinguishing them — a
+known and still-open gap in the JSON report. They have no NuGet licence metadata, so looking
+one up will fail; treat a
+lookup miss on a transitive entry as "possibly a project reference" before reporting it as an
+unlicensed dependency.
+
+> **Not verified against a running dotnet.** The .NET SDK is not installed in the environment
+> where this change was made. What *is* verified: the failure form (measured here), that
+> `--format json` and `--output-version` require **.NET SDK 7.0.200 or newer** (on an older SDK
+> the command errors out, which this filter reports as a failed lookup rather than an empty
+> one), and the field names `projects` / `frameworks` / `topLevelPackages` /
+> `transitivePackages` / `id` / `resolvedVersion`, taken from published output of the command
+> rather than from a live run here. Not verified is the parse against real output.
+>
+> **On .NET 10 the command is spelled `dotnet package list`** — the arguments are unchanged.
+> `dotnet list package` is the form for SDK 9 and earlier.
 
 **Per-package license:** NuGet metadata (requires network access or local cache).
 
