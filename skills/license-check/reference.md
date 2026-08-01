@@ -410,14 +410,20 @@ tells a real tree from a log which merely contains the word "dependency".
 gradle -q dependencies --configuration runtimeClasspath | node -e '
 const raw = require("fs").readFileSync(0, "utf8");
 const mods = new Set();
+let odd = 0;
 for (const line of raw.split("\n")) {
-  const m = line.match(/^[ |+\\-]*(?:---)? *([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+):([A-Za-z0-9_.+-]+)/);
-  if (!m) continue;
-  const version = (line.match(/-> ([A-Za-z0-9_.+-]+)/) || [])[1] || m[3];
-  mods.add(m[1] + ":" + m[2] + ":" + version);
+  const t = line.replace(/^[ |+\\-]*(?:---)? */, "");
+  if (!/^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+(?![A-Za-z0-9_.-])/.test(t)) continue;
+  const base = t.match(/^([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+)(?::([A-Za-z0-9_.+-]+))?/);
+  const arrow = t.match(/-> ([A-Za-z0-9_.+-]+)/);
+  const version = arrow ? arrow[1] : base && base[3];
+  if (!base || !version) { odd++; continue; }
+  mods.add(base[1] + ":" + base[2] + ":" + version);
 }
-if (mods.size === 0) {
-  console.error("gradle printed no dependency coordinates - not a gradle project, wrong configuration name, or the build failed; see the gradle output above");
+if (mods.size === 0 || odd > 0) {
+  console.error(odd > 0
+    ? "gradle printed " + odd + " coordinate-shaped lines this filter could not read - the result is incomplete, do not report it as a full scan"
+    : "gradle printed no dependency coordinates - not a gradle project, wrong configuration name, or the build failed; see the gradle output above");
   process.exit(1);
 }
 console.log([...mods].sort().join("\n"));
@@ -432,12 +438,33 @@ case and the one to prefer, since it pins the Gradle version.
 
 License detection same as Maven (POM-based).
 
-**Two things this pattern has to handle that Maven's does not.** Gradle prints a header and a
-configuration description before the tree and the line `(n) - dependencies omitted` after it,
-none of which carry coordinates, so the filter selects lines rather than trimming them. And
-Gradle reports conflict resolution inline as `1.2.3 -> 1.4.0`; the version after the arrow is
-the one actually on the classpath, so that is the one recorded — taking `m[3]` would report a
-version that is not in the build.
+**Gradle needs the version taken from the right place, and a coordinate is not always three
+fields.** Four shapes appear in a real tree, and the last two are what a plain
+`group:artifact:version` pattern drops without a sound:
+
+| line | version on the classpath | why |
+|---|---|---|
+| `org.springframework:spring-context:6.1.11` | `6.1.11` | plain |
+| `com.google.guava:guava:31.0-jre -> 33.2.1-jre` | `33.2.1-jre` | conflict resolution |
+| `org.slf4j:slf4j-api:{strictly 2.0.13} -> 2.0.13` | `2.0.13` | rich version constraint — `{` ends the third field early |
+| `org.apache.commons:commons-lang3 -> 3.14.0` | `3.14.0` | **no version in the build file at all** |
+
+The fourth is not exotic. Declaring dependencies without a version and letting a BOM or
+platform supply it is the normal arrangement in Spring Boot projects, and the coordinate then
+carries only *two* colon-separated fields before the arrow. So: the version comes from after
+the arrow whenever there is one — it is the one actually on the classpath, and taking the
+declared one would report a version that is not in the build — the third field is optional, and
+anything still shaped like a coordinate that yields no version at all raises `odd` and aborts.
+Same rule as Maven, same reason: a line this filter cannot read must not pass as a line that
+was not there.
+
+Header lines, the configuration description and `(n) - dependencies omitted` carry no colon
+pair and are skipped before that test — as is `\--- project :core`, where the space in front of
+the colon keeps a project-to-project reference (no external licence to look up) out of the
+count. That test ends in a negative lookahead rather than the `$` anchor it reads like it
+wants: `$` is forbidden inside these single-quoted scripts (see `docs/plugin-howto.md`), and
+`(?![A-Za-z0-9_.-])` is satisfied by end-of-line as well as by the space or colon that follows
+a coordinate.
 
 **The `2>/dev/null` here was the pure form of the failure this fixes.** With Gradle absent the
 shell writes `command not found` to stderr, stdout stays empty, exit is 127 — measured, both
@@ -475,9 +502,13 @@ for (const p of d.projects) {
   for (const f of p.frameworks || []) {
     for (const kind of ["topLevelPackages", "transitivePackages"]) {
       for (const pkg of f[kind] || []) {
-        const version = pkg.resolvedVersion || pkg.requestedVersion;
-        if (!pkg.id || !version) continue;
-        mods.set(pkg.id + ":" + version, { id: pkg.id, version, transitive: kind === "transitivePackages" });
+        if (!pkg.id) continue;
+        const version = pkg.resolvedVersion || pkg.requestedVersion || null;
+        const transitive = kind === "transitivePackages";
+        const key = pkg.id + ":" + version;
+        const prev = mods.get(key);
+        if (prev && !(prev.transitive && !transitive)) continue;
+        mods.set(key, { id: pkg.id, version, transitive, resolved: version !== null });
       }
     }
   }
@@ -508,9 +539,25 @@ as an empty, successful licence scan.
 **A `transitivePackages` entry is not necessarily a NuGet package.** Project-to-project
 references appear in that array alongside real packages with no field distinguishing them — a
 known and still-open gap in the JSON report. They have no NuGet licence metadata, so looking
-one up will fail; treat a
-lookup miss on a transitive entry as "possibly a project reference" before reporting it as an
-unlicensed dependency.
+one up will fail; treat a lookup miss on a transitive entry as "possibly a project reference"
+before reporting it as an unlicensed dependency.
+
+**An entry without a version is reported, not dropped**, as `{version: null, resolved: false}`
+— the same treatment `npm ls` gives a platform-specific optional dependency further up this
+file, and for the same reason: a row this filter cannot resolve must not leave silently, or the
+scan reports fewer dependencies than the project has and looks clean doing it. Dropping is
+what a `continue` here would do, and aborting would be worse still, since an unresolved entry
+is a routine occurrence in a multi-project solution rather than a broken run. Look such rows up
+against NuGet before counting them as scanned.
+
+**Which is why the deduplication resolves ties instead of letting the last write win.** The key
+is `id:version`, so the same package listed once as top-level and once as transitive — across
+projects or frameworks of a solution — lands on one key, and with `version` being `null` for
+every unresolved row, keeping those makes such collisions common rather than rare. A plain
+`set` would let whichever entry came last decide, so a package could be reported as transitive
+in one run and top-level in the next depending on iteration order. Top-level wins explicitly:
+it is the stronger statement about the project, and it is the one that decides whether a
+licence obligation is direct.
 
 > **Not verified against a running dotnet.** The .NET SDK is not installed in the environment
 > where this change was made. What *is* verified: the failure form (measured here), that
