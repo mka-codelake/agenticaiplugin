@@ -105,6 +105,12 @@ jobs:
             {{ context_files | length + 2 }}. Fetch the full diff:
                  `gh pr diff {{ '${{ github.event.pull_request.number }}' }}`
 
+            When a finding turns on whether something is new or long-standing,
+            check with a single `git log`, `git diff` or `git show` command —
+            a pattern the diff introduces is a finding, the same pattern
+            already established across the file is context. Use these only for
+            that question; everything else you need is in the diff.
+
             ## Review task
             This repository is {{ project_kind }}. Review the diff with these
             priorities, in order:

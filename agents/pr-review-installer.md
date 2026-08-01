@@ -7,6 +7,7 @@ description: >
   and hands over the App-authorization and secret steps only a human can perform.
   Use when user runs /agenticaiplugin:pr-review-setup.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
+skills: git-smart-commit
 model: sonnet
 effort: xhigh
 color: green
