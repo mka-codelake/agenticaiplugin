@@ -106,14 +106,58 @@ Missing → warning. Don't auto-create — push to `github-publish` skill which 
 
 `npm pack` runs `prepack` and `postpack` hooks, so the tarball contents reflect what `npm publish` would actually upload — including any prepack-generated files (e.g., README/LICENSE copies in monorepo subpackages).
 
+**All scans below use `grep -o`, and none of them redirects stderr.** Both are load-bearing in
+a *published tarball* specifically, because most of what is in one is minified — and a minified
+file is a single line, so `grep -n` without `-o` answers every match with the entire file. The
+worst measured case is the one this section explicitly scans for: a 2.8 MB source-map whose
+`sources` array carries 200 absolute build paths returned **2,812,052 B**, and a map with a
+single leaked path returns its whole megabyte for that one hit. `2>/dev/null` goes for the
+reason it went everywhere else in #63 — it makes "the directory is not there" indistinguishable
+from "this package is clean". grep exits 1 when it finds nothing and ≥ 2 when it could not
+look; treat only the former as a passed scan.
+
+**Seven of the eleven patterns needed nothing beyond `-o`.** A token pattern ends at the first
+character outside its own alphabet, so the match *is* the token: JWT, npm, GitHub, OpenAI,
+Anthropic, Slack and AWS keys measured 145–252 B each against a 1.4 MB minified bundle, down
+from 1,400,642 B. Three patterns end in a class that keeps running through minified code and
+needed an upper bound on top of `-o`; they are marked at their sections below. The eleventh,
+the absolute-path pattern, needed the opposite — it matches only a prefix, so `-o` alone
+printed `/home/b`.
+
+| Scan | before | after |
+|---|---|---|
+| 3.2 absolute paths | 2,812,052 B | 37,636 B |
+| 3.3 emails | did not finish in 45 s | 296 B |
+| 3.4 IP addresses | 1,400,642 B | 134 B |
+| 3.5 hostnames | 1,400,790 B / 41.6 s | 281 B / 0.6 s |
+| 3.6 seven prefixed secret patterns | 1,400,642 B each | 145–252 B each |
+| 3.6 generic catch-all | 1,500,136 B | 647 B |
+
+The two timing entries are not a footnote. The email pattern **never returned** on a minified
+bundle — 45 s and killed, with the address it was looking for sitting in the file. An
+unbounded `+` in front of an anchor makes the scan quadratic in line length, so the failure
+mode is not "too much output", it is a secret scan that reports nothing because it was
+stopped.
+
 ### 3.2 Absolute Filesystem Paths (Critical)
 
 Leaks build-environment paths and reveals OS / username structure.
 
 ```bash
-grep -rnE "/home/[a-zA-Z]|/Users/[a-zA-Z]|/root/[a-zA-Z]|/mnt/[a-z]/|C:\\\\[Uu]sers" \
-  "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.map" 2>/dev/null
+grep -rnoE "(/home/[a-zA-Z]|/Users/[a-zA-Z]|/root/[a-zA-Z]|/mnt/[a-z]/)[A-Za-z0-9._/-]{0,200}|C:\\\\[Uu]sers[A-Za-z0-9._\\\\-]{0,200}" \
+  "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.map"
 ```
+
+The `{0,200}` tail exists so the match is worth printing. The original pattern stops after the
+first character of the username, so `-o` would report `/home/b` — the finding would say a path
+leaked without saying which. A `{0,n}` tail matches the empty string, so it cannot cost a hit
+the prefix alone would have found; the regression check over every pattern class in 3.2–3.6
+confirmed identical hit locations before and after.
+
+**A source-map is one finding, not two hundred.** The 200 hits in the measured map are the 200
+entries of its `sources` array, all from the same build tree. Report the file, the count and
+the common root — not one finding per entry — and see 3.8, which deals with source-map hygiene
+as its own problem.
 
 Common sources:
 - Source-maps with absolute `sources` paths (TypeScript misconfigured — should emit relative)
@@ -127,10 +171,20 @@ Allowlist:
 
 ### 3.3 Email Addresses (Warning)
 
+**Bounded pattern** — the local part is the quadratic one, see 3.1.
+
 ```bash
-grep -rnE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" \
-  "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.txt" 2>/dev/null
+grep -rnoE "[a-zA-Z0-9._%+-]{1,64}@[a-zA-Z0-9.-]{1,255}\.[a-zA-Z]{2,24}" \
+  "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.txt"
 ```
+
+The three bounds are the RFC 5321 limits — 64 for the local part, 255 for the domain — plus 24
+for the TLD, comfortably above the longest one in existence. They are what makes the scan
+terminate: unbounded, `[a-zA-Z0-9._%+-]+` before the `@` will happily consume a 700,000-character
+run of minified identifier text at every offset, and the scan was killed at 45 s without
+reporting the address that was in the file. Bounded, the same scan answers in 14.7 s with 296 B.
+A local part longer than 64 characters is still found — the match simply starts later in the
+run.
 
 Whitelist — these are expected and not findings:
 - `package.json.author.email` (the author opted in)
@@ -144,9 +198,14 @@ Other matches → ask user per file (could be intentional contact info, could be
 ### 3.4 IP Addresses (Warning)
 
 ```bash
-grep -rnE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" "$PKG_DIR" \
-  --include="*.js" --include="*.json" --include="*.md" 2>/dev/null
+grep -rnoE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" "$PKG_DIR" \
+  --include="*.js" --include="*.json" --include="*.md"
 ```
+
+Already bounded on both sides, so `-o` is the whole change here. It does cost the surrounding
+context that told a real address from a version string like `1.2.3.4` — but that context was
+never readable in the minified files this scan mostly runs against, where it was the rest of
+the megabyte. Open the file at the reported location when a hit needs judging.
 
 Allowlist (always OK):
 - `127.0.0.1`, `0.0.0.0`, `255.255.255.255`
@@ -159,10 +218,18 @@ Findings worth flagging:
 
 ### 3.5 Hostnames (Warning)
 
+**Bounded pattern** — same quadratic shape as 3.3.
+
 ```bash
-grep -rnE "\b(localhost|[a-z0-9-]+\.local|[a-z0-9-]+\.lan|[a-z0-9-]+\.intern|[a-z0-9-]+\.corp|[a-z0-9-]+\.intranet|raspberry[a-z0-9-]*|rpi[0-9-]*|pihole[a-z0-9-]*|homelab[a-z0-9-]*)\b" "$PKG_DIR" \
-  --include="*.js" --include="*.json" --include="*.md" --include="*.txt" 2>/dev/null
+grep -rnoE "\b(localhost|[a-z0-9-]{1,253}\.local|[a-z0-9-]{1,253}\.lan|[a-z0-9-]{1,253}\.intern|[a-z0-9-]{1,253}\.corp|[a-z0-9-]{1,253}\.intranet|raspberry[a-z0-9-]{0,253}|rpi[0-9-]{0,253}|pihole[a-z0-9-]{0,253}|homelab[a-z0-9-]{0,253})\b" "$PKG_DIR" \
+  --include="*.js" --include="*.json" --include="*.md" --include="*.txt"
 ```
+
+253 is the RFC 1035 limit for a whole domain name, deliberately chosen over the 63 that applies
+to a single label. 63 is the technically correct bound and it loses findings: because the
+pattern opens with `\b`, a label longer than the bound has no matching start position at all,
+and a 100-character label — invalid as DNS, perfectly possible as leaked text — went from found
+to not found. 253 keeps it and still turns 1,400,790 B / 41.6 s into 281 B / 0.6 s.
 
 Downgrade to informational: `localhost` alone, "local DB", "local file system" (legitimate documentation patterns).
 
@@ -187,8 +254,25 @@ The most important audit. Use this regex catalog:
 | Stripe Secret | `sk_live_[A-Za-z0-9]{24,}` | Production Stripe key |
 | Google API | `AIza[0-9A-Za-z_-]{35}` | Google Cloud API key |
 | Discord Bot | `[MN][A-Za-z\d]{23}\.[\w-]{6}\.[\w-]{27}` | Discord bot token |
-| Generic high-entropy assignment | `(?i)(api[_-]?key\|password\|secret\|token\|bearer\|credential\|access[_-]?token)\s*[:=]\s*['\"]?[^'\"]{16,}['\"]?` | Lower-confidence catch-all. Quotes optional → also catches unquoted `KEY=value` config lines |
+| Generic high-entropy assignment | `(?i)(api[_-]?key\|password\|secret\|token\|bearer\|credential\|access[_-]?token)\s*[:=]\s*['\"]?[^'\"]{16,512}['\"]?` | Lower-confidence catch-all. Quotes optional → also catches unquoted `KEY=value` config lines. **The only pattern in this table with an added upper bound** — see below |
 | Private key headers | `-----BEGIN (RSA \|EC \|OPENSSH \|PGP \|)PRIVATE KEY-----` | SSH/PGP private keys embedded as strings |
+
+**Run every one of these with `grep -o`.** The prefixed patterns need nothing else: each ends
+at the first character outside its own alphabet, so the match is the token, and none of their
+open quantifiers (`{36,}`, `{32,}`, `+`) can run away in practice. Measured against a 1.4 MB
+minified bundle carrying one token of each class, they returned 145–252 B apiece where the
+unbounded `grep -n` had returned 1,400,642 B — the whole file, once per pattern. Do **not**
+add upper bounds to them: a `{36,72}` on a token that the file happens to continue past 72
+characters still matches, but the same edit on the multi-segment JWT pattern removed findings
+outright, because a bounded first segment leaves no room for the `.` that must follow it.
+
+**The generic catch-all is the one that needs the bound.** Its tail is `[^'"]`, and in an
+unquoted minified config line — `password=…` with no closing quote anywhere — that class runs
+to the end of the file. `-o` does not help at all here: it still returned **1,500,136 B** for a
+single match, against 1,500,136 B unbounded. At `{16,512}` the same scan returns **647 B**.
+Nothing is hidden by it: a value longer than 512 characters still matches and is still
+reported, only printed truncated — and a 512-character prefix is more than enough to judge a
+credential.
 
 **File scope:** The named prefix patterns (JWT, npm, GitHub, OpenAI, Anthropic, AWS, …) run against **all** files — their prefixes are unambiguous everywhere. The **generic catch-all** must also run against all files (skip binaries with `-I`, exclude `node_modules`), not just `*.js`/`*.json`: prefixless credentials (DB passwords, bearer tokens) commonly live in config files (`.env`, `.ini`, `.conf`, or renamed variants that evade the dotfile-hygiene glob). Restricting it to code endings leaves those uncovered.
 

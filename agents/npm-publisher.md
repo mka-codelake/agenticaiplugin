@@ -462,28 +462,45 @@ PKG_DIR="$AUDIT_DIR/package"
 
 For each scan below, gather findings with file paths and line numbers (when relevant). All scans run against `$PKG_DIR`. Read `${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/reference.md` Section 3 for the full pattern catalog.
 
+**Every scan below runs `grep -o`, and none of them redirects stderr.** A published tarball is
+mostly *minified* code, where a file is one single line — so `grep -n` without `-o` answers a
+one-byte match with the whole megabyte around it. Measured against a 2.8 MB source-map whose
+`sources` array holds 200 build paths, the absolute-path scan returned **2,812,052 B**; with
+`-o` and the match extended to the full path it returns **37,636 B**, and a single hit in that
+map costs a line instead of the file. `2>/dev/null` is gone for the same reason it went
+everywhere else: it turns "the directory does not exist" into "this package is clean". See
+reference.md Section 3.1 for the per-pattern measurements and for the three patterns that
+needed an upper bound on top of `-o`.
+
+**Empty output is only a clean result if grep did not also print an error.** grep exits 1 when
+it finds nothing and ≥ 2 when it could not look — read the exit code before recording a scan
+as passed.
+
 **1. Absolute filesystem paths (Critical)** — leaks build environment:
 ```bash
-grep -rnE "/home/[a-zA-Z]|/Users/[a-zA-Z]|/root/[a-zA-Z]|/mnt/[a-z]/|C:\\\\[Uu]sers" \
-  "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.map" 2>/dev/null
+grep -rnoE "(/home/[a-zA-Z]|/Users/[a-zA-Z]|/root/[a-zA-Z]|/mnt/[a-z]/)[A-Za-z0-9._/-]{0,200}|C:\\\\[Uu]sers[A-Za-z0-9._\\\\-]{0,200}" \
+  "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.map"
 ```
+The trailing `{0,200}` is what makes the match worth printing: the bare prefix pattern matches
+`/home/b` and tells you nothing about which path leaked. It cannot cost a finding — a `{0,n}`
+tail matches the empty string, so every hit the prefix alone would have found is still found.
 
 **2. Email addresses (Warning)** — except those in NOTICE/package.json author/maintainer fields:
 ```bash
-grep -rnE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" "$PKG_DIR" \
-  --include="*.js" --include="*.json" --include="*.md" --include="*.txt" 2>/dev/null
+grep -rnoE "[a-zA-Z0-9._%+-]{1,64}@[a-zA-Z0-9.-]{1,255}\.[a-zA-Z]{2,24}" "$PKG_DIR" \
+  --include="*.js" --include="*.json" --include="*.md" --include="*.txt"
 ```
 Apply whitelist: emails in `NOTICE`, `LICENSE` (Apache contains contact email in boilerplate), and `package.json.author` are expected.
 
 **3. IP addresses (Warning)** — except `127.0.0.1`, `0.0.0.0`, broadcast `255.x`, documentation ranges (`192.0.2.x`, `198.51.100.x`, `203.0.113.x`):
 ```bash
-grep -rnE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" 2>/dev/null
+grep -rnoE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md"
 ```
 
 **4. Hostnames (Warning)** — internal/private patterns:
 ```bash
-grep -rnE "\b(localhost|[a-z0-9-]+\.local|[a-z0-9-]+\.lan|[a-z0-9-]+\.intern|[a-z0-9-]+\.corp|[a-z0-9-]+\.intranet|raspberry[a-z0-9-]*|rpi[0-9-]*|pihole[a-z0-9-]*|homelab[a-z0-9-]*)\b" "$PKG_DIR" \
-  --include="*.js" --include="*.json" --include="*.md" --include="*.txt" 2>/dev/null
+grep -rnoE "\b(localhost|[a-z0-9-]{1,253}\.local|[a-z0-9-]{1,253}\.lan|[a-z0-9-]{1,253}\.intern|[a-z0-9-]{1,253}\.corp|[a-z0-9-]{1,253}\.intranet|raspberry[a-z0-9-]{0,253}|rpi[0-9-]{0,253}|pihole[a-z0-9-]{0,253}|homelab[a-z0-9-]{0,253})\b" "$PKG_DIR" \
+  --include="*.js" --include="*.json" --include="*.md" --include="*.txt"
 ```
 Downgrade `localhost` and standalone "local" usage to informational — they're often legitimate.
 
@@ -492,27 +509,37 @@ Downgrade `localhost` and standalone "local" usage to informational — they're 
 **6. Secret patterns (CRITICAL)** — see reference.md Section 3.6 for full regex catalog. Minimum coverage:
 ```bash
 # JWT
-grep -rnE "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+" "$PKG_DIR" 2>/dev/null
+grep -rnoE "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+" "$PKG_DIR"
 # npm token
-grep -rnE "npm_[A-Za-z0-9]{36,}" "$PKG_DIR" 2>/dev/null
+grep -rnoE "npm_[A-Za-z0-9]{36,}" "$PKG_DIR"
 # GitHub PAT
-grep -rnE "ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{82,}" "$PKG_DIR" 2>/dev/null
+grep -rnoE "ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{82,}" "$PKG_DIR"
 # OpenAI API
-grep -rnE "sk-[A-Za-z0-9]{32,}|sk-proj-[A-Za-z0-9_-]{40,}" "$PKG_DIR" 2>/dev/null
+grep -rnoE "sk-[A-Za-z0-9]{32,}|sk-proj-[A-Za-z0-9_-]{40,}" "$PKG_DIR"
 # Anthropic API
-grep -rnE "sk-ant-[A-Za-z0-9_-]{32,}" "$PKG_DIR" 2>/dev/null
+grep -rnoE "sk-ant-[A-Za-z0-9_-]{32,}" "$PKG_DIR"
 # Slack
-grep -rnE "xox[bpaorsl]-[A-Za-z0-9-]{10,}" "$PKG_DIR" 2>/dev/null
+grep -rnoE "xox[bpaorsl]-[A-Za-z0-9-]{10,}" "$PKG_DIR"
 # AWS access key
-grep -rnE "AKIA[0-9A-Z]{16}" "$PKG_DIR" 2>/dev/null
+grep -rnoE "AKIA[0-9A-Z]{16}" "$PKG_DIR"
 # Generic high-entropy assignments
 # Scans ALL files (not just *.js/*.json): generic/prefixless credentials (DB passwords,
 # bearer tokens) also live in config files (.env, .ini, .conf, renamed variants).
 # Quotes are optional so unquoted KEY=value config lines are caught too.
 # -I skips binaries, --exclude-dir=node_modules drops dependency noise.
-grep -rinIE "(api[_-]?key|password|secret|token|bearer|credential)\s*[:=]\s*['\"]?[^'\"]{16,}['\"]?" "$PKG_DIR" \
-  --exclude-dir=node_modules 2>/dev/null
+# The {16,512} bound is not cosmetic — see below.
+grep -rinoIE "(api[_-]?key|password|secret|token|bearer|credential)\s*[:=]\s*['\"]?[^'\"]{16,512}['\"]?" "$PKG_DIR" \
+  --exclude-dir=node_modules
 ```
+
+**The seven prefixed patterns needed nothing but `-o`** — each one ends at the first character
+outside its own alphabet, so the match is the token and nothing more (measured: 145–252 B each
+against a 1.4 MB minified bundle, down from 1,400,642 B). **The generic catch-all is the
+exception, and it is the reason for the upper bound.** Its tail is `[^'"]`, which in an
+unquoted minified config line runs to the end of the file: with `-o` and no bound it still
+returned **1,500,136 B** for one match. Bounded at 512 it returns **215 B**. The bound cannot
+hide a credential — a value longer than 512 characters still matches, it is just printed
+truncated.
 
 Apply false-positive downgrades: matches in `*.test.js`, `*.spec.js`, `fixtures/`, `*.example`, `*.sample` are warnings (still report), not critical.
 
