@@ -608,15 +608,65 @@ Store: `registry_state = { exists, latest_published, bump_type, user_is_maintain
 
 ```bash
 # Production-only audit
-cd "{repo_path}" && npm audit --omit=dev --json 2>&1 | head -200
-
-# Outdated check (informational)
-cd "{repo_path}" && npm outdated --json 2>&1 | head -50
+cd "{repo_path}" && npm audit --omit=dev --json | node -e '
+let a;
+try { a = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { a = null; }
+if (!a || !a.metadata) {
+  console.error("npm audit produced no usable report - see the npm error above");
+  process.exit(1);
+}
+const bad = Object.entries(a.vulnerabilities || {})
+  .filter(([, v]) => v.severity === "high" || v.severity === "critical")
+  .map(([name, v]) => ({ name, severity: v.severity, range: v.range, fixAvailable: !!v.fixAvailable }));
+console.log(JSON.stringify({ counts: a.metadata.vulnerabilities, highOrCritical: bad }, null, 2));
+'
 ```
 
-Parse for vulnerabilities at `high` or `critical` severity in production deps → critical findings.
-Outdated production deps with major-version updates pending → warning.
-Outdated dev deps → informational only.
+Prints `{ counts, highOrCritical }`: `counts` is npm's severity tally
+(`info`/`low`/`moderate`/`high`/`critical`/`total`), `highOrCritical` one
+`{name, severity, range, fixAvailable}` row per production advisory at that severity.
+**Every row in `highOrCritical` → critical finding**; `counts` is the cross-check that
+nothing was dropped.
+
+Do not truncate this report with `head`. The tally lives in `metadata.vulnerabilities` at
+the *end* of the document — in a three-advisory fixture it sat on line 619 of 636, so
+`head -200` both cut the counts away entirely and left a fragment that is no longer valid
+JSON. The filter must see the whole stream.
+
+```bash
+# Outdated check (informational)
+cd "{repo_path}" && npm outdated --json | node -e '
+let o;
+try { o = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { o = null; }
+if (!o || typeof o !== "object" || Array.isArray(o)) {
+  console.error("npm outdated produced no parseable report - see the npm error above");
+  process.exit(1);
+}
+const major = (a, b) => a && b && a.split(".")[0] !== b.split(".")[0];
+const rows = Object.entries(o).map(([name, d]) => ({
+  name, current: d.current, wanted: d.wanted, latest: d.latest,
+  majorBehind: !!major(d.current, d.latest),
+}));
+console.log(JSON.stringify(rows, null, 2));
+'
+```
+
+Prints one `{name, current, wanted, latest, majorBehind}` row per outdated package (an
+up-to-date project yields `{}` → `[]`, not an error). **Production deps with
+`majorBehind: true` → warning; dev deps → informational only** — `npm outdated` does not
+mark which is which, so classify each row against `dependencies` vs `devDependencies` in
+`package.json`.
+
+`majorBehind` requires *both* versions to be present on purpose: after a
+`--package-lock-only` install there is no `node_modules`, so npm reports `wanted`/`latest`
+but no `current` at all. Comparing a missing `current` against `latest` would flag every
+such package as a major-version laggard.
+
+Neither command's stderr is redirected into the pipe. Under `--json` npm puts the
+machine-readable error object on **stdout** and the human-readable diagnosis (e.g.
+`ENOLOCK — this command requires an existing lockfile`) on **stderr**; folding stderr in
+with `2>&1` would feed it to the filter instead of the reader, leaving an abort message
+that points at an explanation nobody can see.
 
 ### Phase 4: Status Display
 
