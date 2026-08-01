@@ -64,6 +64,15 @@ jobs:
           state=$(awk -F'\t' -v f="$WORKFLOW_FILE" '$2 == f { print $1 }' "$files")
           total=$(awk 'END { print NR }' "$files")
 
+          # A failing `gh` aborts the step via `bash -e` before this point. An
+          # empty list on a successful call is the case that would otherwise
+          # read as "workflow untouched" and wave the PR through: every PR has
+          # at least one file, so nothing here is a lookup that did not work.
+          if [ "$total" -eq 0 ]; then
+            echo "::error::Could not read the file list for PR #$PR_NUMBER — the API call succeeded but returned nothing. Refusing to assume this PR leaves $WORKFLOW_FILE alone."
+            exit 1
+          fi
+
           # Untouched: the action validates fine and reviews normally.
           if [ -z "$state" ]; then
             exit 0
