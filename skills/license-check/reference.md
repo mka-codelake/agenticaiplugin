@@ -99,7 +99,9 @@ const walk = (node) => {
   for (const [name, info] of Object.entries((node && node.dependencies) || {})) {
     if (!info || info.missing) { missing++; continue; }
     const key = name + "@" + (info.version || "unknown");
-    if (!seen.has(key)) { seen.set(key, { name, version: info.version || null }); walk(info); }
+    if (seen.has(key)) { continue; }
+    seen.set(key, info.version ? { name, version: info.version } : { name, version: null, installed: false });
+    walk(info);
   }
 };
 walk(d);
@@ -112,7 +114,9 @@ console.log(JSON.stringify([...seen.values()], null, 2));
 ```
 Prints one `{name, version}` row per distinct package of the full tree (direct +
 transitive), deduplicated — the raw tree repeats every package at every position it
-occupies and carries a `resolved` URL for each.
+occupies and carries a `resolved` URL for each. Rows the tree has no version for carry
+`{version: null, installed: false}`; see the optional-dependency note below before
+counting them as scanned.
 
 **The unmet-dependency count is the point of this filter, not its size.** Without
 `node_modules`, `npm ls --json` still emits a populated `dependencies` object — every entry
@@ -128,6 +132,22 @@ The `name` check covers the quietest variant of the same failure: run from a dir
 without a `package.json`, `npm ls --json --all` prints `{}` and exits **0 with an empty
 stderr**. There is no diagnosis to miss, which is exactly why the shape has to be asserted
 here — `{}` is not an empty project, it is the wrong working directory.
+
+**A platform-specific optional dependency is not an unmet one, and npm does not confuse
+the two.** For `fsevents` (`os: darwin`) on Linux, `npm ls --json --all` emits the entry as
+an **empty object** — `"fsevents": {}` — with no `missing` flag, nothing in `problems`, no
+`ELSPROBLEMS`, and exit 0. Measured both as a direct `optionalDependencies` entry and
+transitively through `chokidar`. So the unmet count above never fires for it, and a
+platform check in this filter would be dead code: the flag it would test is never set on
+this path.
+
+Those entries still surface, as `{name, version: null, installed: false}`, and that is
+deliberate — do **not** read them as scanned. The package is absent here but ships on the
+platform it targets, so its licence still counts for a cross-platform release; it simply
+cannot be resolved from this tree. Look such a row up via the registry (`npm info <name>
+license`) instead of treating the local absence as a clean result. Verified against the
+mixed case: with `fsevents` present as `{}` *and* a genuinely uninstalled required
+dependency in the same tree, only the required one raises the count and the command aborts.
 
 **Per-dependency license check:**
 ```bash
