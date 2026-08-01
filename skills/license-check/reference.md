@@ -504,12 +504,11 @@ for (const p of d.projects) {
       for (const pkg of f[kind] || []) {
         if (!pkg.id) continue;
         const version = pkg.resolvedVersion || pkg.requestedVersion || null;
-        mods.set(pkg.id + ":" + version, {
-          id: pkg.id,
-          version,
-          transitive: kind === "transitivePackages",
-          resolved: version !== null,
-        });
+        const transitive = kind === "transitivePackages";
+        const key = pkg.id + ":" + version;
+        const prev = mods.get(key);
+        if (prev && !(prev.transitive && !transitive)) continue;
+        mods.set(key, { id: pkg.id, version, transitive, resolved: version !== null });
       }
     }
   }
@@ -550,6 +549,15 @@ scan reports fewer dependencies than the project has and looks clean doing it. D
 what a `continue` here would do, and aborting would be worse still, since an unresolved entry
 is a routine occurrence in a multi-project solution rather than a broken run. Look such rows up
 against NuGet before counting them as scanned.
+
+**Which is why the deduplication resolves ties instead of letting the last write win.** The key
+is `id:version`, so the same package listed once as top-level and once as transitive — across
+projects or frameworks of a solution — lands on one key, and with `version` being `null` for
+every unresolved row, keeping those makes such collisions common rather than rare. A plain
+`set` would let whichever entry came last decide, so a package could be reported as transitive
+in one run and top-level in the next depending on iteration order. Top-level wins explicitly:
+it is the stronger statement about the project, and it is the one that decides whether a
+licence obligation is direct.
 
 > **Not verified against a running dotnet.** The .NET SDK is not installed in the environment
 > where this change was made. What *is* verified: the failure form (measured here), that
