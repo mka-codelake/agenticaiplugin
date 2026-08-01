@@ -205,10 +205,54 @@ else
   RANGE="HEAD"   # all commits, less reliable
 fi
 
-git -C "{repo_path}" log $RANGE --pretty=format:"%H|%s|%b%n---END---" 2>/dev/null
+set -o pipefail   # required: see below
+git -C "{repo_path}" log $RANGE --pretty=format:"%H%x1f%s%x1f%b%x1e" | node -e '
+const raw = require("fs").readFileSync(0, "utf8");
+if (raw.trim().length === 0) {
+  console.log(JSON.stringify({ commits: [] }, null, 2));
+  process.exit(0);
+}
+const out = [];
+for (const rec of raw.split("\u001e")) {
+  const r = rec.replace(/^\n/, "");
+  if (r.trim().length === 0) continue;
+  const parts = r.split("\u001f");
+  if (parts.length < 3 || parts[0].length !== 40) {
+    console.error("git log record is not hash/subject/body - the format string did not survive");
+    process.exit(1);
+  }
+  out.push({
+    hash: parts[0].slice(0, 12),
+    subject: parts[1],
+    breaking: /(^|\n)BREAKING CHANGE:/.test(parts.slice(2).join("\u001f")),
+  });
+}
+console.log(JSON.stringify({ commits: out }, null, 2));
+'
 ```
 
-If no commits since last tag:
+**Why this is not `%H|%s|%b`** — see reference.md Section 9.2 for the measurements. Short
+version: `%b` carried every commit body in full (39,028 B over four releases of this repo, for
+a decision that needs one boolean per commit), and the `|` separator cannot be parsed at all,
+because a pipe in a subject splits into the wrong fields and a multi-line body is
+indistinguishable from further commits.
+
+**`2>/dev/null` is gone and `$RANGE` failures now surface.** A `$LAST_TAG` that no longer
+exists makes git exit 128 and write `fatal: ambiguous argument` to stderr with nothing on
+stdout — suppressed, that read as "no commits since the last release" and would have proposed
+a patch release of a repository full of features.
+
+**`set -o pipefail` is what makes that distinction survive the pipe, and it is not optional.**
+An empty range is a legitimate answer here — the branch immediately below is what handles it,
+so the filter answers `{"commits": []}` and exits 0 rather than aborting, which is deliberately
+unlike reference.md Section 9.2 where nothing catches an abort. But a broken range and an empty
+range look *identical* to the filter: git writes nothing to stdout in both cases. Only the exit
+code separates them, and without `pipefail` the pipeline reports the filter's 0 and the failure
+is read as "nothing to release". **Check the exit code, not just the JSON:** 0 with an empty
+`commits` array means there is nothing to release, anything non-zero means the question was
+never answered.
+
+If no commits since last tag (`{"commits": []}`):
 ```
 ⚠ No new commits since v{PUBLISHED_LATEST}. Nothing to release.
 ```
@@ -216,13 +260,15 @@ AskUserQuestion: **Skip Phase 2** / **Force re-release with empty CHANGELOG** / 
 
 **Step B — Detect bump type per reference.md Section 9.2:**
 
-Parse each commit subject + body. Aggregate the highest-impact signal:
+Aggregate the highest-impact signal across the rows above:
 
-- ANY commit has `<type>!:` in subject OR `BREAKING CHANGE:` in body → `major`
+- ANY commit has `<type>!:` in subject OR `breaking: true` → `major`
 - ELSE ANY commit has `feat:` or `feat(...):` → `minor`
 - ELSE → `patch`
 
-Filter out: merge commits, previous `chore(release):` commits, co-author trailer lines.
+Filter out: merge commits and previous `chore(release):` commits — both recognisable by
+subject. Co-author trailers need no filtering any more: they live in the body, which no longer
+reaches you.
 
 **Step C — Compute next version per reference.md Section 9.3:**
 
