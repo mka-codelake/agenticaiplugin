@@ -874,6 +874,14 @@ Two corollaries, each from a measured false negative (#63):
   instead of the reader, and `2>/dev/null` turns "the tool is not installed" into
   "this project has no dependencies".
 
+**Filter where the response is large — and only there.** The benefit is proportional to
+response size: PyPI answers 3.2 MB of release history for one version string, `npm view …
+versions --json` 105 KB, `go mod graph` 314 KB of edges describing 1246 modules. Below
+roughly **10 KB** a filter buys nothing worth its surface — it only moves the parsing
+around, which is why Maven Central (< 1 KB) and GHCR `tags/list` (< 4 KB) stay unfiltered.
+Measure the real endpoint before deciding: 0.29.0 shipped a fresh 553 KB unfiltered call in
+a newly written file precisely because no threshold was written down anywhere (#63).
+
 ### Auto-Activation in Skills
 ```markdown
 ---
