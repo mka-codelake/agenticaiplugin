@@ -8,6 +8,15 @@ Shared reference for Specialist 1 (Dependencies & Versions). Used during normal 
 
 Use these APIs to verify the latest stable version of each dependency.
 
+**Where a response is large, it is filtered before you read it.** The saving is proportional
+to response size, so only the big ones carry a filter: PyPI answers `boto3` with **3.2 MB**
+of release history for one version string, Docker Hub **553 KB** for 100 tag names, `npm
+view react versions` **105 KB**. The small endpoints below (Maven Central, npm
+`/{package}/latest`, GHCR `tags/list`) stay unfiltered on purpose — under roughly 10 KB a
+filter only moves the parsing around. Every filter aborts with exit 1 and a named cause
+rather than printing a partial result: an empty answer, an HTTP error body, and invalid
+JSON must never look like "no newer version found".
+
 **JVM (Maven Central):**
 ```bash
 curl -s "https://search.maven.org/solrsearch/select?q=g:{groupId}+AND+a:{artifactId}&rows=1&wt=json"
@@ -18,17 +27,44 @@ curl -s "https://search.maven.org/solrsearch/select?q=g:{groupId}+AND+a:{artifac
 curl -s "https://registry.npmjs.org/{package}/latest"
 ```
 
-**Python (PyPI):**
+**Python (PyPI):** the raw response carries every file of every release ever published
+(3.2 MB for `boto3`, 615 KB for `django`) around the one field that answers the question.
 ```bash
-curl -s "https://pypi.org/pypi/{package}/json"
+curl -s "https://pypi.org/pypi/{package}/json" | node -e '
+let d;
+try { d = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { d = null; }
+if (!d || typeof d !== "object" || !d.info || typeof d.info.version !== "string") {
+  console.error("pypi.org returned no version info - unknown package or failed request");
+  process.exit(1);
+}
+console.log(JSON.stringify({
+  name: d.info.name,
+  latest: d.info.version,
+  requires_python: d.info.requires_python,
+  yanked: !!d.info.yanked,
+}, null, 2));
+'
 ```
+A yanked latest release is not a valid upgrade target — report the dependency as
+unverifiable rather than recommending it.
 
-**Container images (Docker Hub):**
+**Container images (Docker Hub):** official images live in the `library` namespace, so
+`{namespace}` is `library` for them.
 ```bash
-# official images live in the "library" namespace
-curl -s "https://hub.docker.com/v2/repositories/library/{image}/tags?page_size=100&ordering=last_updated"
-curl -s "https://hub.docker.com/v2/repositories/{namespace}/{image}/tags?page_size=100&ordering=last_updated"
+curl -s "https://hub.docker.com/v2/repositories/{namespace}/{image}/tags?page_size=100&ordering=last_updated" | node -e '
+let d;
+try { d = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { d = null; }
+if (!d || typeof d !== "object" || !Array.isArray(d.results)) {
+  console.error("hub.docker.com returned no tag list - unknown image or failed request");
+  process.exit(1);
+}
+console.log(JSON.stringify(d.results.map(t => ({ name: t.name, last_updated: t.last_updated })), null, 2));
+'
 ```
+`last_updated` is kept deliberately: the digests, sizes and per-architecture variants in
+the raw response are what make it 553 KB, but the timestamp is what tells a stale image
+line from a maintained one — dropping it would save a further 5 KB of the remaining 8.6 KB
+and make the EOL judgement this reference exists for impossible.
 
 **Container images (GHCR):** anonymous pull token first, then the tag list with that token as bearer.
 ```bash
@@ -55,15 +91,60 @@ it as unverifiable.
 
 **Container images (Quay):**
 ```bash
-curl -s "https://quay.io/api/v1/repository/{namespace}/{image}/tag/?onlyActiveTags=true&limit=100"
+curl -s "https://quay.io/api/v1/repository/{namespace}/{image}/tag/?onlyActiveTags=true&limit=100" | node -e '
+let d;
+try { d = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { d = null; }
+if (!d || typeof d !== "object" || !Array.isArray(d.tags)) {
+  console.error("quay.io returned no tag list - unknown image, private repository, or failed request");
+  process.exit(1);
+}
+console.log(JSON.stringify(d.tags.map(t => ({ name: t.name, last_modified: t.last_modified })), null, 2));
+'
 ```
+Quay answers a private repository with **HTTP 401** and `{"detail":"Requires
+authentication"}` — a body that parses cleanly but has no `tags` field. That is the
+"private image" case under Error handling below: report it as unverifiable, do not guess.
 
-**GitHub Actions:**
+**GitHub Actions:** the response is dominated by `body`, which carries the complete release
+notes — 28 KB for `grafana/grafana`, and it is the only field that varies by orders of
+magnitude between repositories.
 ```bash
-curl -s "https://api.github.com/repos/{owner}/{action}/releases/latest"   # or: gh release view --repo {owner}/{action}
+curl -s "https://api.github.com/repos/{owner}/{action}/releases/latest" | node -e '
+let d;
+try { d = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { d = null; }
+if (!d || typeof d !== "object" || typeof d.tag_name !== "string") {
+  console.error("api.github.com returned no release - unknown repo, rate limit, or the repo publishes tags only");
+  process.exit(1);
+}
+console.log(JSON.stringify({ tag_name: d.tag_name, published_at: d.published_at, prerelease: !!d.prerelease }, null, 2));
+'
+# or, where the gh CLI is authenticated: gh release view --repo {owner}/{action} --json tagName,publishedAt,isPrerelease
 ```
+**An abort here is not always an error.** Some repositories tag versions without ever
+publishing a GitHub *release*: `golang/go` answers this endpoint with **HTTP 404** and its
+`/releases` list with `[]`. An anonymous request is also rate-limited at 60/hour per IP,
+which produces the same abort for a repository that does have releases. For the former,
+fall back to the tag list:
+```bash
+curl -s "https://api.github.com/repos/{owner}/{action}/tags" | node -e '
+let d;
+try { d = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { d = null; }
+if (!Array.isArray(d) || d.length === 0) {
+  console.error("api.github.com returned no tags - unknown repo, rate limit, or the repo has no tags");
+  process.exit(1);
+}
+console.log(JSON.stringify(d.map(t => t.name), null, 2));
+'
+```
+**Read that fallback with the tag list caveats below, they are not optional here.** This
+endpoint returns 30 tags in a repository-dependent order that is *not* chronological:
+`actions/checkout` happens to answer `v7.0.1` first, `golang/go` answers
+`weekly.2012-03-27` — a tag from 2012. Taking the first entry is how a fourteen-year-old
+version gets reported as current. Sort the names yourself, and if no semver-shaped tag is
+among them, report the dependency as unverifiable rather than picking one.
 
-**Tag list caveats:** these endpoints return tags in registry order, not semver order — sort yourself and discard `latest`, `edge`, `nightly`, `rc`/`beta`, and date-only snapshot tags before deciding what "latest stable" is. A digest-only reference (`image@sha256:…`) carries no version information; resolve it via the registry or report the currency question as unverifiable.
+**Tag list caveats:** these endpoints return tags in registry order, not semver order — the
+filters above preserve that order rather than imposing one, so sort yourself and discard `latest`, `edge`, `nightly`, `rc`/`beta`, and date-only snapshot tags before deciding what "latest stable" is. A digest-only reference (`image@sha256:…`) carries no version information; resolve it via the registry or report the currency question as unverifiable.
 
 **Error handling:**
 - API timeout → skip dependency with warning
