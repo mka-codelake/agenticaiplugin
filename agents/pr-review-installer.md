@@ -8,7 +8,7 @@ description: >
   Use when user runs /agenticaiplugin:pr-review-setup.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 model: sonnet
-effort: high
+effort: xhigh
 color: green
 ---
 

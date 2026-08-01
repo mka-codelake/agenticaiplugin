@@ -22,6 +22,7 @@ unchanged, the prompt block does not.
 | Fixed comment format + "a silent run is a bug" | The comment is the only channel the run has; an unformatted or absent one makes the check unreadable |
 | Quoted `--allowed-tools` value | Unquoted it is split on whitespace and the run dies on an unknown option (Section 6.3) |
 | `Write` in the allow-list, workspace-relative output path | The runner sandbox permits writes only inside the workspace (Section 6.5) |
+| **No** `cat`/`head`/`tail`/`wc` in the allow-list | Deliberate, not an oversight. The prompt tells the reviewer to read with Read/Grep/Glob because compound commands stall the run (Section 6.4); without a pipe those four are only a worse `Read`, and listing them invites the pipe. Do not add them back |
 
 **Variable — the three slots the agent derives:**
 
