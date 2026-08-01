@@ -122,7 +122,30 @@ After the github-publisher agent completes successfully:
 
 3. **If user selects "Nein":** Skip license check and proceed.
 
+## Post-Execution: Optional PR Review Setup
+
+A public repository receives pull requests. After the github-publisher agent completes successfully:
+
+1. **Ask the user** via AskUserQuestion:
+   "Would you also like to set up an automated PR review GitHub Action for this repository?"
+   - Options: "Yes" / "No"
+
+2. **If user selects "Yes":** Invoke:
+
+   ```
+   Agent(
+       subagent_type="agenticaiplugin:pr-review-installer",
+       description="Set up automated PR review action",
+       prompt="Set up the automated PR review action for this project. Repo: {repo_path_or_cwd}"
+   )
+   ```
+
+   The agent derives the project-specific review prompt from the project's own documentation and presents it for approval before writing `.github/workflows/claude-review.yml`. That approval step belongs to the agent and is not skippable — it is what keeps repository content from silently becoming the instruction set of an agent with `pull-requests: write`.
+
+3. **If user selects "No":** Skip and proceed.
+
 ## Related
 
 - **git-smart-commit** - After github-publish, commit the generated files
 - **license-check** - Standalone license compatibility check (also offered as post-step above)
+- **pr-review-setup** - Standalone setup of the automated PR review action (also offered as post-step above)

@@ -83,6 +83,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:markdown-converter` | Convert files to Markdown via markitdown |
 | `/agenticaiplugin:youtube-transcript` | Fetch a YouTube video's captions as plain text (pure Node, no Python/yt-dlp) |
 | `/agenticaiplugin:github-publish` | Prepare repo for public GitHub release (README, badges, logo, license, etc.) |
+| `/agenticaiplugin:pr-review-setup` | Install an automated PR review GitHub Action; derives the project-specific review prompt from the project's own docs, mandatory approval before writing |
 | `/agenticaiplugin:npm-publish` | End-to-end npm release: cut release (semver bump + CHANGELOG from Conventional Commits) + pre-publish audit (package.json, version sync, tarball, secrets, license) |
 | `/agenticaiplugin:license-check` | Check license compatibility of dependencies, tools, and LLM models |
 | `/agenticaiplugin:handover` | Save/load cross-session continuity snapshot (open items, blockers, next steps) — reconciles with prior state, never auto-loads |
