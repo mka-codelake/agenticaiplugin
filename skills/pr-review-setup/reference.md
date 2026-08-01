@@ -166,6 +166,13 @@ Write onto a feature branch, never straight onto the default branch. The file
 has to reach the default branch through a merge anyway (Section 6.2), and the
 owner needs a chance to read the prompt in a diff.
 
+Branch off the **default branch**, not off the currently checked-out ref. The
+setup is offered as a follow-up to `github-publish`, which leaves the repository
+on its own feature branch — branching off HEAD there produces a PR carrying that
+branch's unrelated commits, and the prompt block the owner is meant to read
+disappears into them. When HEAD is not on the default branch, say so and ask
+rather than switching or branching silently.
+
 ### 4.4 An existing workflow
 
 If a review workflow already exists in the target repository, do not overwrite
@@ -198,10 +205,13 @@ Hand over in this order and say why:
    it on one does not disturb another.
 4. **Only then does the next PR get a real review.**
 
-Alternative auth: an API-billed `ANTHROPIC_API_KEY` secret works in place of the
-subscription token. If the project uses it, the secret name changes in both the
-detection step and the action input; everything else in the template is
-unaffected.
+**Alternative auth — a manual edit, not a setup option.** An API-billed
+`ANTHROPIC_API_KEY` secret works in place of the subscription token, but the
+template renders only the OAuth variant and no phase asks about it. A project
+that bills through the API changes the secret name in two places in the rendered
+file — the detection step and the action input — and everything else in the
+template is unaffected. Mention it at hand-over when the project is known to
+bill that way; do not build it into the derivation.
 
 ---
 

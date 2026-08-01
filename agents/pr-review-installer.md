@@ -44,7 +44,11 @@ that several steps below exist to avoid.
 2. **Confirm a GitHub remote exists.** Without one there is nothing to install
    into — report that and stop.
 3. **Detect the default branch** (remote HEAD, falling back to a local `main`
-   or `master`). You need it for the hand-over instructions in Phase 5.
+   or `master`). It is the base for the branch you create in Phase 4 and it
+   appears in the hand-over instructions in Phase 5. Note whether HEAD is
+   currently on it — this skill is offered as a follow-up to `github-publish`,
+   which leaves the repository on its own feature branch, so being somewhere
+   else is the expected case rather than the exception.
 4. **Check for an existing review workflow** under `.github/workflows/`. If one
    is present, follow reference.md §4.4: show what differs and let the user
    choose between replacing the prompt block, leaving it alone, and aborting.
@@ -130,6 +134,14 @@ with write access to pull requests. Therefore:
 1. **Create a feature branch** — `feat/pr-review-setup` unless that name is
    taken. Never write onto the default branch: the file has to arrive there via
    a merge anyway, and the user needs to read the prompt in a diff.
+
+   **Branch off the default branch detected in Phase 0, not off whatever is
+   currently checked out.** If HEAD is somewhere else, say where it is and ask
+   before branching — the common case is the `github-publish` follow-up, where
+   branching off the current ref would pull that branch's unrelated commits into
+   this PR and bury the prompt block the user is supposed to read. If the user
+   wants the current ref as the base anyway, honor it; do not decide silently in
+   either direction.
 2. **Render** `${CLAUDE_PLUGIN_ROOT}/skills/pr-review-setup/templates/claude-review.yml.j2`
    to `.github/workflows/claude-review.yml` in the target repository.
    Mind the escaping contract in reference.md §4.1: constructs written
@@ -151,9 +163,10 @@ with write access to pull requests. Therefore:
 
 ### Phase 5: Hand over
 
-Two steps cannot be scripted and cannot be done by you: authorizing the GitHub
-App for the repository, and minting the token. Present them in this order and
-explain why the order matters — the green-skip logic in the workflow exists so
+Two of the four items below cannot be scripted and cannot be done by you:
+authorizing the GitHub App for the repository (2) and minting the token (3).
+The other two frame them — what lands first, and what changes once both are
+done. Present all four in this order and explain why the order matters — the green-skip logic in the workflow exists so
 these can happen at the user's pace without a red check sitting on the repo.
 
 1. **Push the branch and merge the PR.** Every run skips green with a notice
