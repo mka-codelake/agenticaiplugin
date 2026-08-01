@@ -20,5 +20,8 @@ as a PR comment, e.g. `gh pr view --json comments`), evaluate them, and report.
 - When delegating PR-creating work to a sub-agent, include this instruction in its
   task; the main session stays responsible for the monitoring either way.
 - If the repository has no review automation, this rule is silently inapplicable.
+- A green check is not a passed review unless the findings are actually there: a
+  run that posted nothing was skipped or died quietly, so report it as a failure
+  rather than as approval.
 - If the check errors or hangs, report that instead of waiting indefinitely — an
   action failure is not a review finding.
