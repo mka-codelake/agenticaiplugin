@@ -78,13 +78,26 @@ jobs:
             exit 0
           fi
 
+          # Adding the file is the bootstrap PR: splitting it would not help,
+          # because the action reviews nothing until this file is on the
+          # default branch. It stays green — but say plainly how much went
+          # unreviewed, which is everything, not just the workflow.
           if [ "$state" = "added" ]; then
-            echo "::notice::$WORKFLOW_FILE does not exist on the default branch yet, so the review action cannot run. It starts reviewing once this PR is merged. Read this diff by hand."
+            echo "::notice::$WORKFLOW_FILE does not exist on the default branch yet, so the action reviewed nothing in this PR. It starts reviewing once this PR is merged."
             {
               echo "### No review ran — workflow not on the default branch yet"
               echo ""
-              echo "\`$WORKFLOW_FILE\` is new, so the action has nothing to validate"
-              echo "against and skipped itself. Read this diff by hand before merging."
+              echo "\`$WORKFLOW_FILE\` is new, so the action had nothing to validate"
+              echo "against and skipped itself."
+              echo ""
+              if [ "$total" -gt 1 ]; then
+                echo "**The other $((total - 1)) file(s) in this PR went unreviewed with it.**"
+                echo "Splitting the PR would not change that — no review can run here"
+                echo "until the workflow is on the default branch — so read the whole"
+                echo "diff by hand, not just the workflow part."
+              else
+                echo "Read this diff by hand before merging."
+              fi
             } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
