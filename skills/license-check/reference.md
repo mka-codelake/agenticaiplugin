@@ -86,9 +86,48 @@ Detailed rules for the `license-checker` agent. Load sections on demand during e
 
 **Full mode:**
 ```bash
-npm ls --json --all 2>/dev/null
+npm ls --json --all | node -e '
+let d;
+try { d = JSON.parse(require("fs").readFileSync(0, "utf8")); } catch (e) { d = null; }
+if (!d || typeof d !== "object" || Array.isArray(d) || typeof d.name !== "string") {
+  console.error("npm ls produced no project tree - no package.json in this directory, or see the npm error above");
+  process.exit(1);
+}
+const seen = new Map();
+let missing = 0;
+const walk = (node) => {
+  for (const [name, info] of Object.entries((node && node.dependencies) || {})) {
+    if (!info || info.missing) { missing++; continue; }
+    const key = name + "@" + (info.version || "unknown");
+    if (!seen.has(key)) { seen.set(key, { name, version: info.version || null }); walk(info); }
+  }
+};
+walk(d);
+if (missing > 0) {
+  console.error("npm ls reports unmet dependencies (" + missing + ") - node_modules is absent or incomplete, fall back to quick mode");
+  process.exit(1);
+}
+console.log(JSON.stringify([...seen.values()], null, 2));
+'
 ```
-Returns full dependency tree with versions. If npm not installed or no `node_modules`, fall back to quick mode.
+Prints one `{name, version}` row per distinct package of the full tree (direct +
+transitive), deduplicated — the raw tree repeats every package at every position it
+occupies and carries a `resolved` URL for each.
+
+**The unmet-dependency count is the point of this filter, not its size.** Without
+`node_modules`, `npm ls --json` still emits a populated `dependencies` object — every entry
+just carries `"missing": true` instead of a version, and the `npm error code ELSPROBLEMS`
+that says so goes to **stderr**, which the previous `2>/dev/null` discarded. A naive reader
+sees a tree-shaped document and reports a clean full scan over zero packages. Now the
+command aborts, npm's own diagnosis is visible above it, and quick mode is the documented
+fallback. A project with genuinely no dependencies is a different shape — npm omits
+`dependencies` entirely but still names the project — and yields `[]` with exit 0, not an
+error.
+
+The `name` check covers the quietest variant of the same failure: run from a directory
+without a `package.json`, `npm ls --json --all` prints `{}` and exits **0 with an empty
+stderr**. There is no diagnosis to miss, which is exactly why the shape has to be asserted
+here — `{}` is not an empty project, it is the wrong working directory.
 
 **Per-dependency license check:**
 ```bash
@@ -173,9 +212,37 @@ empty dependency set.
 
 **Full mode:**
 ```bash
-go mod graph 2>/dev/null
+go mod graph | node -e '
+const raw = require("fs").readFileSync(0, "utf8").trim();
+if (!raw) {
+  console.error("go mod graph produced no output - see the go error above");
+  process.exit(1);
+}
+const mods = new Set();
+for (const line of raw.split("\n")) {
+  for (const ref of line.trim().split(/\s+/)) {
+    if (ref.lastIndexOf("@") > 0) mods.add(ref);
+  }
+}
+if (mods.size === 0) {
+  console.error("go mod graph produced no versioned modules - the output is not a dependency graph");
+  process.exit(1);
+}
+console.log([...mods].sort().join("\n"));
+'
 ```
-Returns dependency graph. License detection requires inspecting `LICENSE` files in module cache or repository.
+Prints one sorted `module@version` line per distinct module. License detection requires
+inspecting `LICENSE` files in module cache or repository.
+
+`go mod graph` prints one line per dependency *edge*, not per module, so the same module
+reappears once for every dependant: measured against `prometheus/prometheus` v2.53.0 that
+is 3876 lines / **314 KB** describing 1246 modules, which the deduplication brings to 54 KB.
+The output stays line-based rather than becoming JSON — the source is not JSON, and wrapping
+1246 modules in objects made it *twice* as large as the plain list.
+
+Stderr is deliberately no longer discarded: outside a module directory `go` writes
+`go.mod file not found …` there and nothing to stdout, which `2>/dev/null` turned into an
+empty dependency set indistinguishable from a Go project without dependencies.
 
 **License detection strategy for Go:**
 1. Check `$GOPATH/pkg/mod/{module}@{version}/LICENSE` if module cache exists
