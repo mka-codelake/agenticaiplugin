@@ -62,6 +62,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 - `docs/plugin-howto.md` — Primary development reference (frontmatter, patterns, conventions)
 - `docs/rules-howto.md` — Rules template development reference
 - `docs/workflow-integration-howto.md` — Binding pattern for calling repo-local `Workflow` scripts from a `SKILL.md` (spike #9; required reading before migrating a skill to the Workflow feature)
+- `docs/context-map.md` — What puts which content into whose context, and when (doctrine, `CLAUDE.md`, skills, forks, sub-agents). Every statement carries a provenance marker (DOC / MEASURED / CODE / ASSUMED); consult before assuming a rule reaches a given context
 - `skills/code-review/orchestration.md` — Multi-specialist review orchestration playbook
 - `skills/architecture-audit/orchestration.md` — Architecture audit orchestration playbook
 
