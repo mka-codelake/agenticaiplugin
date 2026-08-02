@@ -116,7 +116,7 @@ Changes are immediately available after marketplace update.
 
 When making feature changes, new commands, or directory changes, check:
 
-1. **Doctrine / enforcement** (`doctrine/**/*.md`, `hooks/guard-git-commit.mjs`) — If always-on behavior changed, update the doctrine markdown (injected live by the SessionStart hook — no version headers, no per-project sync). A **new** doctrine file must be registered twice in `hooks/inject-doctrine.mjs`: in its list (`CONSTITUTION`/`THEMES`) and in `ALLOWED_FILES` — otherwise it is silently ignored. Changing the git-commit sentinel means updating both the guard and `skills/git-smart-commit/SKILL.md`.
+1. **Doctrine / enforcement** (`doctrine/**/*.md`, `hooks/guard-git-commit.mjs`) — If always-on behavior changed, update the doctrine markdown (injected live by the SessionStart hook — no version headers, no per-project sync). A **new** doctrine file must be registered in `hooks/inject-doctrine.mjs` — in its list (`CONSTITUTION`/`THEMES`) — otherwise it is silently ignored. Changing the git-commit sentinel means updating both the guard and `skills/git-smart-commit/SKILL.md`.
 2. **Help-Skill** (`skills/help/SKILL.md`) — Is the overview still current?
 3. **Command tables** (`README.md` **and** root `CLAUDE.md`) — Both command tables list the same commands; keep them in sync (a missed `README.md` update is a common slip).
 4. **CHANGELOG** (`skills/update-plugin/CHANGELOG.md`) — Entry added?
