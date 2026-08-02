@@ -80,6 +80,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:git-smart-commit` | Atomic commits with meaningful messages |
 | `/agenticaiplugin:gitme` | Short alias for git-smart-commit |
 | `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
+| `/agenticaiplugin:qa` | Quality Square traceability (requirements, code, test cases, tests) |
 | `/agenticaiplugin:grill-me` | Stress-test a plan/decision via a relentless interview |
 | `/agenticaiplugin:markdown-converter` | Convert files to Markdown via markitdown |
 | `/agenticaiplugin:youtube-transcript` | Fetch a YouTube video's captions as plain text (pure Node, no Python/yt-dlp) |

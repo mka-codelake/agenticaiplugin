@@ -101,7 +101,7 @@ sub-agents. A sub-agent unaware of the commit path therefore runs into a block, 
 a gate.
 
 The `skills:` channel is **MEASURED**-backed (2026-08-02, control comparison):
-`agents/pr-review-installer.md:16` declares `skills: git-smart-commit`, and the agent
+`agents/pr-review-installer.md:10` declares `skills: git-smart-commit`, and the agent
 reported the complete skill body in its context; `license-checker` without the
 declaration reported nothing of the sort. Whether the directory name or a `name:` field
 resolves here is not documented on the **DOC** side — **MEASURED** answers it:
@@ -157,7 +157,7 @@ machine.
 | `~/.claude/rules/` | **no** | **CODE** |
 | Auto-memory `~/.claude/projects/*/memory/` | **no** | **CODE** |
 | Learned skills `~/.claude/skills/learned-*/` | **no** | **CODE** |
-| `persona.state`, `mode.state` | **no** | **CODE** `mode.mjs:44-45` |
+| `persona.state`, `mode.state` | **no** | **CODE** `skills/mode/mode.mjs:44-45` |
 | `agenticaiplugin.config.json` (all opt-outs) | **no** | **CODE** |
 
 **The consequence has never been stated in one place:** after a fresh installation the
@@ -183,8 +183,8 @@ The second group is the more dangerous one.
 |---|---|
 | Hooks in exec form, `node`, `${CLAUDE_PLUGIN_ROOT}/….mjs` | `hooks/hooks-policy.test.mjs:14-36` |
 | No shell scripts under `hooks/` (recursive) | `hooks/hooks-policy.test.mjs:38-45` |
-| Whitelist on the **read path** too (tampered state file) | `persona.test.mjs:122`, `mode.test.mjs:185` |
-| `realpath` comparison in the direct-invocation guard (marketplace symlink) | `guard-git-commit.test.mjs:110`, `inject-doctrine.test.mjs:101` |
+| Whitelist on the **read path** too (tampered state file) | `skills/persona/persona.test.mjs:122`, `skills/mode/mode.test.mjs:185` |
+| `realpath` comparison in the direct-invocation guard (marketplace symlink) | `hooks/guard-git-commit.test.mjs:110`, `hooks/inject-doctrine.test.mjs:101` |
 | `skillDir` in the workflow: no default, must be absolute | Workflow suites |
 | Mode text names the commit path, no blanket git ban | `mode.test.mjs` (since 0.31.1, effectiveness demonstrated) |
 
@@ -218,15 +218,15 @@ measurement with a reproducible artifact.
 
 | Assumption | Stated in | Why it counts |
 |---|---|---|
-| SessionStart fires on `compact` **and** the context lands in the freshly compacted window | `inject-doctrine.mjs:10-13` | The test only proves that there is **no** gating on `source` — not the effect |
-| `PreCompact` cannot preserve context | `docs/plugin-howto.md:363-364` | DOC confirms the recommendation, not the rationale |
-| `additionalContext` is "softer" than a real rule | `docs/plugin-howto.md:364-366` | **DOC** calls it a "system reminder" — strength undetermined |
+| SessionStart fires on `compact` **and** the context lands in the freshly compacted window | `hooks/inject-doctrine.mjs:10-13` | The test only proves that there is **no** gating on `source` — not the effect |
+| `PreCompact` cannot preserve context | `docs/plugin-howto.md:360-361` | DOC confirms the recommendation, not the rationale |
+| `additionalContext` is "softer" than a real rule | `docs/plugin-howto.md:362-363` | **DOC** calls it a "system reminder" — strength undetermined |
 | Claude Code blocks Write/Edit under `~/.claude/` | `hooks/autoskill/lib.mjs:27-38` | Load-bearing for the staging architecture |
 | Nested skill folders are not discovered | `hooks/autoskill/lib.mjs:22-24` | Determines the flat layout |
-| Skill index truncates `description` at 60 characters | `skills/learn/SKILL.md:54-56` | — |
-| The marketplace copy is an unfiltered tree copy | `docs/workflow-integration-howto.md:40` | Reason why `.workflow.js` comes along |
+| Skill index truncates `description` at 60 characters | `skills/learn/SKILL.md:60-61` | — |
+| The marketplace copy is an unfiltered tree copy | `docs/workflow-integration-howto.md:37` | Reason why `.workflow.js` comes along |
 | Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:433-442` | **Stands in tension** with the marketplace update rule (`CLAUDE.md:155`) |
-| `${CLAUDE_PLUGIN_ROOT}` "is empty in the tool context" | `persona.mjs:26`, `mode.mjs:32` | Stated as a blanket claim; a later measurement addendum narrows it to the shell — the scripts carry the old wording **uncorrected** |
+| `${CLAUDE_PLUGIN_ROOT}` "is empty in the tool context" | `skills/persona/persona.mjs:26`, `skills/mode/mode.mjs:32` | Stated as a blanket claim; a later measurement addendum narrows it to the shell — the scripts carry the old wording **uncorrected** |
 
 ---
 
@@ -236,10 +236,10 @@ Not assumptions but findings — each one a work item.
 
 1. **`hooks-policy.test.mjs` only checks the path *string*, not whether the file exists.**
    A typo passes the test, and the hook fails silently at runtime. A test that suggests a
-   safeguard it does not deliver. — **CODE** `hooks-policy.test.mjs:28-33`
+   safeguard it does not deliver. — **CODE** `hooks/hooks-policy.test.mjs:28-33`
 2. **No test enforces that the five SessionStart hooks stay registered.** Delete the
    `mode.mjs inject` entry and you get a green suite.
-3. **`BLOCKS` in `inject-doctrine.mjs:32-36` is a fixed list.** A fourth doctrine file
+3. **`BLOCKS` in `hooks/inject-doctrine.mjs:32-36` is a fixed list.** A fourth doctrine file
    would be silently ignored.
 4. **The command tables are already drifting** — `qa` is in `README.md`, missing in `CLAUDE.md`.
    The change checklist names exactly this slip as a common mistake.
