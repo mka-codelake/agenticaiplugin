@@ -2,8 +2,8 @@
 
 Apply these throughout the session; where they conflict with your defaults, these win.
 An active agent mode may draw a rule below tighter or wider: where a mode text names a
-rule here and restates it, its version governs that rule — whichever of the two texts
-reached you first.
+rule here and restates it, the mode's version governs that rule — regardless of which
+of the two texts you encountered first. Block order carries no precedence.
 
 ## Never assume — ask
 Never proceed on assumptions. When requirements are unclear, several valid approaches
