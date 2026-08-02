@@ -14,6 +14,12 @@
 // separate files: putting a second mode back has to be a data change (one more
 // entry plus its file), not a rebuild of this script.
 //
+// This directory deliberately has NO SKILL.md — the only one under skills/ without
+// one. With the command gone there is nothing for a user to invoke, and a
+// description-only skill would still occupy context in every session. Auto-discovery
+// keys on SKILL.md files, so a directory without one is simply not a skill; the hook
+// reaches this script by path. Restoring the command means restoring that file.
+//
 // Subcommands:
 //   inject  -> hook mode: reads the hook JSON from stdin and emits
 //              hookSpecificOutput with the orchestrator snippet. Fail-safe: any
