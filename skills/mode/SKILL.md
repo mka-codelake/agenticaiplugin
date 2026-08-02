@@ -30,7 +30,7 @@ State file (global, per user): `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/mode.state`
 
 | Argument | Behavior |
 |----------|----------|
-| *(none)* / `--help` / `-h` | Show this usage, then STOP |
+| *(none)* / `--help` / `-h` / `help` | Show this usage, then STOP |
 | `show` | Print the currently active mode (`off` if none) |
 | `list` | List all modes with a one-line summary |
 | `task` | Set mode: the session executes the work itself; delegation is the exception |
@@ -42,7 +42,7 @@ State file (global, per user): `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/mode.state`
 
 **Check BEFORE doing anything:**
 
-1. **No argument, `--help`, or `-h`** → display the Usage section above verbatim, then STOP.
+1. **No argument, `--help`, `-h`, or `help`** → display the Usage section above verbatim, then STOP.
 2. **Unrecognized argument** (not one of `show`, `list`, `task`, `orchestrator`,
    `meta-orchestrator`, `off`, `reset`) → display the Usage section above verbatim,
    then STOP.
