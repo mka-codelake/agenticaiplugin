@@ -92,6 +92,56 @@ test('inject emits the hookSpecificOutput contract for every active mode', () =>
   }
 });
 
+// meta-orchestrator says the delegation rules apply to it as well, and only ONE
+// snippet is ever injected — so those rules have to arrive with it. Whoever sets
+// meta-orchestrator must hold every applicable rule without looking anything up.
+test('meta-orchestrator injects the shared delegation rules together with the board rules', () => {
+  const dir = freshConfigDir();
+  run(['set', 'meta-orchestrator'], { configDir: dir });
+  const text = JSON.parse(run(['inject'], { configDir: dir, input: '{}' }).stdout)
+    .hookSpecificOutput.additionalContext;
+
+  assert.match(text, /hints, not proof/, 'shared delegation rules must be present');
+  assert.match(text, /own the issue board/, 'board-level rules must be present');
+  assert.match(text, /Economy limit/);
+  assert.match(text, /green CI run/);
+  assert.match(text, /Delegation hygiene/);
+  assert.match(text, /git worktree add/);
+
+  // Exactly one mode declaration and one precedence statement — the composed
+  // snippet must not claim two active modes or rank itself twice.
+  assert.equal(text.match(/Active agent mode:/g).length, 1);
+  assert.equal(text.match(/ranks ABOVE/g).length, 1);
+  assert.match(text, /Active agent mode: `meta-orchestrator`/);
+});
+
+test('orchestrator gets the shared rules but not the board-level rules', () => {
+  const dir = freshConfigDir();
+  run(['set', 'orchestrator'], { configDir: dir });
+  const text = JSON.parse(run(['inject'], { configDir: dir, input: '{}' }).stdout)
+    .hookSpecificOutput.additionalContext;
+
+  assert.match(text, /hints, not proof/);
+  assert.doesNotMatch(text, /own the issue board/);
+  assert.doesNotMatch(text, /git worktree add/);
+  assert.doesNotMatch(text, /Escalation ladder/);
+
+  assert.equal(text.match(/Active agent mode:/g).length, 1);
+  assert.equal(text.match(/ranks ABOVE/g).length, 1);
+  assert.match(text, /Active agent mode: `orchestrator`/);
+});
+
+test('task gets neither the shared nor the board-level rules', () => {
+  const dir = freshConfigDir();
+  run(['set', 'task'], { configDir: dir });
+  const text = JSON.parse(run(['inject'], { configDir: dir, input: '{}' }).stdout)
+    .hookSpecificOutput.additionalContext;
+
+  assert.doesNotMatch(text, /Economy limit/);
+  assert.doesNotMatch(text, /own the issue board/);
+  assert.equal(text.match(/Active agent mode:/g).length, 1);
+});
+
 test('inject passes an alternate hook_event_name through', () => {
   const dir = freshConfigDir();
   run(['set', 'task'], { configDir: dir });

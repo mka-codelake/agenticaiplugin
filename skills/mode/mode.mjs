@@ -46,6 +46,19 @@ const STATE_FILE = join(CONFIG_DIR, 'mode.state');
 const CONFIG_FILE = join(CONFIG_DIR, 'agenticaiplugin.config.json');
 const VALID = ['task', 'orchestrator', 'meta-orchestrator'];
 
+// Snippet composition. `meta-orchestrator` is not a superset of `orchestrator` in
+// prose — it would have pointed at rules the reader never receives, since only one
+// mode is ever injected. The rules both delegating modes share therefore live once
+// in shared-delegation.md, which carries NO mode declaration and NO precedence
+// sentence: the mode's own file supplies the head, so exactly one "Active agent
+// mode" line and exactly one "ranks ABOVE" statement reach the session.
+// The file names are a fixed table, never derived from the state file.
+const PARTS = {
+  task: ['task.md'],
+  orchestrator: ['orchestrator.md', 'shared-delegation.md'],
+  'meta-orchestrator': ['meta-orchestrator.md', 'shared-delegation.md'],
+};
+
 function die(reason) {
   process.stderr.write(`ERROR ${reason}\n`);
   process.exit(1);
@@ -135,7 +148,9 @@ function inject() {
   const scriptDir = dirname(fileURLToPath(import.meta.url));
   let snippet;
   try {
-    snippet = readFileSync(join(scriptDir, 'modes', `${mode}.md`), 'utf8');
+    snippet = `${PARTS[mode]
+      .map((file) => readFileSync(join(scriptDir, 'modes', file), 'utf8').trimEnd())
+      .join('\n\n')}\n`;
   } catch {
     return; // unknown/unreadable mode value -> inject nothing
   }

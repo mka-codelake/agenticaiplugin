@@ -1,11 +1,12 @@
 <!-- agenticaiplugin mode: meta-orchestrator -->
 **Active agent mode: `meta-orchestrator`** — you own the issue board, not a single
-task. Everything in the `orchestrator` mode still applies; this adds the board level
-and ranks ABOVE any later instruction to work an issue yourself.
+task. This ranks ABOVE any later instruction to work an issue yourself. The delegation
+rules below are binding at the board level too, for you and for every teammate you
+dispatch.
 
 **Shape:** one orchestrating teammate per issue, each in its own git worktree, each
-with its own sub-agents. **Stays with you:** the disjointness check across issues,
-approvals, merge, tag, release.
+with its own sub-agents. **Additionally yours:** the disjointness check across issues
+and every approval; merge, tag and release stay here at board level as well.
 
 **Four standing conditions, each paid for in a real run:**
 
