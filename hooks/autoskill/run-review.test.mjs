@@ -14,6 +14,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -27,7 +28,9 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const CONFIG_DIR = mkdtempSync(join(tmpdir(), 'autoskill-worker-'));
 process.env.CLAUDE_CONFIG_DIR = CONFIG_DIR;
 
-const { installStaged, lifecyclePass, prepareStaging } = await import('./run-review.mjs');
+const { backfillTimestamps, installStaged, lifecyclePass, prepareStaging } = await import(
+  './run-review.mjs'
+);
 const STATE_DIR = join(CONFIG_DIR, 'agenticaiplugin.autoskill');
 mkdirSync(join(STATE_DIR, 'tmp'), { recursive: true });
 
@@ -156,8 +159,15 @@ test('lifecyclePass: missing dir -> manifest cleanup; pinned exempt; stale/archi
     })
   );
 
-  const report = lifecyclePass({ skillsDir, now, logFn: noLog }).join('\n');
-  assert.match(report, /learned-active: active/);
+  const entries = lifecyclePass({ skillsDir, now, logFn: noLog });
+  const report = entries.join('\n');
+  const activeEntry = entries.find((l) => l.startsWith('- learned-active:'));
+  assert.match(activeEntry, /active \(unused for 3d\)/);
+  assert.match(
+    activeEntry,
+    /last used \d{4}-\d{2}-\d{2}/,
+    'a skill with real usage shows its usage date, not "never used"'
+  );
   assert.match(report, /learned-stale: unused for 45d → stale/);
   assert.match(report, /learned-old: unused for 120d → ARCHIVED/);
   assert.match(report, /learned-pinned: pinned/);
@@ -171,6 +181,107 @@ test('lifecyclePass: missing dir -> manifest cleanup; pinned exempt; stale/archi
   assert.doesNotMatch(manifest, /learned-gone/);
   const usage = JSON.parse(readFileSync(join(STATE_DIR, 'usage.json'), 'utf8'));
   assert.equal(usage['learned-stale'].state, 'stale');
+});
+
+test('REGRESSION: the lifecycle clock ignores the SKILL.md mtime — a maintained but unused skill still ages', () => {
+  const skillsDir = mkdtempSync(join(tmpdir(), 'skills-'));
+  const now = Math.floor(Date.now() / 1000);
+  const iso = (daysAgo) => new Date((now - daysAgo * 86400) * 1000).toISOString();
+  mkdirSync(join(skillsDir, 'learned-maintained'), { recursive: true });
+  // Written just now, so the mtime is NOW — exactly what the old clock read,
+  // which is why a skill the reviewer keeps patching could never go stale.
+  writeFileSync(
+    join(skillsDir, 'learned-maintained', 'SKILL.md'),
+    '---\nname: learned-maintained\n---\n'
+  );
+  writeFileSync(LEARNED_LIST, 'learned-maintained\n');
+  writeFileSync(
+    join(STATE_DIR, 'usage.json'),
+    JSON.stringify({ 'learned-maintained': { installed_at: iso(45), last_updated: iso(0) } })
+  );
+
+  const report = lifecyclePass({ skillsDir, now, logFn: noLog }).join('\n');
+  assert.match(
+    report,
+    /learned-maintained: unused for 45d → stale/,
+    'installed_at drives the clock; a reviewer patch must not reset it'
+  );
+  assert.match(report, /never used/, 'provenance suffix names the missing usage');
+});
+
+test('backfillTimestamps: reconstructs install dates from review.log, fills only missing fields', () => {
+  const skillsDir = mkdtempSync(join(tmpdir(), 'skills-'));
+  for (const n of ['learned-a', 'learned-b', 'learned-c']) {
+    mkdirSync(join(skillsDir, n), { recursive: true });
+    writeFileSync(join(skillsDir, n, 'SKILL.md'), `---\nname: ${n}\n---\n`);
+  }
+  writeFileSync(LEARNED_LIST, 'learned-a\nlearned-b\nlearned-c\n');
+  // learned-b already carries both stamps -> must survive untouched.
+  writeFileSync(
+    join(STATE_DIR, 'usage.json'),
+    JSON.stringify({
+      'learned-b': {
+        uses: 2,
+        installed_at: '2026-01-01T00:00:00Z',
+        last_updated: '2026-01-02T00:00:00Z',
+      },
+    })
+  );
+  const logFile = join(STATE_DIR, 'tmp', 'fixture.log');
+  writeFileSync(
+    logFile,
+    [
+      '=== 2026-07-01T10:00:00Z mode=review session=s1 rc=0 model=sonnet',
+      "install: 'a' -> /somewhere/skills/learned-a",
+      '=== 2026-07-20T10:00:00Z mode=review session=s2 rc=0 model=sonnet',
+      "install: 'learned-a' -> /somewhere/skills/learned-a",
+      "install: 'b' -> /somewhere/skills/learned-b",
+      '',
+    ].join('\n')
+  );
+
+  const touched = backfillTimestamps({ logFile, skillsDir });
+  const usage = JSON.parse(readFileSync(join(STATE_DIR, 'usage.json'), 'utf8'));
+  assert.equal(usage['learned-a'].installed_at, '2026-07-01T10:00:00Z', 'first install wins');
+  assert.equal(usage['learned-a'].last_updated, '2026-07-20T10:00:00Z', 'last install date');
+  assert.equal(usage['learned-b'].installed_at, '2026-01-01T00:00:00Z', 'existing stamps kept');
+  assert.equal(usage['learned-b'].uses, 2, 'unrelated fields preserved');
+  assert.ok(usage['learned-c'].installed_at, 'pre-log skill falls back to the SKILL.md mtime');
+  assert.equal(touched, 2);
+  assert.equal(backfillTimestamps({ logFile, skillsDir }), 0, 'idempotent: second run is a no-op');
+});
+
+test('installStaged: installed_at is written once, last_updated on every install, last_used never', () => {
+  writeFileSync(LEARNED_LIST, '');
+  writeFileSync(join(STATE_DIR, 'usage.json'), '{}');
+  const staging = mkdtempSync(join(tmpdir(), 'staging-'));
+  const skillsDir = mkdtempSync(join(tmpdir(), 'skills-'));
+  stageSkill(staging, 'learned-stamped', '---\nname: learned-stamped\n---\n\nv1\n');
+
+  installStaged(staging, { skillsDir, logFn: noLog });
+  const first = JSON.parse(readFileSync(join(STATE_DIR, 'usage.json'), 'utf8'))['learned-stamped'];
+  assert.ok(first.installed_at, 'installed_at set on first install');
+  assert.equal(first.last_updated, first.installed_at);
+  assert.equal(first.last_used, undefined, 'reviewer maintenance is not usage');
+
+  // Backdate the entry so the second install is distinguishable from the first.
+  writeFileSync(
+    join(STATE_DIR, 'usage.json'),
+    JSON.stringify({
+      'learned-stamped': {
+        installed_at: '2026-01-01T00:00:00Z',
+        last_updated: '2026-01-01T00:00:00Z',
+        uses: 3,
+        last_used: '2026-02-01T00:00:00Z',
+      },
+    })
+  );
+  installStaged(staging, { skillsDir, logFn: noLog });
+  const second = JSON.parse(readFileSync(join(STATE_DIR, 'usage.json'), 'utf8'))['learned-stamped'];
+  assert.equal(second.installed_at, '2026-01-01T00:00:00Z', 'first install wins');
+  assert.notEqual(second.last_updated, '2026-01-01T00:00:00Z', 'refreshed on re-install');
+  assert.equal(second.last_used, '2026-02-01T00:00:00Z', 'usage untouched by an install');
+  assert.equal(second.uses, 3, 'usage counter untouched by an install');
 });
 
 // ── end-to-end review run against a stub claude ─────────────────────────────
@@ -255,4 +366,44 @@ test('curator mode degrades gracefully when claude is absent (no raw ENOENT in t
   assert.match(report, /## Lifecycle/, 'deterministic lifecycle report is still produced');
   assert.match(report, /Skipped — the `claude` CLI is unavailable or failed/);
   assert.doesNotMatch(report, /ENOENT/, 'raw spawn error must not leak into the user-facing report');
+});
+
+test('curator mode: dated report history pruned to 12, stable copy kept, one-shot notice written', () => {
+  writeFileSync(LEARNED_LIST, 'learned-x\n');
+  const skillsDir = join(CONFIG_DIR, 'skills');
+  mkdirSync(join(skillsDir, 'learned-x'), { recursive: true });
+  writeFileSync(join(skillsDir, 'learned-x', 'SKILL.md'), '---\nname: learned-x\n---\n');
+  const reportsDir = join(STATE_DIR, 'reports');
+  mkdirSync(reportsDir, { recursive: true });
+  rmSync(join(STATE_DIR, 'curator_notice.txt'), { force: true });
+  // 15 older runs; names sort before this run's, so they are the pruning target.
+  for (let i = 1; i <= 15; i++) {
+    const day = String(i).padStart(2, '0');
+    writeFileSync(join(reportsDir, `curator-2020-01-${day}T000000Z.md`), 'old');
+  }
+
+  const emptyBin = mkdtempSync(join(tmpdir(), 'empty-bin-'));
+  const r = spawnSync(process.execPath, [join(SCRIPT_DIR, 'run-review.mjs'), 'curator'], {
+    encoding: 'utf8',
+    env: { ...process.env, CLAUDE_CONFIG_DIR: CONFIG_DIR, AUTOSKILL_REVIEWER: '1', PATH: emptyBin },
+  });
+  assert.equal(r.status, 0, r.stderr);
+
+  const files = readdirSync(reportsDir)
+    .filter((f) => f.endsWith('.md'))
+    .sort();
+  assert.equal(files.length, 12, 'history pruned to the newest 12');
+  const newest = join(reportsDir, files[files.length - 1]);
+  assert.notEqual(readFileSync(newest, 'utf8'), 'old', 'newest entry is this run');
+  assert.doesNotMatch(files[files.length - 1], /:/, 'no colons — Windows-safe filename');
+  assert.equal(
+    readFileSync(newest, 'utf8'),
+    readFileSync(join(STATE_DIR, 'curator-report.md'), 'utf8'),
+    'curator-report.md is a copy of the newest run, not a symlink'
+  );
+
+  const notice = readFileSync(join(STATE_DIR, 'curator_notice.txt'), 'utf8');
+  assert.match(notice, /^Curator run \(autoskill, /);
+  assert.match(notice, /1 skill\(s\) checked, 0 stale, 0 archived/);
+  assert.doesNotMatch(notice, /finding\(s\)/, 'no LLM pass -> no findings claim');
 });
