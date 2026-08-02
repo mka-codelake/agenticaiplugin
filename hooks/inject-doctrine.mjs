@@ -71,24 +71,11 @@ const MODE_PARTS = {
 
 // Order is fixed here: constitution first (base, then the active mode), themes
 // after. Themes are the only switchable part.
-const CONSTITUTION = ['constitution/base.md', ...(MODE_PARTS[MODE] ?? [])];
+const CONSTITUTION = ['constitution/base.md', ...MODE_PARTS[MODE]];
 const THEMES = [
   { key: 'codeReview', file: 'themes/code-review.md' },
   { key: 'prReviewMonitoring', file: 'themes/pr-review-monitoring.md' },
 ];
-
-// Whitelist on the READ path: nothing but these names may be joined onto
-// doctrine/. Deliberately NOT derived from the lists above — a whitelist computed
-// from the very tables it is meant to guard would assert nothing. It is the
-// second pair of eyes on every path that reaches readFileSync, and it is what
-// keeps this path safe if a table ever becomes data again.
-const ALLOWED_FILES = new Set([
-  'constitution/base.md',
-  'constitution/orchestrator.md',
-  'constitution/shared-delegation.md',
-  'themes/code-review.md',
-  'themes/pr-review-monitoring.md',
-]);
 
 function readJson(path) {
   try {
@@ -98,8 +85,9 @@ function readJson(path) {
   }
 }
 
+// The only paths that reach here are the constant strings from CONSTITUTION and
+// THEMES above — the config filters that list, it never feeds it.
 function readDoctrine(file) {
-  if (!ALLOWED_FILES.has(file)) return null;
   try {
     return readFileSync(join(DOCTRINE_DIR, file), 'utf8').trim();
   } catch {

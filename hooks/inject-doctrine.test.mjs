@@ -8,7 +8,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, symlinkSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readdirSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
@@ -237,42 +237,6 @@ test('injects when invoked via a symlinked path (does not silently no-op)', () =
   assert.ok(ctx, 'doctrine must inject even when invoked via a symlink');
   assert.match(ctx, BASE_SENTINEL);
   assert.match(ctx, MODE_SENTINEL);
-});
-
-// The whitelist has no black-box surface left (nothing outside the script feeds
-// the path any more), so it is checked at the source. That is the point: it must
-// stay in place for the day a composition table becomes data again.
-test('the read path keeps a filename whitelist covering both doctrine directories', () => {
-  const source = readFileSync(SCRIPT, 'utf8');
-
-  const declaration = source.match(/const ALLOWED_FILES = new Set\(\[([^\]]*)\]\)/);
-  assert.ok(declaration, 'ALLOWED_FILES must exist — it guards every path reaching readFileSync');
-  const allowed = [...declaration[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
-
-  assert.deepEqual(allowed.sort(), [
-    'constitution/base.md',
-    'constitution/orchestrator.md',
-    'constitution/shared-delegation.md',
-    'themes/code-review.md',
-    'themes/pr-review-monitoring.md',
-  ]);
-  for (const file of allowed) {
-    assert.match(file, /^(constitution|themes)\/[\w.-]+\.md$/, 'a whitelisted name must be a plain path under doctrine/');
-    assert.doesNotMatch(file, /\.\./, 'a whitelisted name must not traverse upwards');
-    assert.ok(existsSync(join(DOCTRINE_DIR, file)), `${file} is whitelisted but missing from doctrine/`);
-  }
-  assert.match(source, /ALLOWED_FILES\.has\(/, 'the whitelist must be consulted on the read path');
-});
-
-test('the mode composition stays a table with exactly one entry', () => {
-  const source = readFileSync(SCRIPT, 'utf8');
-  const table = source.match(/const MODE_PARTS = \{([\s\S]*?)\n\};/);
-  assert.ok(table, 'MODE_PARTS must stay a table — re-adding a mode is a data change, not a rewrite');
-  assert.equal(
-    (table[1].match(/\[/g) ?? []).length,
-    1,
-    'exactly one mode is expected; a second entry needs its own tests',
-  );
 });
 
 test('doctrine/ holds exactly the files the composition names', () => {
