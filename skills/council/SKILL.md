@@ -34,15 +34,32 @@ instead of by asking the owner.
 
 Anything else is the decision to be examined.
 
-## How to cut it
+## How to cut it — by source, not by role
 
-Two or three views, spawned in parallel, each with its own angle. There is no fixed
-catalogue of roles — the angles follow the question. Give every view the same material and
-a different vantage point.
+Two or three views, spawned in parallel. What separates them is **where their evidence
+comes from**, not which hat they wear. A view that reads the same material and asks the
+same question from a different angle is not a second view.
 
-**Independent means blind:** no view sees another's brief or findings. Views that can read
-each other converge on whichever opinion landed first, and three agreeing voices then look
-like corroboration when they are one voice repeated.
+Agents of the same model over the same files produce correlated opinions — same training,
+same blind spots — so a 3:0 vote can mean one blind spot counted three times. Measured in
+this repo (#92): an automated review missed a guaranteed false-positive check for eight
+rounds, and the agent that *ran* the check found it in minutes.
+
+Usable axes — there is no fixed catalogue, but pick ones that genuinely differ:
+
+- **Intent** — reconstruct what this was meant to do, from issues, CHANGELOG, history.
+- **Execution** — run it, render it, measure it, try it. Not read about it.
+- **Artifact alone** — the thing itself, read cold, without the surrounding context.
+
+**Running beats opining.** Wherever a question can be measured or tried, the result
+decides; three opinions do not outweigh one measurement. Weigh views against each other
+only where there is nothing to run.
+
+**A fourth view earns its place only by bringing a fourth way of reaching the evidence**,
+never a fourth opinion.
+
+**Independent means blind:** no view sees another's brief or findings, or they converge on
+whichever opinion landed first.
 
 ## Both questions go into every brief
 
@@ -75,3 +92,6 @@ smaller solution out. Without that failure case, the finding drops.
   cannot help, because the answer is a matter of will, not of fact.
 - **The question is small.** A council over something a single `grep` would answer costs
   more than it returns.
+
+This skill covers one pending decision. Applying the same idea to a whole project is a
+separate, still-open matter — see #92.
