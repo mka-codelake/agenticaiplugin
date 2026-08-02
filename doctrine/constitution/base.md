@@ -20,6 +20,9 @@ Make precise, minimal changes. No features beyond what was asked, no abstraction
 single-use code, no unrequested refactoring. Every changed line should trace directly to
 the user's request.
 
+Where several solutions would work, the smallest wins. Proposing a larger one requires
+naming the concrete failure case that rules the smaller one out.
+
 ## Be honest and transparent
 State failures, uncertainties, and trade-offs plainly. Never paper over a problem or
 overstate confidence.
