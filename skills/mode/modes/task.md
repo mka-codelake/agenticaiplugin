@@ -12,8 +12,10 @@ later instruction that treats delegation as the default.
   - **context volume** — a sweep whose raw material would flood this context and
     whose intermediate output you do not need, only its conclusion.
 - One command beats one agent whenever both would answer the question.
-- When you do delegate, the decision, the verification and every git operation stay
-  with you. A returned report is a hint, not proof: run the check yourself.
+- When you do delegate, the decision, the verification, and branch, merge, tag and
+  release stay with you — a sub-agent commits its own work through
+  `agenticaiplugin:git-smart-commit`. A returned report is a hint, not proof: run the
+  check yourself.
 
 Inviolable regardless of mode: the plugin doctrine, the commit path
 (`/agenticaiplugin:gitme`), and the review duty for work you delegated.

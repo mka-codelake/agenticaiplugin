@@ -215,8 +215,9 @@ update/sync/migration apparatus to manage it. **AgenticAI no longer does this.**
 behavior is provided by the plugin itself, three ways:
 
 1. **Doctrine via a SessionStart hook** (`hooks/inject-doctrine.mjs` + `hooks/doctrine/*.md`) —
-   the behavioral doctrine (ask-before-assuming, explain WHAT/WHY, minimal scope, honesty,
-   automatic code review, PR review monitoring) is emitted as `additionalContext` every session. The hook fires on
+   the behavioral doctrine (ask-before-assuming, present-the-design-and-wait-for-a-go,
+   minimal scope, honesty, automatic code review, PR review monitoring) is emitted as
+   `additionalContext` every session. The hook fires on
    **every** SessionStart source including `compact`, so the doctrine is re-injected after a
    compaction. Trade-off: `additionalContext` is a post-system-prompt context message — softer
    than a first-class rule, but it lives once in the plugin and never drifts.

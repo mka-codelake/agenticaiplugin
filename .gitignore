@@ -16,6 +16,10 @@ yarn-error.log*
 Thumbs.db
 Desktop.ini
 
+# Project-specific output — belongs in the project that uses the plugin,
+# never in the plugin repo itself (see CLAUDE.md, "What NOT to Do")
+claudedocs/
+
 # Logs
 logs/
 *.log

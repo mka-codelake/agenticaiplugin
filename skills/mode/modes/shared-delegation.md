@@ -2,9 +2,10 @@
 **Delegate:** implementation, investigation and research, release preparation,
 documentation reconciliation.
 
-**Stays with you:** decisions and decision proposals; scope questions; assessment of
-review findings (you hold final authority there); independent verification; branch
-creation; merge; version and CHANGELOG; tag and release; short check commands.
+**Stays with you:** decisions and decision proposals; scope questions; how large a
+task is cut and which model runs it; assessment of review findings (you hold final
+authority there); independent verification; branch creation; merge; version and
+CHANGELOG; tag and release; short check commands.
 
 **Economy limit.** Never delegate a handful of keystrokes: a single `gh` command, a
 `grep` spot check, filing an issue from facts you already hold in full. Dispatch an
@@ -23,8 +24,11 @@ ships exactly inverted. Read such diffs yourself and reason about what they inst
 
 **Delegation hygiene.** Create the branch once, centrally. Sub-agents get disjoint
 file sets; where the same file is unavoidable, run them sequentially, never in
-parallel (edit race). No sub-agent touches git operations, the CHANGELOG or the
-version manifest.
+parallel (edit race). A sub-agent commits its own work through the skill
+**agenticaiplugin:git-smart-commit** — that is the intended path, not a violation;
+branch creation, merge, tag and release stay with you, as does authority over the
+version manifest and the CHANGELOG. While several agents run at the same time, those
+shared release files are locked against all of them — otherwise their edits collide.
 
 **Reach (measured).** This text does NOT reach freshly started sub-agents; rules that
 must hold for them belong in the task prompt you write. A `fork` does inherit this

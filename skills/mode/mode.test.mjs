@@ -108,6 +108,16 @@ test('meta-orchestrator injects the shared delegation rules together with the bo
   assert.match(text, /Delegation hygiene/);
   assert.match(text, /git worktree add/);
 
+  // 0.31.0 shipped "No sub-agent touches git operations", which forbade what the
+  // core doctrine prescribes (sub-agents commit via agenticaiplugin:git-smart-commit).
+  // No test caught it. Guard the class, not just the one wording.
+  assert.match(text, /git-smart-commit/, 'the mode text must point sub-agents at the sanctioned commit path');
+  assert.doesNotMatch(
+    text,
+    /no sub-agent touches git/i,
+    'an absolute git ban contradicts the doctrine — name what stays with the orchestrator instead',
+  );
+
   // Exactly one mode declaration and one precedence statement — the composed
   // snippet must not claim two active modes or rank itself twice.
   assert.equal(text.match(/Active agent mode:/g).length, 1);

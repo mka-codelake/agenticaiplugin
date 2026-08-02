@@ -223,7 +223,7 @@ directory (`$CLAUDE_CONFIG_DIR`, default `~/.claude`).
 | `autoskill.curator.enabled` | `true` \| `false` | `true` | Enable the lazy curator (lifecycle maintenance of learned skills) |
 | `autoskill.curator.intervalDays` | integer | `7` | Days between curator runs |
 | `agentMode` | `"off"` | *(unset)* | `"off"` suppresses the session-start injection of the agent mode text (`/agenticaiplugin:mode`). The CLI keeps working; only the injection is gated. Without a mode set, nothing is injected anyway |
-| `doctrine.core` | `"off"` | *(unset)* | `"off"` disables the core working doctrine block (ask instead of assume, explain what/why, minimal scope, honesty, commit path). Only the exact string `"off"` disables it — any other value, or the key being absent, leaves it on |
+| `doctrine.core` | `"off"` | *(unset)* | `"off"` disables the core working doctrine block (ask instead of assume, present the design and wait for a go before implementing, minimal scope, honesty, commit path). Only the exact string `"off"` disables it — any other value, or the key being absent, leaves it on |
 | `doctrine.codeReview` | `"off"` | *(unset)* | `"off"` disables the automatic code-review doctrine block. Exact string `"off"` only |
 | `doctrine.prReviewMonitoring` | `"off"` | *(unset)* | `"off"` disables the PR-review-monitoring doctrine block. Exact string `"off"` only |
 | `gitCommitGuard` | `"off"` | *(unset)* | `"off"` disables the PreToolUse hook that blocks a raw `git commit` and steers to `/agenticaiplugin:gitme`. Exact string `"off"` only |

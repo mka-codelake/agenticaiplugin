@@ -124,6 +124,10 @@ node "${CLAUDE_SKILL_DIR}/mode.mjs" set <mode>
 - **`orchestrator` and `meta-orchestrator` are composed**, not layered: each injects
   its own head plus the shared `modes/shared-delegation.md`. Only one snippet is ever
   injected, so a mode may never point at rules living in another mode's file.
+- **A mode may override the doctrine where it says so.** The core doctrine allows a
+  mode text to draw one of its rules tighter or wider; the mode must name the rule it
+  restates, since block order carries no meaning (below). `meta-orchestrator` uses this
+  to replace the ask-and-present duty with its escalation ladder.
 - **Injection order is not priority.** SessionStart `additionalContext` blocks do not
   necessarily appear in `hooks.json` order. A mode text that must outrank other
   instructions states that in its own text.

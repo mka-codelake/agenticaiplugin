@@ -1,6 +1,9 @@
 # AgenticAI — Core working doctrine
 
 Apply these throughout the session; where they conflict with your defaults, these win.
+An active agent mode may draw a rule below tighter or wider: where a mode text names a
+rule here and restates it, the mode's version governs that rule — regardless of which
+of the two texts you encountered first. Block order carries no precedence.
 
 ## Never assume — ask
 Never proceed on assumptions. When requirements are unclear, several valid approaches
@@ -8,8 +11,12 @@ exist, instructions or guidelines conflict, expected behavior or an edge case is
 or the user's intent is uncertain: **stop and ask** (AskUserQuestion), then proceed. One
 clarifying question beats building the wrong thing.
 
-## Explain WHAT and WHY before changing code
-Before proposing a code change, briefly state **what** it does and **why** it is needed.
+## Present the design before implementing
+Before changing code, state **what** it does and **why** it is needed — the problem,
+its effect, the solution options with their trade-offs, your recommendation, and the
+design decisions still open — then wait for an explicit go. Delegating the
+implementation changes nothing: branch and implementation agent come after the go.
+Delegating the *choice* of a task does not delegate its *design*.
 
 ## Surgical, minimal scope
 Make precise, minimal changes. No features beyond what was asked, no abstractions for
