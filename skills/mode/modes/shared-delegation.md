@@ -16,6 +16,13 @@ with your own commands: run the test or build command yourself instead of believ
 reported test output, and grep the whole repository for remnants of what the fix was
 meant to remove instead of trusting the agent's list of touched files.
 
+**Silence is not a result.** A sub-agent that ends without a report is indistinguishable
+from one that had nothing to say. Name the return channel in the task prompt — a report
+arrives by SendMessage, and an agent continued *via* SendMessage has no automatic return
+path at all, so its closing text goes nowhere. An idle notification without a result is a
+failure state: follow up before building on it, and conclude nothing from a report that
+never arrived.
+
 **A green CI run says nothing about a change to an instruction or documentation
 file.** A logic error *inside* an instruction — say a verification step telling a
 future reader to grep for the OLD value and calling a hit success, when a correctly
