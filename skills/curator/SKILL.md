@@ -41,7 +41,8 @@ The worker lives at `${CLAUDE_PLUGIN_ROOT}/hooks/autoskill/run-review.mjs`.
    ```
    (May take 1–3 minutes because of the LLM pass.)
 2. Read the report:
-   `${CLAUDE_CONFIG_DIR:-~/.claude}/agenticaiplugin.autoskill/curator-report.md`.
+   `${CLAUDE_CONFIG_DIR:-~/.claude}/agenticaiplugin.autoskill/curator-report.md`
+   (a copy of the newest run; the dated history lives in `.../reports/`).
 3. Summarize the key results to the user:
    - Lifecycle transitions (stale / archived)
    - Consolidation proposals (MERGE / RENAME / FIX / DELETE-CANDIDATE)
@@ -60,8 +61,17 @@ analysis is skipped.
   which of them are agent-created (and thus curator-managed) is recorded in the
   manifest `.../agenticaiplugin.autoskill/learned.list`. All other skills are
   protected.
-- Usage data: `.../agenticaiplugin.autoskill/usage.json` (maintained by the
-  PostToolUse hook).
+- Usage data: `.../agenticaiplugin.autoskill/usage.json`. Three timestamps are
+  kept apart per skill: `installed_at` (first install), `last_updated` (every
+  reinstall by the background reviewer) and `last_used` (actual usage — a `Skill`
+  invocation or a Read of one of its files, recorded by the PostToolUse hook).
+  **The lifecycle clock is `last_used`, else `installed_at`** — never the
+  `SKILL.md` mtime, which every reviewer patch refreshes and which would keep a
+  maintained but unused skill artificially young. Missing timestamps are
+  backfilled from `review.log` on the next run.
+- Reports: each run is written to `.../reports/curator-<timestamp>.md`, the
+  newest twelve are kept. A run also leaves a one-line summary that the next
+  prompt shows once (💾) and then consumes.
 - Otherwise the pass runs automatically and lazily via the Stop hook; the
   interval is configured in `agenticaiplugin.config.json`
   (`autoskill.curator.intervalDays`, `autoskill.curator.enabled`).
