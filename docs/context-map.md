@@ -7,7 +7,26 @@ erwiesen: eine Reichweite, die nicht bestand; eine Reihenfolge, die nicht galt; 
 Ablage, die nicht mitwanderte. Sie ist die Grundlage für Entscheidungen über Doktrin,
 Modi und jede künftige Regel.
 
-**Stand: 2026-08-02** · Plugin-Version 0.31.1
+## Erhebungsstand
+
+| | |
+|---|---|
+| **Datum** | 2026-08-02 |
+| **Claude Code** | **2.1.220** (`claude --version`) |
+| **Plugin** | 0.31.1 |
+| **Node** | v24.18.1 (CI: 22) |
+
+Die Claude-Code-Version ist der wichtigste Eintrag dieser Tabelle. Alles unter **DOC**
+und **MESS** beschreibt das Verhalten *dieser* Version. Bei einem Update ist der
+Änderungsverlauf zwischen der hier genannten und der neuen Version die gezielte
+Prüfliste — die Release Notes stehen im
+[Changelog](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md) und in der
+Doku unter [Release Notes](https://code.claude.com/docs/en/release-notes).
+
+Ein Beispiel dafür, warum das zählt: Der Roster-Mechanismus für Geschwister-Agenten kam
+laut Dokumentation erst mit **v2.1.206** dazu, `COLUMNS`/`LINES` für die Statuszeile mit
+**v2.1.153**. Verhalten, das diese Karte als „nicht vorhanden" festhält, kann in einer
+späteren Version schlicht existieren.
 
 ---
 
@@ -232,8 +251,16 @@ Nicht Annahmen, sondern Befunde — jeder ein Arbeitsauftrag.
 
 ## 7. Wie diese Karte geprüft wird
 
-**Bei einem CLI-Update** die `DOC`-Zeilen erneut abrufen und Abrufdatum aktualisieren.
-Alle URLs stehen im Text.
+**Bei einem CLI-Update** zuerst die Versionsdifferenz bestimmen — `claude --version`
+gegen den Erhebungsstand oben —, dann den Änderungsverlauf zwischen beiden Versionen
+lesen. Das ist billiger und vollständiger als jede Zeile neu zu prüfen: Man sucht gezielt
+nach Einträgen zu Hooks, `additionalContext`, Sub-Agents, Skills und Frontmatter-Feldern.
+Erst was dort auftaucht, wird nachgemessen; danach `DOC`-URLs und Abrufdatum aktualisieren.
+
+**Achtung bei Fehlanzeigen.** Die Karte hält an mehreren Stellen fest, dass etwas *nicht*
+dokumentiert ist oder *nicht* existiert. Solche Zeilen altern in die falsche Richtung —
+sie werden still falsch, wenn eine neue Version das Fehlende nachliefert. Sie brauchen
+bei einem Update mehr Aufmerksamkeit als die positiven Aussagen, nicht weniger.
 
 **Die `MESS`-Zeilen** sind unterschiedlich reproduzierbar:
 
