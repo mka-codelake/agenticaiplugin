@@ -280,5 +280,3 @@ attention than the positive statements, not less.
   this map points there instead of duplicating.
 - Issues **#105** (reach), **#107** (portability of the operational knowledge),
   **#108** (doctrine structure) — the three open items that follow from this map.
-</content>
-</invoke>
