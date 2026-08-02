@@ -154,7 +154,7 @@ The plugin injects its doctrine into every session via a SessionStart hook (re-i
 | **PR review monitoring** | Doctrine — after opening a PR or pushing to one, watches the repo's automated review check unprompted, evaluates the findings, and reports |
 | **Git commits via skill** | Enforced — raw `git commit` is blocked by a hook; always commit via `/agenticaiplugin:gitme` (agents/sub-agents: the skill `agenticaiplugin:git-smart-commit`) |
 
-Opt out per item in `agenticaiplugin.config.json`: `{"doctrine":{"core":"off","codeReview":"off","prReviewMonitoring":"off"},"gitCommitGuard":"off"}`. The orchestrator working mode has no opt-out.
+Opt out per item in `agenticaiplugin.config.json`: `{"doctrine":{"codeReview":"off","prReviewMonitoring":"off"},"gitCommitGuard":"off"}`. The core working doctrine and the orchestrator working mode have no opt-out.
 
 ---
 

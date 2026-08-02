@@ -146,7 +146,7 @@ additionalContext are concatenated by Claude Code."*
 the persona at position 3. In the actual session context the **persona appears first**.
 Observed on this session's own context; consistent with the documented parallelism.
 
-**Consequence, implemented in the mode text (`doctrine/constitution/orchestrator.md:2-4`):** a
+**Consequence, implemented in the constitution (`doctrine/constitution/orchestrator.md:2-4`):** a
 text that must outrank another one may never rely on position. It has to say so itself and
 name *what* it outranks. (The doctrine carried a matching override clause until 0.31.4; it
 existed for `meta-orchestrator` and went with it — see #117.)
@@ -193,8 +193,8 @@ The second group is the more dangerous one.
 |---|---|
 | Hooks in exec form, `node`, `${CLAUDE_PLUGIN_ROOT}/….mjs`, **and the file exists** | `hooks/hooks-policy.test.mjs:20-48` |
 | No shell scripts under `hooks/` (recursive) | `hooks/hooks-policy.test.mjs:72-79` |
-| All five SessionStart hooks stay registered | `hooks/hooks-policy.test.mjs:54-70` |
-| Whitelist on the **read path** too (tampered state file; for `mode` at the source, since 0.31.4 leaves it no external input) | `skills/persona/persona.test.mjs:122`, `hooks/inject-doctrine.test.mjs:243` |
+| All four SessionStart hooks stay registered | `hooks/hooks-policy.test.mjs:54-70` |
+| Whitelist on the **read path** too (tampered state file for the persona; for the doctrine at the source, since nothing outside the script feeds that path) | `skills/persona/persona.test.mjs:122`, `hooks/inject-doctrine.test.mjs:243` |
 | `realpath` comparison in the direct-invocation guard (marketplace symlink) | `hooks/guard-git-commit.test.mjs:110`, `hooks/inject-doctrine.test.mjs:225` |
 | `skillDir` in the workflow: no default, must be absolute | Workflow suites |
 | Mode text names the commit path, no blanket git ban | `hooks/inject-doctrine.test.mjs` (since 0.31.1, effectiveness demonstrated) |
@@ -210,7 +210,7 @@ The second group is the more dangerous one.
 | `## Usage` + `## Argument Handling` for command skills | `docs/plugin-howto.md:813-851` | — |
 | `agenticaiplugin:` prefix in invocation contexts | `CLAUDE.md:138-150` | Agent not resolvable |
 | Never combine fork + `*.workflow.js` (#51) | `docs/plugin-howto.md:172-174` | Script becomes silent dead code |
-| Command tables in `README.md` ↔ `CLAUDE.md` in sync | `CLAUDE.md:111-113` | **already broken**: `qa` missing in `CLAUDE.md` |
+| Command tables in `README.md` ↔ `CLAUDE.md` in sync | `CLAUDE.md:119` | **already broken**: `qa` missing in `CLAUDE.md` |
 
 ### Path variables — undocumented, yet load-bearing
 
@@ -239,7 +239,7 @@ measurement with a reproducible artifact.
 | Nested skill folders are not discovered | `hooks/autoskill/lib.mjs:22-24` | Determines the flat layout |
 | Skill index truncates `description` at 60 characters | `skills/learn/SKILL.md:60-61` | — |
 | The marketplace copy is an unfiltered tree copy | `docs/workflow-integration-howto.md:37` | Reason why `.workflow.js` comes along |
-| Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:433-442` | **Stands in tension** with the marketplace update rule (`CLAUDE.md:155`) |
+| Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:435-445` | **Stands in tension** with the marketplace update rule (`CLAUDE.md:157`) |
 | `${CLAUDE_PLUGIN_ROOT}` "is empty in the tool context" | `skills/persona/persona.mjs:26`, `hooks/inject-doctrine.mjs:47` | Stated as a blanket claim; a later measurement addendum narrows it to the shell — the scripts carry the old wording **uncorrected** |
 
 ---
@@ -255,9 +255,14 @@ Not assumptions but findings — each one a work item.
 2. ~~**No test enforces that the five SessionStart hooks stay registered.**~~ — **fixed.**
    The roster is compared as a set, so an *added* hook fails too — deliberately, to keep
    the roster a conscious decision.
-3. **`BLOCKS` in `hooks/inject-doctrine.mjs:32-36` is a fixed list.** A fourth doctrine file
-   would be silently ignored. **Still open** — and note that defect 1 was the same class:
-   a mechanism that stays silent instead of failing.
+3. **A new doctrine file is silently ignored — now by two filters instead of one.**
+   `MODE_PARTS`, `CONSTITUTION` and `THEMES` in `hooks/inject-doctrine.mjs:68-79` name
+   every file that gets injected, and `ALLOWED_FILES:84-90` has to name it a second time
+   before `readDoctrine` will open it. Dropping a file into `doctrine/` therefore does
+   nothing, and nothing says so. The second filter is deliberate — it is the read-path
+   whitelist, and it earns its keep — but it doubles the number of places a new file has
+   to be registered. **Still open** — and note that defect 1 was the same class: a
+   mechanism that stays silent instead of failing.
 4. ~~**The command tables are already drifting** — `qa` is in `README.md`, missing in
    `CLAUDE.md`.~~ — **fixed** in the same PR that added this map. No test guards the
    tables against the next drift.
@@ -282,14 +287,23 @@ attention than the positive statements, not less.
 
 **The `MEASURED` rows** differ in reproducibility:
 
-- *Scriptable*: injection size and composition of the mode text — `mode.mjs inject`,
-  which since 0.31.4 needs no state and no environment to reproduce.
+- *Scriptable*: injection size and composition of the whole doctrine — pipe a
+  SessionStart hook JSON into `hooks/inject-doctrine.mjs` and read the
+  `additionalContext` back. Needs no state to reproduce; the constitution carries no
+  switch, so only the two theme blocks depend on the config directory at all.
 - *Not scriptable*: the reach measurement needs real agents. The setup is in section 1
   and **must include the negative control** — without it, a self-report is worthless.
-- *Producing that control for the mode text*: copy the plugin directory, drop the
-  `mode.mjs` entry from `hooks/hooks.json` in the copy, and run `claude --plugin-dir
-  <copy>`. There is deliberately **no switch** for this — a config key or an
-  environment variable would be an opt-out through the back door, and not being
+- *Producing that control*: copy the plugin directory and **delete the doctrine files
+  you want absent** from the copy, then run `claude --plugin-dir <copy>`. Since the
+  unification there is one hook entry for everything, so dropping it from
+  `hooks/hooks.json` now removes the entire doctrine — usable as an all-or-nothing
+  control, but too coarse to isolate one block. Deleting individual files is the finer
+  instrument and works because an unreadable file drops its own block and leaves the
+  rest standing (**MEASURED** 2026-08-03, against `hooks/inject-doctrine.mjs`: full
+  8588 bytes; without `constitution/orchestrator.md` 7654 bytes with base, delegation
+  rules and both themes intact; without both constitution mode files 4890 bytes with
+  base and themes intact). There is deliberately **no switch** for this — a config key
+  or an environment variable would be an opt-out through the back door, and not being
   switchable is the guarantee 0.31.4 makes. Every measurement this map rests on used a
   throwaway plugin in an empty directory rather than the installation, so this is the
   established path, not a workaround.
