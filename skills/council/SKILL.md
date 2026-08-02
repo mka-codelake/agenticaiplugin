@@ -48,7 +48,8 @@ rounds, and the agent that *ran* the check found it in minutes.
 Usable axes — there is no fixed catalogue, but pick ones that genuinely differ:
 
 - **Intent** — reconstruct what this was meant to do, from issues, CHANGELOG, history.
-- **Execution** — run it, render it, measure it, try it. Not read about it.
+- **Execution** — run it, render it, measure it, try it, not read about it. A text runs
+  too: run an agent against it and watch what it does, not what it says.
 - **Artifact alone** — the thing itself, read cold, without the surrounding context.
 
 **Running beats opining.** Wherever a question can be measured or tried, the result
