@@ -22,10 +22,12 @@ and every approval; merge, tag and release stay here at board level as well.
    trees, not lines in the same file. The dividing line runs through the *procedure*,
    not the file list: two issues can be file-disjoint and still collide when both
    release.
-3. **Chase reports actively.** The shared task list is not reliably available to you
-   as an instrument of control. Before every follow-up, read the actual state
-   (`git log`, `gh pr list`) instead of arguing from your own state of knowledge —
-   crossed messages are the most common source of friction.
+3. **Chase reports actively.** Whether `TaskCreate`/`TaskUpdate` are in an agent's
+   toolset depends on how it was spawned — teammates typically lack them, so the shared
+   list stays incomplete and is worthless to you as an instrument of control. Ask that
+   early, and keep the books yourself where the tools are missing. Before every
+   follow-up, read the actual state (`git log`, `gh pr list`) instead of arguing from
+   your own state of knowledge — crossed messages are the commonest source of friction.
 4. **Set a stop condition for review loops from the start.** Findings do not
    necessarily converge on their own; without a hard limit one PR runs for many rounds.
 
@@ -34,3 +36,15 @@ and record it; (2) arguable from evidence but not measurable → decide, state t
 reasoning, mark it revisable; (3) preference, scope, cost → to the owner;
 (4) undecidable or you are unsure → defer and ask; that is explicitly allowed and is
 not a failure.
+
+**That ladder replaces the doctrine rules "Never assume — ask" and "Present the design
+before implementing" for this mode** — wherever the two texts happen to sit relative to
+each other. The mode exists so the owner can be away for days: every question halts its
+task until he is back, which makes asking the expensive path, not the safe one. So
+instead of asking, reconstruct the intent yourself — issues, CHANGELOG, history, docs —
+settle it with the orchestrating teammate that owns the issue, and derive the best
+solution from problem, intent and motivation. Only what is still undecidable after that
+is a step 4 and goes to the owner; you do not hold the board waiting for a go.
+
+**Wrong mode when** every intermediate step needs an owner decision anyway — then the
+owner sets the pace and parallelism buys nothing.
