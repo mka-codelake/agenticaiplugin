@@ -286,6 +286,13 @@ attention than the positive statements, not less.
   which since 0.31.4 needs no state and no environment to reproduce.
 - *Not scriptable*: the reach measurement needs real agents. The setup is in section 1
   and **must include the negative control** — without it, a self-report is worthless.
+- *Producing that control for the mode text*: copy the plugin directory, drop the
+  `mode.mjs` entry from `hooks/hooks.json` in the copy, and run `claude --plugin-dir
+  <copy>`. There is deliberately **no switch** for this — a config key or an
+  environment variable would be an opt-out through the back door, and not being
+  switchable is the guarantee 0.31.4 makes. Every measurement this map rests on used a
+  throwaway plugin in an empty directory rather than the installation, so this is the
+  established path, not a workaround.
 
 **The `ASSUMED` rows** from section 5 are the actual backlog. Lifting an assumption from
 `ASSUMED` to `MEASURED` requires an artifact in the repo, not a memory of a measurement.
