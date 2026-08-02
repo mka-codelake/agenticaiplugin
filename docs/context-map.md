@@ -240,7 +240,7 @@ measurement with a reproducible artifact.
 | Skill index truncates `description` at 60 characters | `skills/learn/SKILL.md:60-61` | — |
 | The marketplace copy is an unfiltered tree copy | `docs/workflow-integration-howto.md:37` | Reason why `.workflow.js` comes along |
 | Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:433-442` | **Stands in tension** with the marketplace update rule (`CLAUDE.md:155`) |
-| `${CLAUDE_PLUGIN_ROOT}` "is empty in the tool context" | `skills/persona/persona.mjs:26`, `skills/mode/mode.mjs:29` | Stated as a blanket claim; a later measurement addendum narrows it to the shell — the scripts carry the old wording **uncorrected** |
+| `${CLAUDE_PLUGIN_ROOT}` "is empty in the tool context" | `skills/persona/persona.mjs:26`, `skills/mode/mode.mjs:35` | Stated as a blanket claim; a later measurement addendum narrows it to the shell — the scripts carry the old wording **uncorrected** |
 
 ---
 
