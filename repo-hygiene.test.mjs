@@ -2,7 +2,7 @@
 // Both suites below guard classes of defect that so far only a human PR review
 // caught. They live in one root-level file because neither has a single module
 // to sit next to: the first walks every markdown file in the repo, the second
-// couples hooks/doctrine/*.md to three summaries in three different directories.
+// couples doctrine/**/*.md to three summaries in three different directories.
 // Run with: node --test
 
 import assert from 'node:assert/strict';
@@ -65,7 +65,7 @@ test('no markdown file carries a bare tool-call syntax fragment on its own line'
 // ---------------------------------------------------------------------------
 
 // The doctrine rule `Explain WHAT and WHY before changing code` was renamed to
-// `Present the design before implementing` in hooks/doctrine/core.md. Three
+// `Present the design before implementing` in doctrine/constitution/base.md. Three
 // places summarize the doctrine in prose and kept carrying the old name; two
 // were fixed because a reviewer named them, the third surfaced a round later.
 //
@@ -76,7 +76,7 @@ test('no markdown file carries a bare tool-call syntax fragment on its own line'
 // wordings would be too loose to fail on a rename.
 //
 // Two checks follow from it:
-//   1. The set of H2 headings in hooks/doctrine/*.md equals the set of table
+//   1. The set of H2 headings in doctrine/**/*.md equals the set of table
 //      keys. Renaming, adding or dropping a rule turns this red first.
 //   2. Every marker occurs in its summary file. Whoever fixes check 1 lands in
 //      this table and is dragged past the summaries in the process.
@@ -126,8 +126,8 @@ const DOCTRINE_SUMMARY_MARKERS = {
 };
 
 function doctrineHeadings() {
-  const dir = join(REPO_ROOT, 'hooks', 'doctrine');
-  const git = spawnSync('git', ['ls-files', '-z', 'hooks/doctrine/*.md'], {
+  const dir = join(REPO_ROOT, 'doctrine');
+  const git = spawnSync('git', ['ls-files', '-z', 'doctrine/constitution/*.md', 'doctrine/themes/*.md'], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
   });
