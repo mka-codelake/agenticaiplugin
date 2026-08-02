@@ -188,12 +188,16 @@ The second group is the more dangerous one.
 
 | Rule | Test |
 |---|---|
-| Hooks in exec form, `node`, `${CLAUDE_PLUGIN_ROOT}/….mjs` | `hooks/hooks-policy.test.mjs:14-36` |
-| No shell scripts under `hooks/` (recursive) | `hooks/hooks-policy.test.mjs:38-45` |
+| Hooks in exec form, `node`, `${CLAUDE_PLUGIN_ROOT}/….mjs`, **and the file exists** | `hooks/hooks-policy.test.mjs:20-48` |
+| No shell scripts under `hooks/` (recursive) | `hooks/hooks-policy.test.mjs:73-80` |
+| All five SessionStart hooks stay registered | `hooks/hooks-policy.test.mjs:54-71` |
 | Whitelist on the **read path** too (tampered state file) | `skills/persona/persona.test.mjs:122`, `skills/mode/mode.test.mjs:185` |
 | `realpath` comparison in the direct-invocation guard (marketplace symlink) | `hooks/guard-git-commit.test.mjs:110`, `hooks/inject-doctrine.test.mjs:101` |
 | `skillDir` in the workflow: no default, must be absolute | Workflow suites |
-| Mode text names the commit path, no blanket git ban | `mode.test.mjs` (since 0.31.1, effectiveness demonstrated) |
+| Mode text names the commit path, no blanket git ban | `skills/mode/mode.test.mjs` (since 0.31.1, effectiveness demonstrated) |
+| No tool-call syntax fragments in shipped markdown | `repo-hygiene.test.mjs` |
+| Doctrine rule names match their three prose summaries | `repo-hygiene.test.mjs` |
+| This map's `file:line` citations resolve (existence only) | `docs/context-map.test.mjs` |
 
 ### Merely written down — no safety net
 
@@ -241,15 +245,19 @@ measurement with a reproducible artifact.
 
 Not assumptions but findings — each one a work item.
 
-1. **`hooks-policy.test.mjs` only checks the path *string*, not whether the file exists.**
-   A typo passes the test, and the hook fails silently at runtime. A test that suggests a
-   safeguard it does not deliver. — **CODE** `hooks/hooks-policy.test.mjs:28-33`
-2. **No test enforces that the five SessionStart hooks stay registered.** Delete the
-   `mode.mjs inject` entry and you get a green suite.
+1. ~~**`hooks-policy.test.mjs` only checks the path *string*, not whether the file
+   exists.**~~ — **fixed.** The test now resolves `${CLAUDE_PLUGIN_ROOT}` against the
+   checkout and asserts the file is there. Proven by detection: a deliberate typo turns
+   it red.
+2. ~~**No test enforces that the five SessionStart hooks stay registered.**~~ — **fixed.**
+   The roster is compared as a set, so an *added* hook fails too — deliberately, to keep
+   the roster a conscious decision.
 3. **`BLOCKS` in `hooks/inject-doctrine.mjs:32-36` is a fixed list.** A fourth doctrine file
-   would be silently ignored.
-4. **The command tables are already drifting** — `qa` is in `README.md`, missing in `CLAUDE.md`.
-   The change checklist names exactly this slip as a common mistake.
+   would be silently ignored. **Still open** — and note that defect 1 was the same class:
+   a mechanism that stays silent instead of failing.
+4. ~~**The command tables are already drifting** — `qa` is in `README.md`, missing in
+   `CLAUDE.md`.~~ — **fixed** in the same PR that added this map. No test guards the
+   tables against the next drift.
 5. **`docs/rules-howto.md` dates from January 2025** and describes a mechanism the
    plugin deliberately no longer uses. Its header now says so explicitly; the content
    itself is still unverified.
