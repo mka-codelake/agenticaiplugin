@@ -84,6 +84,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:qa` | Quality Square traceability (requirements, code, test cases, tests) |
 | `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
 | `/agenticaiplugin:grill-me` | Stress-test a plan/decision via a relentless interview |
+| `/agenticaiplugin:council` | Convene two or three independent, mutually blind views on one decision — the escalation ladder's second rung |
 | `/agenticaiplugin:markdown-converter` | Convert files to Markdown via markitdown |
 | `/agenticaiplugin:youtube-transcript` | Fetch a YouTube video's captions as plain text (pure Node, no Python/yt-dlp) |
 | `/agenticaiplugin:github-publish` | Prepare repo for public GitHub release (README, badges, logo, license, etc.) |

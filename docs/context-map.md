@@ -210,7 +210,7 @@ The second group is the more dangerous one.
 | `## Usage` + `## Argument Handling` for command skills | `docs/plugin-howto.md:813-851` | — |
 | `agenticaiplugin:` prefix in invocation contexts | `CLAUDE.md:138-150` | Agent not resolvable |
 | Never combine fork + `*.workflow.js` (#51) | `docs/plugin-howto.md:172-174` | Script becomes silent dead code |
-| Command tables in `README.md` ↔ `CLAUDE.md` in sync | `CLAUDE.md:119` | **already broken**: `qa` missing in `CLAUDE.md` |
+| Command tables in `README.md` ↔ `CLAUDE.md` in sync | `CLAUDE.md:120` | **already broken**: `qa` missing in `CLAUDE.md` |
 
 ### Path variables — undocumented, yet load-bearing
 
@@ -239,7 +239,7 @@ measurement with a reproducible artifact.
 | Nested skill folders are not discovered | `hooks/autoskill/lib.mjs:22-24` | Determines the flat layout |
 | Skill index truncates `description` at 60 characters | `skills/learn/SKILL.md:60-61` | — |
 | The marketplace copy is an unfiltered tree copy | `docs/workflow-integration-howto.md:37` | Reason why `.workflow.js` comes along |
-| Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:435-445` | **Stands in tension** with the marketplace update rule (`CLAUDE.md:157`) |
+| Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:435-445` | **Stands in tension** with the marketplace update rule (`CLAUDE.md:158`) |
 | `${CLAUDE_PLUGIN_ROOT}` "is empty in the tool context" | `skills/persona/persona.mjs:26`, `hooks/inject-doctrine.mjs:47` | Stated as a blanket claim; a later measurement addendum narrows it to the shell — the scripts carry the old wording **uncorrected** |
 
 ---

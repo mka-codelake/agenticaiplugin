@@ -100,6 +100,7 @@ own doctrine (SessionStart) and enforcement (PreToolUse) hooks.
 | `qa` | Quality Square traceability (requirements, code, test cases, tests) |
 | `create-cli` | Design CLI parameters, flags, and UX |
 | `grill-me` | Stress-test a plan or decision via a relentless one-question-at-a-time interview |
+| `council` | Convene two or three independent, mutually blind views on one decision, cut by where their evidence comes from rather than by role |
 | `persona` | Set the agent's communication style (writer/engineer/telegrapher/caveman); opt-in, off by default |
 | `learn` | Distill a source or the current conversation into one reusable learned skill (autoskill) |
 | `curator` | Curate the learned-skill library: lifecycle maintenance + overlap report (autoskill) |
@@ -290,6 +291,7 @@ agenticaiplugin/
 ├── skills/
 │   ├── architecture-audit/      # 7-dimension architecture assessment
 │   ├── code-review/             # 13-specialist code review
+│   ├── council/                 # Independent second view on one decision
 │   ├── create-cli/              # CLI interface design
 │   ├── curator/                 # Learned-skill library curation (autoskill)
 │   ├── git-smart-commit/        # Intelligent commit creation
