@@ -89,6 +89,51 @@ test('all off = no output', () => {
   assert.equal(out.trim(), '');
 });
 
+// Fail-open on the config side — the counterpart to the fail-safe on the doctrine
+// side. Until 0.31.4 this class was covered only by a test in skills/mode, which
+// went with the mode state; the guarantee is inject-doctrine's own and belongs
+// here. What it protects against: a typo in agenticaiplugin.config.json silently
+// switching the doctrine off, which looks exactly like a normal session.
+function withRawConfig(text) {
+  const dir = mkdtempSync(join(tmpdir(), 'doc-cfg-'));
+  writeFileSync(join(dir, 'agenticaiplugin.config.json'), text);
+  return dir;
+}
+
+test('a broken config file does not suppress the doctrine', () => {
+  const ctx = contextOf(
+    run({ hook_event_name: 'SessionStart', source: 'startup' }, { CLAUDE_CONFIG_DIR: withRawConfig('{ not json') })
+  );
+  assert.ok(ctx, 'unparsable config must inject the full doctrine, not nothing');
+  assert.match(ctx, CORE_SENTINEL);
+  assert.match(ctx, REVIEW_SENTINEL);
+  assert.match(ctx, PR_MONITOR_SENTINEL);
+});
+
+// Valid JSON in a shape the code does not expect. `{"doctrine":"off"}` is the
+// plausible typo — someone reaching for "turn the doctrine off" — and it must
+// leave everything ON rather than half-match its way into disabling a block.
+test('an unexpectedly shaped config does not suppress any block', () => {
+  for (const raw of [
+    '',
+    '{"doctrine": "off"}',
+    '{"doctrine": null}',
+    '{"doctrine": ["off"]}',
+    '{"doctrine": true}',
+    '{"doctrine": {"core": false}}',
+    '"off"',
+    'null',
+  ]) {
+    const ctx = contextOf(
+      run({ hook_event_name: 'SessionStart', source: 'startup' }, { CLAUDE_CONFIG_DIR: withRawConfig(raw) })
+    );
+    assert.ok(ctx, `config ${JSON.stringify(raw)} must still inject`);
+    assert.match(ctx, CORE_SENTINEL, `core block missing for config ${JSON.stringify(raw)}`);
+    assert.match(ctx, REVIEW_SENTINEL, `review block missing for config ${JSON.stringify(raw)}`);
+    assert.match(ctx, PR_MONITOR_SENTINEL, `PR monitoring block missing for config ${JSON.stringify(raw)}`);
+  }
+});
+
 test('missing config = all blocks present', () => {
   const ctx = buildContext(null);
   assert.ok(ctx);

@@ -1,25 +1,29 @@
 #!/usr/bin/env node
 //
-// agenticaiplugin: agent mode — state management CLI + SessionStart hook
+// agenticaiplugin: agent mode — SessionStart hook injection
 //
-// Single source of truth for the mode state file AND the hook injection. Built
-// on the persona mechanism (skills/persona/persona.mjs), which is the proven
-// pattern for "one opt-in word decides what gets injected into every session".
-// The /agenticaiplugin:mode skill calls the CLI subcommands (it does NOT inline
-// the write) so the state change is a real, verified action instead of a prompt
-// code-block the model might skip. The plugin's SessionStart hook calls the
-// `inject` subcommand (exec form: `node <this file> inject`).
+// The plugin has exactly ONE working mode, `orchestrator`, and it is always
+// active: no state file, no subcommand that switches it, no config gate. The
+// reason is the context itself — an injected block is append-only, so switching
+// a mode mid-session leaves the previous text standing in the window next to the
+// new one, and the session then holds two descriptions of who executes the work.
+// A mode that cannot be switched cannot land in that state. 0.31.4 removed
+// `task` and `meta-orchestrator`; their wording is preserved in issue #117.
+//
+// The composition table below stays a TABLE on purpose, and the snippets stay
+// separate files: putting a second mode back has to be a data change (one more
+// entry plus its file), not a rebuild of this script.
+//
+// This directory deliberately has NO SKILL.md — the only one under skills/ without
+// one. With the command gone there is nothing for a user to invoke, and a
+// description-only skill would still occupy context in every session. Auto-discovery
+// keys on SKILL.md files, so a directory without one is simply not a skill; the hook
+// reaches this script by path. Restoring the command means restoring that file.
 //
 // Subcommands:
-//   show        -> prints "OK mode=<value>"  (value is "off" when unset)
-//   set <mode>  -> validates, writes atomically, reads back, prints "OK mode=<mode>"
-//   off|reset   -> removes the state file,     prints "OK mode=off"
-//   inject      -> hook mode: reads hook JSON from stdin, emits hookSpecificOutput
-//                  with the active mode's snippet; silent no-op when no mode is
-//                  set ("off" = opt-in gate) or the snippet is unknown.
-//
-// CLI output contract: exactly one line "OK mode=<value>" on success (the skill
-// echoes this back), or "ERROR <reason>" on stderr + non-zero exit.
+//   inject  -> hook mode: reads the hook JSON from stdin and emits
+//              hookSpecificOutput with the orchestrator snippet. Fail-safe: any
+//              unexpected state injects NOTHING rather than breaking the session.
 //
 // Injection ORDER is not a priority mechanism: SessionStart additionalContext
 // blocks do not necessarily appear in hooks.json order (measured). A mode text
@@ -27,104 +31,36 @@
 //
 // Portability: Node only — no bash, no jq (issues #23/#24: bash is not reliably
 // selectable for hooks on Windows, and jq is absent on most Windows installs).
-// State path uses only $CLAUDE_CONFIG_DIR / the home directory. The mode
-// snippets are resolved relative to THIS file (import.meta.url), NOT
+// The mode snippets are resolved relative to THIS file (import.meta.url), NOT
 // $CLAUDE_PLUGIN_ROOT — that variable is empty in the normal tool context.
-// The allowed mode values here are the authority; they must match the snippets
-// in modes/.
-//
-// Config (${CLAUDE_CONFIG_DIR:-~/.claude}/agenticaiplugin.config.json):
-//   { "agentMode": "off" }  -> never inject a mode text (the CLI still works)
 
-import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude');
-const STATE_FILE = join(CONFIG_DIR, 'mode.state');
-const CONFIG_FILE = join(CONFIG_DIR, 'agenticaiplugin.config.json');
-const VALID = ['task', 'orchestrator', 'meta-orchestrator'];
+const MODE = 'orchestrator';
 
-// Snippet composition. `meta-orchestrator` is not a superset of `orchestrator` in
-// prose — it would have pointed at rules the reader never receives, since only one
-// mode is ever injected. The rules both delegating modes share therefore live once
-// in shared-delegation.md, which carries NO mode declaration and NO precedence
+// Snippet composition per mode. The rules a delegating mode carries live once in
+// shared-delegation.md, which holds NO mode declaration and NO precedence
 // sentence: the mode's own file supplies the head, so exactly one "Active agent
 // mode" line and exactly one "ranks ABOVE" statement reach the session.
-// The file names are a fixed table, never derived from the state file.
 const PARTS = {
-  task: ['task.md'],
   orchestrator: ['orchestrator.md', 'shared-delegation.md'],
-  'meta-orchestrator': ['meta-orchestrator.md', 'shared-delegation.md'],
 };
+
+// Whitelist on the READ path: nothing but these names may be joined onto modes/.
+// Deliberately NOT derived from PARTS — a whitelist computed from the very table
+// it is meant to guard would assert nothing. It is the second pair of eyes on
+// every path that reaches readFileSync, and it is what keeps this path safe if
+// the table ever becomes data again.
+const ALLOWED_FILES = new Set(['orchestrator.md', 'shared-delegation.md']);
 
 function die(reason) {
   process.stderr.write(`ERROR ${reason}\n`);
   process.exit(1);
 }
 
-function attempt(fn, reason) {
-  try {
-    return fn();
-  } catch {
-    die(reason);
-  }
-}
-
-function readState() {
-  try {
-    return readFileSync(STATE_FILE, 'utf8').replace(/\s/g, '');
-  } catch {
-    return '';
-  }
-}
-
-function readJson(path) {
-  try {
-    return JSON.parse(readFileSync(path, 'utf8'));
-  } catch {
-    return null;
-  }
-}
-
-function show() {
-  process.stdout.write(`OK mode=${readState() || 'off'}\n`);
-}
-
-function off() {
-  attempt(() => rmSync(STATE_FILE, { force: true }), 'cannot remove state file');
-  process.stdout.write('OK mode=off\n');
-}
-
-function set(mode) {
-  if (!mode) die(`missing mode (expected: ${VALID.join(' ')})`);
-  if (!VALID.includes(mode)) {
-    die(`invalid mode: '${mode}' (expected: ${VALID.join(' ')})`);
-  }
-
-  attempt(() => mkdirSync(dirname(STATE_FILE), { recursive: true }), 'cannot create config dir');
-
-  // atomic write: tmp file + rename, then read-back verification
-  const tmp = `${STATE_FILE}.tmp.${process.pid}`;
-  attempt(() => writeFileSync(tmp, `${mode}\n`), 'cannot write state file');
-  try {
-    renameSync(tmp, STATE_FILE);
-  } catch {
-    try { rmSync(tmp, { force: true }); } catch { /* best effort */ }
-    die('cannot move state file into place');
-  }
-
-  const readBack = readState();
-  if (readBack !== mode) {
-    die(`write verification failed (state holds '${readBack}')`);
-  }
-  process.stdout.write(`OK mode=${readBack}\n`);
-}
-
-// SessionStart hook mode. Fail-safe by design: any unexpected state injects
-// NOTHING rather than breaking the session — with no mode set the plugin must
-// behave exactly as if it were not installed (opt-in gate).
+// SessionStart hook mode.
 function inject() {
   let event = 'SessionStart';
   try {
@@ -136,23 +72,17 @@ function inject() {
     // no/invalid stdin -> keep default event
   }
 
-  if (readJson(CONFIG_FILE)?.agentMode === 'off') return;
-
-  const mode = readState();
-  if (!mode || mode === 'off') return;
-  // Whitelist also on the READ path: a tampered state file (readState strips
-  // only whitespace, so "../x" would survive) must not steer the snippet path
-  // outside modes/.
-  if (!VALID.includes(mode)) return;
+  const files = PARTS[MODE];
+  if (!files || !files.every((file) => ALLOWED_FILES.has(file))) return;
 
   const scriptDir = dirname(fileURLToPath(import.meta.url));
   let snippet;
   try {
-    snippet = `${PARTS[mode]
+    snippet = `${files
       .map((file) => readFileSync(join(scriptDir, 'modes', file), 'utf8').trimEnd())
       .join('\n\n')}\n`;
   } catch {
-    return; // unknown/unreadable mode value -> inject nothing
+    return; // unreadable snippet -> inject nothing rather than break the session
   }
 
   process.stdout.write(
@@ -162,18 +92,8 @@ function inject() {
   );
 }
 
-const [cmd, arg] = process.argv.slice(2);
+const [cmd] = process.argv.slice(2);
 switch (cmd) {
-  case 'show':
-    show();
-    break;
-  case 'off':
-  case 'reset':
-    off();
-    break;
-  case 'set':
-    set(arg);
-    break;
   case 'inject':
     inject();
     break;
@@ -182,10 +102,10 @@ switch (cmd) {
   case '-h':
   case '--help':
   case 'help':
-    process.stderr.write('usage: mode.mjs <show|set <mode>|off|inject>\n');
-    process.stderr.write(`modes: ${VALID.join(' ')}\n`);
+    process.stderr.write('usage: mode.mjs inject\n');
+    process.stderr.write(`mode: ${MODE} (always active, not switchable)\n`);
     process.exit(2);
     break;
   default:
-    die(`unknown subcommand: '${cmd}' (expected: show|set|off|inject)`);
+    die(`unknown subcommand: '${cmd}' (expected: inject)`);
 }

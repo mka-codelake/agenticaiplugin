@@ -1,4 +1,4 @@
-<!-- agenticaiplugin: delegation rules, shared by orchestrator and meta-orchestrator -->
+<!-- agenticaiplugin: delegation rules, composed onto the orchestrator mode head -->
 **Delegate:** implementation, investigation and research, release preparation,
 documentation reconciliation.
 
