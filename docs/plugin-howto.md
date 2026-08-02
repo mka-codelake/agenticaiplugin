@@ -2,6 +2,21 @@
 
 Token-optimized reference for AI agents developing Claude Code plugins.
 
+| | |
+|---|---|
+| **Last touched** | 2026-08-01 (last content change, per `git log`) |
+| **Header added** | 2026-08-02 |
+| **Claude Code** | 2.1.220 (current version at the time of this header) |
+| **Plugin** | 0.31.1 |
+
+The statements below were **not** verified end-to-end against 2.1.220. The file has grown
+incrementally, so the Claude Code version each individual statement was originally
+written against is not consistently documented. Age of a statement can only be
+reconstructed via `git log -L` on the relevant lines.
+
+For statements about Claude Code runtime behavior, `docs/context-map.md` carries the
+provenance and evidence status (DOC / MEASURED / CODE / ASSUMED) of each claim.
+
 ## Plugin Structure
 
 ```

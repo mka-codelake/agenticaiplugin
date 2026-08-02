@@ -1,7 +1,21 @@
 # Claude Code Rules - How To Guide
 
-> **Status:** January 2025
 > **Purpose:** Reference documentation for Claude Code Rules — what they are, how they work, and how they relate to plugins.
+
+| | |
+|---|---|
+| **Last touched** | 2026-08-02 (header only) |
+| **Content written** | January 2025 — **not verified since** |
+| **Claude Code** | 2.1.220 (current version at the time of this header; the content below was *not* checked against it) |
+| **Plugin** | 0.31.1 |
+
+The content of this file dates from January 2025 and has not been re-checked for accuracy
+against any later Claude Code version. Only this header was updated on 2026-08-02 — no
+review of the statements below took place. Treat everything here as unverified for
+2.1.220.
+
+For statements about Claude Code runtime behavior, `docs/context-map.md` carries the
+provenance and evidence status (DOC / MEASURED / CODE / ASSUMED) of each claim.
 
 ---
 
