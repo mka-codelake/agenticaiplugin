@@ -1,284 +1,284 @@
-# Kontext-Landkarte
+# Context Map
 
-**Was bringt wann welche Inhalte in wessen Kontext — und woher wissen wir das?**
+**What puts which content into whose context, and when — and how do we know?**
 
-Diese Karte existiert, weil mehrfach auf Annahmen gebaut wurde, die sich als falsch
-erwiesen: eine Reichweite, die nicht bestand; eine Reihenfolge, die nicht galt; eine
-Ablage, die nicht mitwanderte. Sie ist die Grundlage für Entscheidungen über Doktrin,
-Modi und jede künftige Regel.
+This map exists because assumptions were repeatedly built on that turned out to be
+wrong: a reach that did not hold; an order that did not apply; a storage location that
+did not travel along. It is the basis for decisions about doctrine, modes, and every
+future rule.
 
-## Erhebungsstand
+## Survey baseline
 
 | | |
 |---|---|
-| **Datum** | 2026-08-02 |
+| **Date** | 2026-08-02 |
 | **Claude Code** | **2.1.220** (`claude --version`) |
 | **Plugin** | 0.31.1 |
 | **Node** | v24.18.1 (CI: 22) |
 
-Die Claude-Code-Version ist der wichtigste Eintrag dieser Tabelle. Alles unter **DOC**
-und **MESS** beschreibt das Verhalten *dieser* Version. Bei einem Update ist der
-Änderungsverlauf zwischen der hier genannten und der neuen Version die gezielte
-Prüfliste — die Release Notes stehen im
-[Changelog](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md) und in der
-Doku unter [Release Notes](https://code.claude.com/docs/en/release-notes).
+The Claude Code version is the most important entry in this table. Everything under
+**DOC** and **MEASURED** describes the behavior of *that* version. On an update, the
+change history between the version named here and the new one is the targeted checklist
+— the release notes are in the
+[Changelog](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md) and in the
+docs under [Release Notes](https://code.claude.com/docs/en/release-notes).
 
-Ein Beispiel dafür, warum das zählt: Der Roster-Mechanismus für Geschwister-Agenten kam
-laut Dokumentation erst mit **v2.1.206** dazu, `COLUMNS`/`LINES` für die Statuszeile mit
-**v2.1.153**. Verhalten, das diese Karte als „nicht vorhanden" festhält, kann in einer
-späteren Version schlicht existieren.
+An example of why this counts: according to the documentation, the roster mechanism for
+sibling agents only arrived with **v2.1.206**, `COLUMNS`/`LINES` for the status line with
+**v2.1.153**. Behavior this map records as "not present" may simply exist in a later
+version.
 
 ---
 
-## Wie diese Karte zu lesen ist
+## How to read this map
 
-Jede Aussage trägt genau einen Herkunftsmarker. **Der Marker ist wichtiger als die
-Aussage** — er sagt, was beim nächsten CLI-Update nachzuprüfen ist.
+Every statement carries exactly one provenance marker. **The marker matters more than the
+statement** — it says what has to be re-checked at the next CLI update.
 
-| Marker | Bedeutet | Prüfbar durch |
+| Marker | Means | Verifiable by |
 |---|---|---|
-| **DOC** | Offizielle Claude-Code-Dokumentation | URL erneut abrufen, mit Abrufdatum vergleichen |
-| **MESS** | Selbst gemessen, mit Methode | Messung wiederholen (Aufbau siehe unten) |
-| **CODE** | Aus Plugin-Code ableitbar | `datei:zeile` lesen |
-| **ANNAHME** | Behauptet, nirgends belegt | **Nichts** — hier ist zu messen, bevor darauf gebaut wird |
+| **DOC** | Official Claude Code documentation | Re-fetch the URL, compare against the retrieval date |
+| **MEASURED** | Measured first-hand, with a method | Repeat the measurement (setup see below) |
+| **CODE** | Derivable from plugin code | Read `file:line` |
+| **ASSUMED** | Claimed, evidenced nowhere | **Nothing** — this is where measuring has to happen before anything is built on it |
 
-`ANNAHME` ist die wichtigste Kategorie. Mehrere tragende Designentscheidungen des
-Plugins stehen bis heute auf unbelegten Kommentaren.
+`ASSUMED` is the most important category. Several load-bearing design decisions of the
+plugin rest on unsubstantiated comments to this day.
 
 ---
 
-## 1. Wer sieht was
+## 1. Who sees what
 
-Die Kernmatrix. Zeilen = Kontextquelle, Spalten = Kontext, in dem sie ankommt.
+The core matrix. Rows = context source, columns = context it arrives in.
 
-| Quelle | Hauptsession | Fork | Sub-Agent (general-purpose, custom) | Explore / Plan |
+| Source | Main session | Fork | Sub-agent (general-purpose, custom) | Explore / Plan |
 |---|---|---|---|---|
-| SessionStart-`additionalContext` (Doktrin, Modus, Persona) | ja | ja¹ | **nein** | **nein** |
-| `CLAUDE.md` (user + projekt) | ja | ja¹ | **ja** | **nein** |
-| Skill-Body per `skills:`-Frontmatter | — | ja¹ | **ja** | ja² |
-| Skill-Body per Aufruf | ja | ja | ja | ja |
-| Git-Status-Snapshot | ja | ja¹ | ja | **nein** |
-| Gesprächsverlauf | ja | **ja** | nein | nein |
+| SessionStart `additionalContext` (doctrine, mode, persona) | yes | yes¹ | **no** | **no** |
+| `CLAUDE.md` (user + project) | yes | yes¹ | **yes** | **no** |
+| Skill body via `skills:` frontmatter | — | yes¹ | **yes** | yes² |
+| Skill body via invocation | yes | yes | yes | yes |
+| Git status snapshot | yes | yes¹ | yes | **no** |
+| Conversation history | yes | **yes** | no | no |
 
-¹ Ein Fork erbt die gesamte Konversation samt System-Prompt — **DOC**
+¹ A fork inherits the entire conversation including the system prompt — **DOC**
 ([sub-agents.md](https://code.claude.com/docs/en/sub-agents.md), 2026-08-02):
-*„A fork inherits the entire conversation so far instead of starting fresh."*
+*"A fork inherits the entire conversation so far instead of starting fresh."*
 
-² Nicht gesondert geprüft; `skills:`-Preload ist agent-definitionsabhängig.
+² Not separately verified; `skills:` preload depends on the agent definition.
 
-**Die zentrale Zeile ist die erste.** Sie erklärt, warum Regeln für Sub-Agenten in den
-Auftragsprompt gehören und nicht in Doktrin oder Modus-Text.
+**The central row is the first one.** It explains why rules for sub-agents belong in the
+task prompt and not in doctrine or mode text.
 
-- **DOC**: *„SessionStart/SessionEnd feuern NICHT für Sub-Agenten (sie haben keine
-  Session, nur Context)"* — [sub-agents.md](https://code.claude.com/docs/en/sub-agents.md),
-  abgerufen 2026-08-02.
-- **MESS** (2026-08-02): Fünf Agent-Typen — `general-purpose`, `Explore`,
+- **DOC**: *"SessionStart/SessionEnd do NOT fire for sub-agents (they have no session,
+  only context)"* — [sub-agents.md](https://code.claude.com/docs/en/sub-agents.md),
+  retrieved 2026-08-02.
+- **MEASURED** (2026-08-02): Five agent types — `general-purpose`, `Explore`,
   `agenticaiplugin:license-checker`, `agenticaiplugin:pr-review-installer`,
-  `code-simplifier` — wurden ohne Tool-Zugriff nach vier Zeichenketten befragt, die
-  ausschließlich im injizierten Kontext vorkommen, **plus zwei Kontrollfragen** nach
-  einem Doktrin-Block und einem Satz, die es nicht gibt. Alle fünf: Doktrin und Persona
-  abwesend, beide Kontrollen korrekt negativ. Beide Custom-Agents beschrieben ihren
-  eigenen Systemprompt korrekt — es wurden also tatsächlich Custom-Typen gemessen.
-  **Ohne die Negativkontrolle wäre das Ergebnis wertlos gewesen; sie gehört zwingend
-  zu jeder Wiederholung.**
+  `code-simplifier` — were asked, without tool access, about four strings that occur
+  exclusively in the injected context, **plus two control questions** about a doctrine
+  block and a sentence that do not exist. All five: doctrine and persona absent, both
+  controls correctly negative. Both custom agents described their own system prompt
+  correctly — so custom types were in fact what got measured.
+  **Without the negative control the result would have been worthless; it is a
+  mandatory part of any repetition.**
 
-Die `Explore`-Anomalie in derselben Messung (sah als einziger auch die `CLAUDE.md`
-nicht) ist **DOC**-gedeckt: *„Explore and Plan skip your CLAUDE.md files and the parent
-session's git status to keep research fast and inexpensive."* Messung und Dokumentation
-decken sich unabhängig — das stützt beide.
+The `Explore` anomaly in the same measurement (the only one that also did not see
+`CLAUDE.md`) is **DOC**-backed: *"Explore and Plan skip your CLAUDE.md files and the
+parent session's git status to keep research fast and inexpensive."* Measurement and
+documentation agree independently — that supports both.
 
-### Was Sub-Agenten dennoch erreicht
+### What reaches sub-agents nonetheless
 
-| Kanal | Reichweite | Marker |
+| Channel | Reach | Marker |
 |---|---|---|
-| `CLAUDE.md` | alle außer Explore/Plan | **DOC** + **MESS** |
-| `skills:` im Agent-Frontmatter | plugin-eigene Agents | **DOC** + **MESS** |
-| Der Auftragsprompt | alle | trivial |
-| `PreToolUse`/`PostToolUse`-Hooks | greifen auch für Sub-Agent-Tool-Aufrufe | **DOC** |
+| `CLAUDE.md` | all except Explore/Plan | **DOC** + **MEASURED** |
+| `skills:` in the agent frontmatter | plugin-owned agents | **DOC** + **MEASURED** |
+| The task prompt | all | trivial |
+| `PreToolUse`/`PostToolUse` hooks | apply to sub-agent tool calls too | **DOC** |
 
-Die letzte Zeile beantwortet eine bisher offene Frage aus #105: Der git-Commit-Guard
-**greift** bei Sub-Agenten. Ein Sub-Agent ohne Kenntnis des Commit-Wegs läuft also in
-eine Blockade, nicht an einem Gate vorbei.
+The last row answers a question left open in #105: the git-commit guard **does** apply to
+sub-agents. A sub-agent unaware of the commit path therefore runs into a block, not past
+a gate.
 
-Der `skills:`-Kanal ist **MESS**-belegt (2026-08-02, Kontrollvergleich):
-`agents/pr-review-installer.md:16` deklariert `skills: git-smart-commit`, und der Agent
-meldete den vollständigen Skill-Body in seinem Kontext; `license-checker` ohne
-Deklaration meldete nichts dergleichen. Ob dabei der Verzeichnisname oder ein
-`name:`-Feld auflöst, ist **DOC**-seitig nicht dokumentiert — **MESS** beantwortet es:
-`skills/git-smart-commit/SKILL.md` hat **kein** `name:` und wird trotzdem geladen, also
-genügt der Verzeichnisname.
+The `skills:` channel is **MEASURED**-backed (2026-08-02, control comparison):
+`agents/pr-review-installer.md:16` declares `skills: git-smart-commit`, and the agent
+reported the complete skill body in its context; `license-checker` without the
+declaration reported nothing of the sort. Whether the directory name or a `name:` field
+resolves here is not documented on the **DOC** side — **MEASURED** answers it:
+`skills/git-smart-commit/SKILL.md` has **no** `name:` and is loaded anyway, so the
+directory name suffices.
 
 ---
 
-## 2. Wann geladen wird
+## 2. When loading happens
 
-| Mechanismus | Zeitpunkt | Marker |
+| Mechanism | Point in time | Marker |
 |---|---|---|
-| SessionStart-Hooks | jeder Sitzungsbeginn: `startup`, `resume`, `clear`, `compact`, **`fork`** | **DOC** ([hooks.md](https://code.claude.com/docs/en/hooks.md), 2026-08-02) |
-| Skill-`description` | immer im Kontext | **DOC** |
-| Skill-Body | **nur bei Aufruf** — *„a skill's body loads only when it's used"* | **DOC** |
-| `CLAUDE.md` | Sitzungsbeginn, hierarchisch | **DOC** |
+| SessionStart hooks | every session start: `startup`, `resume`, `clear`, `compact`, **`fork`** | **DOC** ([hooks.md](https://code.claude.com/docs/en/hooks.md), 2026-08-02) |
+| Skill `description` | always in context | **DOC** |
+| Skill body | **only on invocation** — *"a skill's body loads only when it's used"* | **DOC** |
+| `CLAUDE.md` | session start, hierarchical | **DOC** |
 
-**`fork` ist ein fünfter Matcher, den das Plugin nie bedacht hat.** Die Hooks gaten
-bewusst nicht auf `source` (**CODE** `hooks/inject-doctrine.mjs:72-84`), feuern dort also
-mit — für Doktrin und Modus vermutlich gewollt, aber ungeprüft.
+**`fork` is a fifth matcher the plugin never accounted for.** The hooks deliberately do
+not gate on `source` (**CODE** `hooks/inject-doctrine.mjs:72-84`), so they fire there as
+well — presumably intended for doctrine and mode, but unverified.
 
-### Reihenfolge und Zusammenführung — hier steht eine Code-Behauptung gegen die Messung
+### Order and merging — here a code claim stands against the measurement
 
-`hooks/inject-doctrine.mjs:13-14` behauptet: *„Multiple SessionStart hooks'
+`hooks/inject-doctrine.mjs:13-14` claims: *"Multiple SessionStart hooks'
 additionalContext are concatenated by Claude Code."*
 
-| Aspekt | Befund | Marker |
+| Aspect | Finding | Marker |
 |---|---|---|
-| Hooks laufen **parallel**, nicht sequenziell | *„All matching hooks run in parallel (not sequentially)"* | **DOC** |
-| Wie mehrere `additionalContext`-Blöcke zusammengeführt werden | **nicht dokumentiert** | DOC-Fehlanzeige |
-| Reihenfolge folgt der `hooks.json`-Reihenfolge | **widerlegt** | **MESS** |
-| Größengrenze für `additionalContext` | **nicht dokumentiert** | DOC-Fehlanzeige |
+| Hooks run **in parallel**, not sequentially | *"All matching hooks run in parallel (not sequentially)"* | **DOC** |
+| How multiple `additionalContext` blocks are merged | **not documented** | DOC gap |
+| Order follows the `hooks.json` order | **refuted** | **MEASURED** |
+| Size limit for `additionalContext` | **not documented** | DOC gap |
 
-**MESS** (2026-08-02): In `hooks/hooks.json` steht `inject-doctrine` an Position 2, die
-Persona an Position 3. Im tatsächlichen Sitzungskontext erscheint die **Persona zuerst**.
-Beobachtet am eigenen Kontext dieser Sitzung; konsistent mit der dokumentierten
-Parallelität.
+**MEASURED** (2026-08-02): In `hooks/hooks.json`, `inject-doctrine` sits at position 2,
+the persona at position 3. In the actual session context the **persona appears first**.
+Observed on this session's own context; consistent with the documented parallelism.
 
-**Konsequenz, die in `hooks/doctrine/core.md:4-6` bereits umgesetzt ist:** Eine
-Überschreibung darf sich niemals auf Position stützen. Sie muss benennen, *was* sie
-überschreibt.
+**Consequence, already implemented in `hooks/doctrine/core.md:4-6`:** An override must
+never rely on position. It has to name *what* it overrides.
 
 ---
 
-## 3. Was mitwandert
+## 3. What travels along
 
-Entscheidend für die Frage, ob das Plugin auf einer zweiten Maschine dasselbe leistet.
+Decisive for the question of whether the plugin delivers the same thing on a second
+machine.
 
-| Quelle | Wandert mit? | Marker |
+| Source | Travels along? | Marker |
 |---|---|---|
-| Plugin-Dateien (`hooks/`, `skills/`, `agents/`, `doctrine/`) | **ja** | **CODE** |
-| Projekt-`CLAUDE.md`, `.claude/guidelines/`, `.claude/adrs/` | ja, mit dem Projekt-Repo | **CODE** |
-| `~/.claude/CLAUDE.md` | **nein** | **CODE** |
-| `~/.claude/rules/` | **nein** | **CODE** |
-| Auto-Memory `~/.claude/projects/*/memory/` | **nein** | **CODE** |
-| Learned Skills `~/.claude/skills/learned-*/` | **nein** | **CODE** |
-| `persona.state`, `mode.state` | **nein** | **CODE** `mode.mjs:44-45` |
-| `agenticaiplugin.config.json` (alle Opt-outs) | **nein** | **CODE** |
+| Plugin files (`hooks/`, `skills/`, `agents/`, `doctrine/`) | **yes** | **CODE** |
+| Project `CLAUDE.md`, `.claude/guidelines/`, `.claude/adrs/` | yes, with the project repo | **CODE** |
+| `~/.claude/CLAUDE.md` | **no** | **CODE** |
+| `~/.claude/rules/` | **no** | **CODE** |
+| Auto-memory `~/.claude/projects/*/memory/` | **no** | **CODE** |
+| Learned skills `~/.claude/skills/learned-*/` | **no** | **CODE** |
+| `persona.state`, `mode.state` | **no** | **CODE** `mode.mjs:44-45` |
+| `agenticaiplugin.config.json` (all opt-outs) | **no** | **CODE** |
 
-**Die Konsequenz stand bisher nirgends zusammenhängend:** Nach einer Neuinstallation
-läuft das Plugin in **voller Default-Konfiguration** — Doktrin an, git-Guard an,
-Autoskill aus, Persona und Modus aus. Alles, was Verhalten abschaltet oder
-personalisiert, ist maschinenlokal.
+**The consequence has never been stated in one place:** after a fresh installation the
+plugin runs in **full default configuration** — doctrine on, git guard on, autoskill off,
+persona and mode off. Everything that switches behavior off or personalizes it is
+machine-local.
 
-Ebenso: Das gesamte Betriebswissen in den learned skills (19 Skills, davon 4021 Zeilen
-allein in den beiden Orchestrierungs-Skills) ist auf einer zweiten Maschine **nicht
-vorhanden**. Der `meta-orchestrator`-Modus ist dort schwächer als hier, ohne dass es
-sichtbar wäre — siehe #107.
+Likewise: the entire operational knowledge in the learned skills (19 skills, 4021 lines
+of them in the two orchestration skills alone) is **not present** on a second machine.
+The `meta-orchestrator` mode is weaker there than here, without that being visible —
+see #107.
 
 ---
 
-## 4. Geltende Regeln, nach Absicherungsgrad
+## 4. Rules in force, by degree of enforcement
 
-Nicht „welche Regeln gibt es", sondern **welche sind durchgesetzt und welche nur
-aufgeschrieben**. Die zweite Gruppe ist die gefährlichere.
+Not "which rules exist", but **which are enforced and which are merely written down**.
+The second group is the more dangerous one.
 
-### Durch Tests erzwungen
+### Enforced by tests
 
-| Regel | Test |
+| Rule | Test |
 |---|---|
-| Hooks in Exec-Form, `node`, `${CLAUDE_PLUGIN_ROOT}/….mjs` | `hooks/hooks-policy.test.mjs:14-36` |
-| Keine Shell-Skripte unter `hooks/` (rekursiv) | `hooks/hooks-policy.test.mjs:38-45` |
-| Whitelist auch auf dem **Lesepfad** (manipuliertes Statefile) | `persona.test.mjs:122`, `mode.test.mjs:185` |
-| `realpath`-Vergleich beim Direktaufruf-Guard (Marketplace-Symlink) | `guard-git-commit.test.mjs:110`, `inject-doctrine.test.mjs:101` |
-| `skillDir` im Workflow: kein Default, muss absolut sein | Workflow-Suiten |
-| Modus-Text nennt den Commit-Weg, kein absolutes git-Verbot | `mode.test.mjs` (seit 0.31.1, Wirksamkeit nachgewiesen) |
+| Hooks in exec form, `node`, `${CLAUDE_PLUGIN_ROOT}/….mjs` | `hooks/hooks-policy.test.mjs:14-36` |
+| No shell scripts under `hooks/` (recursive) | `hooks/hooks-policy.test.mjs:38-45` |
+| Whitelist on the **read path** too (tampered state file) | `persona.test.mjs:122`, `mode.test.mjs:185` |
+| `realpath` comparison in the direct-invocation guard (marketplace symlink) | `guard-git-commit.test.mjs:110`, `inject-doctrine.test.mjs:101` |
+| `skillDir` in the workflow: no default, must be absolute | Workflow suites |
+| Mode text names the commit path, no blanket git ban | `mode.test.mjs` (since 0.31.1, effectiveness demonstrated) |
 
-### Nur aufgeschrieben — kein Netz
+### Merely written down — no safety net
 
-| Regel | Quelle | Risiko |
+| Rule | Source | Risk |
 |---|---|---|
-| **Keine absoluten Pfade in Plugin-Dateien** | `CLAUDE.md:20-26` | Die zentrale Portabilitätsregel ist ungeschützt |
-| `## Usage` + `## Argument Handling` bei Kommando-Skills | `docs/plugin-howto.md:796-834` | — |
-| `agenticaiplugin:`-Präfix in Invocation-Kontexten | `CLAUDE.md:137-149` | Agent nicht auflösbar |
-| Fork + `*.workflow.js` nie kombinieren (#51) | `docs/plugin-howto.md:155-157` | Skript wird stiller toter Code |
-| Kommando-Tabellen in `README.md` ↔ `CLAUDE.md` synchron | `CLAUDE.md:110-112` | **bereits gebrochen**: `qa` fehlt in `CLAUDE.md` |
+| **No absolute paths in plugin files** | `CLAUDE.md:20-26` | The central portability rule is unprotected |
+| `## Usage` + `## Argument Handling` for command skills | `docs/plugin-howto.md:813-851` | — |
+| `agenticaiplugin:` prefix in invocation contexts | `CLAUDE.md:138-150` | Agent not resolvable |
+| Never combine fork + `*.workflow.js` (#51) | `docs/plugin-howto.md:172-174` | Script becomes silent dead code |
+| Command tables in `README.md` ↔ `CLAUDE.md` in sync | `CLAUDE.md:111-113` | **already broken**: `qa` missing in `CLAUDE.md` |
 
-### Pfad-Variablen — undokumentiert, aber tragend
+### Path variables — undocumented, yet load-bearing
 
-| Variable | Doku | Plugin-Nutzung |
+| Variable | Docs | Plugin usage |
 |---|---|---|
-| `${CLAUDE_PLUGIN_ROOT}` | **DOC** dokumentiert (Hook-Kontext) | `hooks.json`, Agent-Bodies |
-| `${CLAUDE_SKILL_DIR}` | **nicht dokumentiert** | jeder Kommando-Skill |
-| `${CLAUDE_CONFIG_DIR}` | **nicht dokumentiert** | alle Statefiles, Config, Autoskill |
+| `${CLAUDE_PLUGIN_ROOT}` | **DOC** documented (hook context) | `hooks.json`, agent bodies |
+| `${CLAUDE_SKILL_DIR}` | **not documented** | every command skill |
+| `${CLAUDE_CONFIG_DIR}` | **not documented** | all state files, config, autoskill |
 
-Zwei von drei Variablen, an denen tragende Mechanismen hängen, haben **keine
-dokumentierte Zusage**. Sie funktionieren, aber niemand hat versprochen, dass sie bleiben.
+Two of three variables that load-bearing mechanisms hang on have **no documented
+guarantee**. They work, but nobody has promised they will stay.
 
 ---
 
-## 5. Offene Annahmen — die Messliste
+## 5. Open assumptions — the measurement list
 
-Tragende Designentscheidungen ohne Beleg. Jede Zeile ist ein Kandidat für eine Messung
-mit reproduzierbarem Artefakt.
+Load-bearing design decisions without evidence. Every row is a candidate for a
+measurement with a reproducible artifact.
 
-| Annahme | Steht in | Warum es zählt |
+| Assumption | Stated in | Why it counts |
 |---|---|---|
-| SessionStart feuert bei `compact` **und** der Kontext landet im frisch kompaktierten Fenster | `inject-doctrine.mjs:10-13` | Der Test belegt nur, dass **nicht** auf `source` gegatet wird — nicht die Wirkung |
-| `PreCompact` kann Kontext nicht erhalten | `docs/plugin-howto.md:346-347` | DOC bestätigt die Empfehlung, nicht die Begründung |
-| `additionalContext` ist „weicher" als eine echte Rule | `docs/plugin-howto.md:347-349` | **DOC** nennt es „system reminder" — Härte unbestimmt |
-| Claude Code blockt Write/Edit unter `~/.claude/` | `hooks/autoskill/lib.mjs:27-38` | Tragend für die Staging-Architektur |
-| Verschachtelte Skill-Ordner werden nicht entdeckt | `hooks/autoskill/lib.mjs:22-24` | Bestimmt das flache Layout |
-| Skill-Index kürzt `description` bei 60 Zeichen | `skills/learn/SKILL.md:54-56` | — |
-| Marketplace-Kopie ist ein ungefilterter Baumkopie | `docs/workflow-integration-howto.md:40` | Grund, warum `.workflow.js` mitkommt |
-| Skills unter `~/.claude/skills/` hot-reloaden | `docs/plugin-howto.md:416-425` | **Steht in Spannung** zur Marketplace-Update-Regel (`CLAUDE.md:154`) |
-| `${CLAUDE_PLUGIN_ROOT}` „ist leer im Tool-Kontext" | `persona.mjs:26`, `mode.mjs:32` | Pauschal formuliert; ein späterer Messnachtrag schränkt es auf die Shell ein — die Skripte tragen die alte Formulierung **unkorrigiert** |
+| SessionStart fires on `compact` **and** the context lands in the freshly compacted window | `inject-doctrine.mjs:10-13` | The test only proves that there is **no** gating on `source` — not the effect |
+| `PreCompact` cannot preserve context | `docs/plugin-howto.md:363-364` | DOC confirms the recommendation, not the rationale |
+| `additionalContext` is "softer" than a real rule | `docs/plugin-howto.md:364-366` | **DOC** calls it a "system reminder" — strength undetermined |
+| Claude Code blocks Write/Edit under `~/.claude/` | `hooks/autoskill/lib.mjs:27-38` | Load-bearing for the staging architecture |
+| Nested skill folders are not discovered | `hooks/autoskill/lib.mjs:22-24` | Determines the flat layout |
+| Skill index truncates `description` at 60 characters | `skills/learn/SKILL.md:54-56` | — |
+| The marketplace copy is an unfiltered tree copy | `docs/workflow-integration-howto.md:40` | Reason why `.workflow.js` comes along |
+| Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:433-442` | **Stands in tension** with the marketplace update rule (`CLAUDE.md:155`) |
+| `${CLAUDE_PLUGIN_ROOT}` "is empty in the tool context" | `persona.mjs:26`, `mode.mjs:32` | Stated as a blanket claim; a later measurement addendum narrows it to the shell — the scripts carry the old wording **uncorrected** |
 
 ---
 
-## 6. Defekte, die diese Erhebung sichtbar gemacht hat
+## 6. Defects this survey made visible
 
-Nicht Annahmen, sondern Befunde — jeder ein Arbeitsauftrag.
+Not assumptions but findings — each one a work item.
 
-1. **`hooks-policy.test.mjs` prüft nur den Pfad-*String*, nicht ob die Datei existiert.**
-   Ein Tippfehler besteht den Test, und der Hook fällt zur Laufzeit stumm aus. Der Test
-   suggeriert eine Absicherung, die er nicht liefert. — **CODE** `hooks-policy.test.mjs:28-33`
-2. **Kein Test erzwingt, dass die fünf SessionStart-Hooks registriert bleiben.** Wer den
-   `mode.mjs inject`-Eintrag löscht, bekommt eine grüne Suite.
-3. **`BLOCKS` in `inject-doctrine.mjs:32-36` ist eine feste Liste.** Eine vierte
-   Doktrin-Datei würde stumm ignoriert.
-4. **Kommando-Tabellen driften bereits** — `qa` steht in `README.md`, fehlt in `CLAUDE.md`.
-   Die Change-Checklist nennt genau diesen Slip als häufigen Fehler.
-5. **`docs/rules-howto.md` trägt „Status: Januar 2025"** und beschreibt einen Mechanismus,
-   den das Plugin bewusst nicht mehr nutzt.
-
----
-
-## 7. Wie diese Karte geprüft wird
-
-**Bei einem CLI-Update** zuerst die Versionsdifferenz bestimmen — `claude --version`
-gegen den Erhebungsstand oben —, dann den Änderungsverlauf zwischen beiden Versionen
-lesen. Das ist billiger und vollständiger als jede Zeile neu zu prüfen: Man sucht gezielt
-nach Einträgen zu Hooks, `additionalContext`, Sub-Agents, Skills und Frontmatter-Feldern.
-Erst was dort auftaucht, wird nachgemessen; danach `DOC`-URLs und Abrufdatum aktualisieren.
-
-**Achtung bei Fehlanzeigen.** Die Karte hält an mehreren Stellen fest, dass etwas *nicht*
-dokumentiert ist oder *nicht* existiert. Solche Zeilen altern in die falsche Richtung —
-sie werden still falsch, wenn eine neue Version das Fehlende nachliefert. Sie brauchen
-bei einem Update mehr Aufmerksamkeit als die positiven Aussagen, nicht weniger.
-
-**Die `MESS`-Zeilen** sind unterschiedlich reproduzierbar:
-
-- *Skriptbar*: Injektionsgröße und Komposition je Modus —
-  `mode.mjs inject` mit gesetztem Statefile in einem isolierten `CLAUDE_CONFIG_DIR`.
-- *Nicht skriptbar*: Die Reichweitenmessung braucht echte Agenten. Der Aufbau steht in
-  Abschnitt 1 und **muss die Negativkontrolle enthalten** — ohne sie ist eine
-  Selbstauskunft wertlos.
-
-**Die `ANNAHME`-Zeilen** aus Abschnitt 5 sind der eigentliche Arbeitsvorrat. Eine
-Annahme von `ANNAHME` auf `MESS` zu heben, verlangt ein Artefakt im Repo, nicht eine
-Erinnerung an eine Messung.
+1. **`hooks-policy.test.mjs` only checks the path *string*, not whether the file exists.**
+   A typo passes the test, and the hook fails silently at runtime. A test that suggests a
+   safeguard it does not deliver. — **CODE** `hooks-policy.test.mjs:28-33`
+2. **No test enforces that the five SessionStart hooks stay registered.** Delete the
+   `mode.mjs inject` entry and you get a green suite.
+3. **`BLOCKS` in `inject-doctrine.mjs:32-36` is a fixed list.** A fourth doctrine file
+   would be silently ignored.
+4. **The command tables are already drifting** — `qa` is in `README.md`, missing in `CLAUDE.md`.
+   The change checklist names exactly this slip as a common mistake.
+5. **`docs/rules-howto.md` dates from January 2025** and describes a mechanism the
+   plugin deliberately no longer uses. Its header now says so explicitly; the content
+   itself is still unverified.
 
 ---
 
-## Verwandte Dokumente
+## 7. How this map gets verified
 
-- `docs/plugin-howto.md` — Entwicklerreferenz. Wo sie einen Mechanismus sauber
-  beschreibt, verweist diese Karte darauf, statt zu duplizieren.
-- Issues **#105** (Reichweite), **#107** (Portabilität des Betriebswissens),
-  **#108** (Doktrin-Struktur) — die drei offenen Punkte, die aus dieser Karte folgen.
+**On a CLI update**, first determine the version difference — `claude --version` against
+the survey baseline above — then read the change history between the two versions. That
+is cheaper and more complete than re-checking every line: you look specifically for
+entries on hooks, `additionalContext`, sub-agents, skills, and frontmatter fields. Only
+what shows up there gets re-measured; afterwards update the `DOC` URLs and retrieval date.
+
+**Watch out for negative findings.** In several places the map records that something is
+*not* documented or does *not* exist. Such lines age in the wrong direction — they turn
+quietly false when a new version supplies what was missing. On an update they need more
+attention than the positive statements, not less.
+
+**The `MEASURED` rows** differ in reproducibility:
+
+- *Scriptable*: injection size and composition per mode —
+  `mode.mjs inject` with the state file set in an isolated `CLAUDE_CONFIG_DIR`.
+- *Not scriptable*: the reach measurement needs real agents. The setup is in section 1
+  and **must include the negative control** — without it, a self-report is worthless.
+
+**The `ASSUMED` rows** from section 5 are the actual backlog. Lifting an assumption from
+`ASSUMED` to `MEASURED` requires an artifact in the repo, not a memory of a measurement.
+
+---
+
+## Related documents
+
+- `docs/plugin-howto.md` — developer reference. Where it describes a mechanism cleanly,
+  this map points there instead of duplicating.
+- Issues **#105** (reach), **#107** (portability of the operational knowledge),
+  **#108** (doctrine structure) — the three open items that follow from this map.
+</content>
+</invoke>
