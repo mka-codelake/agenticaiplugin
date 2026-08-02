@@ -18,7 +18,13 @@
 // A block is injected unless its key === "off" (absent/other value = on). If all
 // blocks are off, nothing is emitted.
 //
-// Fail-safe: unreadable config/doctrine or any crash injects NOTHING and exits 0.
+// Fail-safe in two directions, and they deliberately point opposite ways:
+//   * An unreadable or unexpectedly shaped CONFIG injects EVERYTHING. Only the
+//     exact string "off" on the exact key switches a block off, so a typo in
+//     agenticaiplugin.config.json cannot silently disable the doctrine — the one
+//     failure mode nobody would notice, because the session looks normal.
+//   * Unreadable DOCTRINE files, or any crash, inject NOTHING and exit 0. A
+//     broken installation costs the doctrine, never the session.
 
 import { readFileSync, realpathSync } from 'node:fs';
 import { homedir } from 'node:os';
