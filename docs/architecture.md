@@ -21,8 +21,9 @@ would otherwise have to be agreed again in every session. **Not a process framew
 | **Skill** | Procedural knowledge, on demand | loaded when needed | n/a |
 | **Policy** | Rules for work **on** the plugin | `CLAUDE.md` and `docs/` of this repo | yes |
 
-Anything that does not intervene in a tool call is not a guardrail. Anything that ships is
-not a policy.
+Anything that does not intervene in a tool call is not a guardrail. Anything that ships **as
+plugin behavior** is not a policy — this repo's `docs/` travels with the plugin, but nothing
+in it reaches a user's session.
 
 There is currently exactly one guardrail: `hooks/guard-git-commit.mjs` blocks a raw
 `git commit` and steers to the commit skill. The doctrine and the persona are injected by
@@ -43,7 +44,10 @@ session doctrine = constitution/base.md          always
 
 There is currently one mode, `orchestrator`. It is active in every session and cannot be
 switched off; there is no state file and no config key for it. The themes are the only
-switchable part (`doctrine.<key>: "off"`, see `README.md`).
+switchable part (`doctrine.<key>: "off"`, see `README.md`). Beyond composition the mode
+carries a decision procedure — the escalation ladder in
+`doctrine/constitution/orchestrator.md`, which sets how far a session decides on its own
+before it asks the owner.
 
 Further modes (`task`, `meta-orchestrator`) are withdrawn; their wording is preserved in
 **#117**. Putting one back is a data change to the `MODE_PARTS` table in
@@ -54,8 +58,9 @@ Further modes (`task`, `meta-orchestrator`) are withdrawn; their wording is pres
 Three questions, in this order:
 
 1. **Can code enforce it?** → guardrail. Only for hard invariants.
-2. **Must it be present before the situation arises?** → doctrine.
+2. **Must it be present before the situation arises?**
    Test: *does the trigger still fire when I have just forgotten the rule?*
+   **No → doctrine. Yes → skill.**
    The code-review rule belongs here even though it could be triggered — it is aimed at
    one's own carelessness, and that is exactly when nobody loads a skill.
 3. **Otherwise** → skill.
@@ -69,8 +74,8 @@ reports) stay injected. Foreign content often arrives with a single command, wit
 skill loading.
 
 A doctrine file dropped into `doctrine/` is not injected until it is registered in
-`hooks/inject-doctrine.mjs` — twice, and the second registration is a deliberate read-path
-whitelist. The step is in the change checklist in `CLAUDE.md`.
+`hooks/inject-doctrine.mjs`, in `CONSTITUTION` or `THEMES`. The step is in the change
+checklist in `CLAUDE.md`.
 
 ## Two rules for writing
 
@@ -94,12 +99,8 @@ the doctrine too.
   produces a permanent error on every platform and covers only one, and a permanent false
   alarm trains people to skip exactly the messages that signal a real outage. Measured: two
   incidents in 16 days, both recovered within minutes.
-- **No type markers and no structural tests.** A test checking whether a rule is filed in
-  the right place presupposes that it was marked correctly — that is, the very insight it
-  is meant to force. What would remain is a green test over an unchecked property.
-- **No presence hook.** It would hang on the same preconditions as the thing it checks.
 
-These absences are decisions, not omissions.
+This absence is a decision, not an omission.
 
 ## The scope rule
 
@@ -113,43 +114,19 @@ problem it solves is a defect here, not a reserve.
 ## Evidence
 
 Measurement setups and raw numbers: **#114**. It is the source for the injection's
-survival across compaction, its non-reach into sub-agents, the finding that wording does
-not change how binding a rule is, and the collapse of an injected rule against an explicit
-user instruction — the last of which is why guardrails exist at all.
+non-reach into sub-agents, the finding that wording does not change how binding a rule is,
+and the collapse of an injected rule against an explicit user instruction — the last of
+which is why guardrails exist at all. That the injection also survives a compaction is
+**not** measured: `docs/context-map.md` §5 carries it as an assumption.
 
 ---
 
 ## Glossary
 
+Only terms the sections above do not already define. Guardrail, doctrine, persona, skill
+and policy are in the building-block table; mode, fork and sub-agent are defined where they
+are used.
+
 **Constitution** — the non-switchable part of the doctrine: `doctrine/constitution/base.md`
-plus the active mode's snippets. Injected in every session, with no opt-out.
-
-**Doctrine** — behavioral rules that apply always, delivered into the context by
-SessionStart injection. Binding, but violable: it is text, not code.
-
-**Fork** — an agent that inherits the current conversation instead of starting fresh. It
-therefore sees the injected doctrine; the active mode does not apply to it, and it must not
-delegate further.
-
-**Guardrail** — code that aborts a tool call, i.e. a PreToolUse hook. Narrowly defined on
-purpose: anything that does not intervene in a tool call is not a guardrail, however
-strongly it is worded.
-
-**Mode** — the composition rule that says which doctrine snippets make up a session.
-Currently one, `orchestrator`, always active.
-
-**Persona** — an optional communication style, injected at SessionStart from
-`skills/persona/`. Independent of the mode, off by default.
-
-**Policy** — a binding rule for work **on** this plugin, living in this repo's `CLAUDE.md`
-and `docs/`. Same binding force as doctrine, different audience: it never ships as plugin
-behavior.
-
-**Skill** — procedural knowledge under `skills/<name>/SKILL.md`, auto-discovered. Its
-description is always in context; the body loads on use.
-
-**Sub-agent** — a freshly started agent with its own context. It does not inherit the
-session's conversation and is not reached by the injection.
-
-**Theme** — a switchable doctrine block under `doctrine/themes/`, tied to a topic (code
-review, PR-review monitoring) and disabled with the exact string `"off"` on its config key.
+plus the active mode's snippets. The name appears in the code (`CONSTITUTION`) and in
+`docs/context-map.md`, but nowhere as a switch: it has no opt-out.
