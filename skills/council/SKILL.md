@@ -4,8 +4,8 @@ description: >
   spawned in parallel, each brief asking both whether the thing should be built at all
   and whether it is built right. Use for a judgment call that can be argued from evidence
   but not measured — reached from the orchestrator escalation ladder, or invoked directly
-  via /agenticaiplugin:council. TRIGGER WORDS: second view, second opinion, sanity-check
-  this decision, zweite Sicht, Gremium.
+  via /agenticaiplugin:council. TRIGGER WORDS: convene a council, sanity-check this
+  decision, Gremium, Gremium einberufen.
 effort: medium
 ---
 
@@ -42,8 +42,8 @@ same question from a different angle is not a second view.
 
 Agents of the same model over the same files produce correlated opinions — same training,
 same blind spots — so a 3:0 vote can mean one blind spot counted three times. Measured in
-this repo (#92): an automated review missed a guaranteed false-positive check for eight
-rounds, and the agent that *ran* the check found it in minutes.
+the plugin's own repository: an automated review missed a guaranteed false-positive check
+for eight rounds, and the agent that *ran* the check found it in minutes.
 
 Usable axes — there is no fixed catalogue, but pick ones that genuinely differ:
 
@@ -51,6 +51,8 @@ Usable axes — there is no fixed catalogue, but pick ones that genuinely differ
 - **Execution** — run it, render it, measure it, try it, not read about it. A text runs
   too: run an agent against it and watch what it does, not what it says.
 - **Artifact alone** — the thing itself, read cold, without the surrounding context.
+- **Platform state** — what the tools in use offer *today*, from their own docs and
+  changelog: does the platform already provide what is about to be built?
 
 **Running beats opining.** Wherever a question can be measured or tried, the result
 decides; three opinions do not outweigh one measurement. Weigh views against each other
@@ -94,5 +96,5 @@ smaller solution out. Without that failure case, the finding drops.
 - **The question is small.** A council over something a single `grep` would answer costs
   more than it returns.
 
-This skill covers one pending decision. Applying the same idea to a whole project is a
-separate, still-open matter — see #92.
+This skill covers one pending decision. Applying the same idea to a whole project is
+deliberately not part of it.
