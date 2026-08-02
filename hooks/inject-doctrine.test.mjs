@@ -8,7 +8,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdtempSync, readdirSync, symlinkSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
@@ -143,8 +143,10 @@ test('the composed constitution declares exactly one mode and one precedence', (
 
 // 0.31.0 shipped "No sub-agent touches git operations", which forbade what the
 // base doctrine prescribes (sub-agents commit via agenticaiplugin:git-smart-commit).
-// No test caught it. Guard the class, not just the one wording.
-test('the mode text points sub-agents at the sanctioned commit path', () => {
+// No test caught it. Guard the class, not just the one wording — and, on the same
+// pass, that every skill the always-on text names still exists: a rename would
+// otherwise leave a dead pointer in every session's context.
+test('every plugin skill the doctrine names exists, commit path included', () => {
   const ctx = contextOf(run({ hook_event_name: 'SessionStart', source: 'startup' }));
   assert.match(ctx, /git-smart-commit/, 'the mode text must name the sanctioned commit path');
   assert.doesNotMatch(
@@ -152,6 +154,15 @@ test('the mode text points sub-agents at the sanctioned commit path', () => {
     /no sub-agent touches git/i,
     'an absolute git ban contradicts the doctrine — name what stays with the orchestrator instead',
   );
+
+  const named = [...new Set([...ctx.matchAll(/agenticaiplugin:([a-z][a-z0-9-]*)/g)].map((m) => m[1]))];
+  assert.ok(named.length > 0, 'the doctrine is expected to point at plugin skills');
+  for (const skill of named) {
+    assert.ok(
+      existsSync(join(dirname(HOOKS_DIR), 'skills', skill, 'SKILL.md')),
+      `the doctrine names agenticaiplugin:${skill}, but skills/${skill}/SKILL.md does not exist`,
+    );
+  }
 });
 
 // Fail-open on the config side — the counterpart to the fail-safe on the doctrine
@@ -221,6 +232,37 @@ test('unreadable doctrine files are a silent no-op, not a crash', () => {
   });
   assert.equal(res.status, 0);
   assert.equal(res.stdout, '');
+});
+
+// The other half of the doctrine-side fail-safe: ONE unreadable file costs its own
+// block, not the whole doctrine. Without this the try/catch in readDoctrine can be
+// removed and the suite stays green, while a single broken file starts costing
+// every rule in the session. The file is replaced by a DIRECTORY rather than
+// chmod'ed — readFileSync throws on both, and chmod does not bite on Windows.
+test('one unreadable doctrine file drops its own block and leaves the rest standing', () => {
+  const root = mkdtempSync(join(tmpdir(), 'doc-partial-'));
+  const script = join(root, 'hooks', 'inject-doctrine.mjs');
+  mkdirSync(join(root, 'hooks'));
+  cpSync(SCRIPT, script);
+  cpSync(DOCTRINE_DIR, join(root, 'doctrine'), { recursive: true });
+
+  const broken = join(root, 'doctrine', 'constitution', 'shared-delegation.md');
+  rmSync(broken);
+  mkdirSync(broken);
+
+  const res = spawnSync(process.execPath, [script], {
+    input: JSON.stringify({ hook_event_name: 'SessionStart', source: 'startup' }),
+    encoding: 'utf8',
+    env: { ...process.env, CLAUDE_CONFIG_DIR: mkdtempSync(join(tmpdir(), 'doc-cfg-')) },
+  });
+  assert.equal(res.status, 0);
+  const ctx = contextOf(res.stdout || '');
+  assert.ok(ctx, 'one broken file must not suppress the whole doctrine');
+  assert.doesNotMatch(ctx, DELEGATION_SENTINEL, 'the unreadable block must be the only one missing');
+  assert.match(ctx, BASE_SENTINEL);
+  assert.match(ctx, MODE_SENTINEL);
+  assert.match(ctx, REVIEW_SENTINEL);
+  assert.match(ctx, PR_MONITOR_SENTINEL);
 });
 
 // The plugin loads via a symlinked marketplace path; injection must still fire.
