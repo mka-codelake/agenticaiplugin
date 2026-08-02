@@ -72,13 +72,20 @@ task prompt and not in doctrine or mode text.
 - **DOC**: *"SessionStart/SessionEnd do NOT fire for sub-agents (they have no session,
   only context)"* — [sub-agents.md](https://code.claude.com/docs/en/sub-agents.md),
   retrieved 2026-08-02.
-- **MEASURED** (2026-08-02): Five agent types — `general-purpose`, `Explore`,
-  `agenticaiplugin:license-checker`, `agenticaiplugin:pr-review-installer`,
-  `code-simplifier` — were asked, without tool access, about four strings that occur
-  exclusively in the injected context, **plus two control questions** about a doctrine
-  block and a sentence that do not exist. All five: doctrine and persona absent, both
-  controls correctly negative. Both custom agents described their own system prompt
-  correctly — so custom types were in fact what got measured.
+- **MEASURED** (2026-08-02): Five agent types were asked, without tool access, about four
+  strings that occur exclusively in the injected context, **plus two control questions**
+  about a doctrine block and a sentence that do not exist. The five were deliberately
+  drawn from three different origins, since reach could plausibly differ by origin:
+  - built into Claude Code: `general-purpose`, `Explore`
+  - this plugin's own `agents/`: `agenticaiplugin:license-checker`,
+    `agenticaiplugin:pr-review-installer`
+  - **a different, unrelated plugin**: `code-simplifier:code-simplifier` — not defined in
+    this repo's `agents/`, which is the point: it tests whether a foreign plugin's agent
+    behaves differently
+
+  All five: doctrine and persona absent, both controls correctly negative. Both of this
+  plugin's custom agents described their own system prompt correctly — so custom types
+  were in fact what got measured, not generic ones under a custom name.
   **Without the negative control the result would have been worthless; it is a
   mandatory part of any repetition.**
 
