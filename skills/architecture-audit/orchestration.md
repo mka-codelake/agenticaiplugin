@@ -200,6 +200,12 @@ Read: .claude/adrs/*.md
 ## Source Files to Examine
 {file_list — top-level source directories and representative files}
 
+## Proportionality — assess this too
+Assess not only whether the structure is built right, but whether it should exist at
+all: would a smaller structure solve the same problem? Say so plainly where it would.
+An assessment calling for something LARGER must name the concrete failure case that
+rules the smaller structure out.
+
 ## Instructions
 1. Read your analyzer rules
 2. Read the output format and rating scale
@@ -289,6 +295,12 @@ Read: .claude/adrs/*.md
 
 ## Source Files to Examine
 {file_list}
+
+## Proportionality — assess this too
+Assess not only whether the structure is built right, but whether it should exist at
+all: would a smaller structure solve the same problem? Say so plainly where it would.
+An assessment calling for something LARGER must name the concrete failure case that
+rules the smaller structure out.
 
 ## Instructions
 1. Read your analyzer rules

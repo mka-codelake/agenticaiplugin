@@ -431,6 +431,12 @@ function buildSpecialistPrompt(spec, c) {
       ? `\n## Phase 1 Context (Dependencies & Versions)\n${phase1Summary}\nConsider this when making recommendations.`
       : ``,
     ``,
+    `## Scope — ask this too`,
+    `Judge not only whether the code is built right, but whether it should be built at all:`,
+    `is there a smaller solution that solves the same problem? An answer of yes is a finding`,
+    `in your area. A finding that recommends something LARGER must name the concrete failure`,
+    `case that rules the smaller solution out — without that case, do not report it.`,
+    ``,
     `## Instructions`,
     `1. Identify the tech stack from the files and Phase 1 context.`,
     `2. Research current standards for the detected language, framework, libraries.`,
