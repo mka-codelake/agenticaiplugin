@@ -68,11 +68,6 @@ Show the user the following overview:
 |---------|-------------|
 | **persona** | Set or show the agent's communication persona (writer/engineer/telegrapher/caveman), trading response verbosity against token usage. Opt-in — off by default; subcommands `show`, `list`, `off`. State is global per user. Requires Node.js on PATH (state script + SessionStart hook) |
 
-### Working Mode
-| Command | Description |
-|---------|-------------|
-| **mode** | Set or show the agent's working mode — the division of labor for the session: `task` (the session executes itself), `orchestrator` (it decides, verifies and coordinates while implementation, research, release prep and doc sync are delegated), `meta-orchestrator` (it owns the issue board, one orchestrating teammate per issue in its own worktree). Opt-in — off by default; subcommands `show`, `list`, `off`. State is global per user, independent of `persona`. Requires Node.js on PATH (state script + SessionStart hook) |
-
 ### Self-Learning (Autoskill)
 | Command | Description |
 |---------|-------------|
@@ -152,13 +147,14 @@ The plugin injects its doctrine into every session via a SessionStart hook (re-i
 
 | Behavior | How |
 |------|----------|
+| **Orchestrator working mode** | Injected every session and not switchable — the session decides, verifies and coordinates; implementation, investigation, release preparation and documentation reconciliation are delegated to sub-agents |
 | **Ask instead of assume** | Doctrine — asks for clarification when uncertain rather than assuming |
 | **Present the design before implementing, minimal scope, honesty** | Doctrine — problem, options and recommendation first, then wait for a go; surgical changes traceable to the request; no gold-plating |
 | **Automatic code review** | Doctrine — after finishing an implementation task, runs a multi-specialist review before reporting done; a sub-agent/fork reviews nothing and spawns nothing, the delegating orchestrator reviews the combined diff |
 | **PR review monitoring** | Doctrine — after opening a PR or pushing to one, watches the repo's automated review check unprompted, evaluates the findings, and reports |
 | **Git commits via skill** | Enforced — raw `git commit` is blocked by a hook; always commit via `/agenticaiplugin:gitme` (agents/sub-agents: the skill `agenticaiplugin:git-smart-commit`) |
 
-Opt out per item in `agenticaiplugin.config.json`: `{"doctrine":{"core":"off","codeReview":"off","prReviewMonitoring":"off"},"gitCommitGuard":"off"}`.
+Opt out per item in `agenticaiplugin.config.json`: `{"doctrine":{"core":"off","codeReview":"off","prReviewMonitoring":"off"},"gitCommitGuard":"off"}`. The orchestrator working mode has no opt-out.
 
 ---
 

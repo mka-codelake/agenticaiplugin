@@ -146,8 +146,10 @@ additionalContext are concatenated by Claude Code."*
 the persona at position 3. In the actual session context the **persona appears first**.
 Observed on this session's own context; consistent with the documented parallelism.
 
-**Consequence, already implemented in `hooks/doctrine/core.md:4-6`:** An override must
-never rely on position. It has to name *what* it overrides.
+**Consequence, implemented in the mode text (`skills/mode/modes/orchestrator.md:2-4`):** a
+text that must outrank another one may never rely on position. It has to say so itself and
+name *what* it outranks. (The doctrine carried a matching override clause until 0.31.4; it
+existed for `meta-orchestrator` and went with it — see #117.)
 
 ---
 
@@ -164,17 +166,18 @@ machine.
 | `~/.claude/rules/` | **no** | **CODE** |
 | Auto-memory `~/.claude/projects/*/memory/` | **no** | **CODE** |
 | Learned skills `~/.claude/skills/learned-*/` | **no** | **CODE** |
-| `persona.state`, `mode.state` | **no** | **CODE** `skills/mode/mode.mjs:44-45` |
+| `persona.state` | **no** | **CODE** `skills/persona/persona.mjs:35` |
 | `agenticaiplugin.config.json` (all opt-outs) | **no** | **CODE** |
 
 **The consequence has never been stated in one place:** after a fresh installation the
-plugin runs in **full default configuration** — doctrine on, git guard on, autoskill off,
-persona and mode off. Everything that switches behavior off or personalizes it is
-machine-local.
+plugin runs in **full default configuration** — doctrine on, git guard on, orchestrator
+mode on, autoskill off, persona off. Everything that switches behavior off or personalizes
+it is machine-local. The mode is the exception in that list: since 0.31.4 it has no state
+and no switch, so it is the one behavior that cannot differ between two machines.
 
 Likewise: the entire operational knowledge in the learned skills (19 skills, 4021 lines
 of them in the two orchestration skills alone) is **not present** on a second machine.
-The `meta-orchestrator` mode is weaker there than here, without that being visible —
+The orchestrator mode is weaker there than here, without that being visible —
 see #107.
 
 ---
@@ -191,7 +194,7 @@ The second group is the more dangerous one.
 | Hooks in exec form, `node`, `${CLAUDE_PLUGIN_ROOT}/….mjs`, **and the file exists** | `hooks/hooks-policy.test.mjs:20-48` |
 | No shell scripts under `hooks/` (recursive) | `hooks/hooks-policy.test.mjs:73-80` |
 | All five SessionStart hooks stay registered | `hooks/hooks-policy.test.mjs:54-71` |
-| Whitelist on the **read path** too (tampered state file) | `skills/persona/persona.test.mjs:122`, `skills/mode/mode.test.mjs:185` |
+| Whitelist on the **read path** too (tampered state file; for `mode` at the source, since 0.31.4 leaves it no external input) | `skills/persona/persona.test.mjs:122`, `skills/mode/mode.test.mjs:122` |
 | `realpath` comparison in the direct-invocation guard (marketplace symlink) | `hooks/guard-git-commit.test.mjs:110`, `hooks/inject-doctrine.test.mjs:101` |
 | `skillDir` in the workflow: no default, must be absolute | Workflow suites |
 | Mode text names the commit path, no blanket git ban | `skills/mode/mode.test.mjs` (since 0.31.1, effectiveness demonstrated) |
@@ -237,7 +240,7 @@ measurement with a reproducible artifact.
 | Skill index truncates `description` at 60 characters | `skills/learn/SKILL.md:60-61` | — |
 | The marketplace copy is an unfiltered tree copy | `docs/workflow-integration-howto.md:37` | Reason why `.workflow.js` comes along |
 | Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:433-442` | **Stands in tension** with the marketplace update rule (`CLAUDE.md:155`) |
-| `${CLAUDE_PLUGIN_ROOT}` "is empty in the tool context" | `skills/persona/persona.mjs:26`, `skills/mode/mode.mjs:32` | Stated as a blanket claim; a later measurement addendum narrows it to the shell — the scripts carry the old wording **uncorrected** |
+| `${CLAUDE_PLUGIN_ROOT}` "is empty in the tool context" | `skills/persona/persona.mjs:26`, `skills/mode/mode.mjs:29` | Stated as a blanket claim; a later measurement addendum narrows it to the shell — the scripts carry the old wording **uncorrected** |
 
 ---
 
@@ -279,8 +282,8 @@ attention than the positive statements, not less.
 
 **The `MEASURED` rows** differ in reproducibility:
 
-- *Scriptable*: injection size and composition per mode —
-  `mode.mjs inject` with the state file set in an isolated `CLAUDE_CONFIG_DIR`.
+- *Scriptable*: injection size and composition of the mode text — `mode.mjs inject`,
+  which since 0.31.4 needs no state and no environment to reproduce.
 - *Not scriptable*: the reach measurement needs real agents. The setup is in section 1
   and **must include the negative control** — without it, a self-report is worthless.
 

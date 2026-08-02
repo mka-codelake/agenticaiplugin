@@ -31,6 +31,7 @@ The plugin is **language-agnostic** — it works with any tech stack (Node.js, J
 - **Communication Personas** — Switch the agent's response style (writer / engineer / telegrapher / caveman) to trade verbosity against token usage; opt-in, off by default
 - **Plan & Decision Stress-Test** — `grill-me` interviews you one question at a time to surface every implicit assumption before you commit to a plan
 - **Test-Writing & Dependency Guidance** — task-triggered skills capturing what's easy to get wrong: writing good tests (public-API-only, no test-only API widening) and managing dependencies (verify the current version from the registry, no unrequested deps)
+- **Orchestrator Working Mode** — always on, not switchable: the session decides, verifies and coordinates, while implementation, investigation, release preparation and documentation reconciliation go to sub-agents. Injected at every session start, including after compaction
 - **Always-On Doctrine & Enforcement** — the plugin's behavior (ask-before-assuming, automatic code review, PR review monitoring, minimal-scope changes) is injected into every session by a SessionStart hook (re-injected after compaction) and the commit workflow is enforced by a PreToolUse hook — nothing is copied into your project, so there is nothing to keep in sync
 
 ## Installation
@@ -100,7 +101,6 @@ own doctrine (SessionStart) and enforcement (PreToolUse) hooks.
 | `create-cli` | Design CLI parameters, flags, and UX |
 | `grill-me` | Stress-test a plan or decision via a relentless one-question-at-a-time interview |
 | `persona` | Set the agent's communication style (writer/engineer/telegrapher/caveman); opt-in, off by default |
-| `mode` | Set the agent's working mode (task/orchestrator/meta-orchestrator) — who executes and who verifies; opt-in, off by default |
 | `learn` | Distill a source or the current conversation into one reusable learned skill (autoskill) |
 | `curator` | Curate the learned-skill library: lifecycle maintenance + overlap report (autoskill) |
 | `license-check` | Check dependency license compatibility (full scan or `--quick`) |
@@ -222,7 +222,6 @@ directory (`$CLAUDE_CONFIG_DIR`, default `~/.claude`).
 | `autoskill.nudgeInterval` | integer | `10` | Inject a silent learn reminder every N prompts (`0` disables it) |
 | `autoskill.curator.enabled` | `true` \| `false` | `true` | Enable the lazy curator (lifecycle maintenance of learned skills) |
 | `autoskill.curator.intervalDays` | integer | `7` | Days between curator runs |
-| `agentMode` | `"off"` | *(unset)* | `"off"` suppresses the session-start injection of the agent mode text (`/agenticaiplugin:mode`). The CLI keeps working; only the injection is gated. Without a mode set, nothing is injected anyway |
 | `doctrine.core` | `"off"` | *(unset)* | `"off"` disables the core working doctrine block (ask instead of assume, present the design and wait for a go before implementing, minimal scope, honesty, commit path). Only the exact string `"off"` disables it — any other value, or the key being absent, leaves it on |
 | `doctrine.codeReview` | `"off"` | *(unset)* | `"off"` disables the automatic code-review doctrine block. Exact string `"off"` only |
 | `doctrine.prReviewMonitoring` | `"off"` | *(unset)* | `"off"` disables the PR-review-monitoring doctrine block. Exact string `"off"` only |
@@ -298,7 +297,7 @@ agenticaiplugin/
 │   ├── learn/                   # On-demand skill distillation (autoskill)
 │   ├── license-check/           # License compatibility checking
 │   ├── markdown-converter/      # File-to-Markdown conversion
-│   ├── mode/                    # Agent working modes (task/orchestrator/meta-orchestrator)
+│   ├── mode/                    # Always-on orchestrator mode text (SessionStart injection)
 │   ├── npm-publisher/           # npm release cut + pre-publish audit
 │   ├── persona/                 # Agent communication personas
 │   ├── pr-review-setup/         # Automated PR review action setup
