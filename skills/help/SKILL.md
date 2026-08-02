@@ -149,7 +149,7 @@ The plugin injects its doctrine into every session via a SessionStart hook (re-i
 | Behavior | How |
 |------|----------|
 | **Orchestrator working mode** | Injected every session and not switchable — the session decides, verifies and coordinates; implementation, investigation, release preparation and documentation reconciliation are delegated to sub-agents |
-| **Ask instead of assume** | Doctrine — asks for clarification when uncertain rather than assuming |
+| **Ask instead of assume** | Doctrine — asks for clarification when uncertain rather than assuming, bounded by the escalation ladder in the mode: what is measurable gets measured, what is arguable gets a second view (`/agenticaiplugin:council`), and only preference, scope and cost reach you |
 | **Present the design before implementing, minimal scope, honesty** | Doctrine — problem, options and recommendation first, then wait for a go; surgical changes traceable to the request; no gold-plating |
 | **Automatic code review** | Doctrine — after finishing an implementation task, runs a multi-specialist review before reporting done; a sub-agent/fork reviews nothing and spawns nothing, the delegating orchestrator reviews the combined diff |
 | **PR review monitoring** | Doctrine — after opening a PR or pushing to one, watches the repo's automated review check unprompted, evaluates the findings, and reports |
