@@ -5,6 +5,10 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.31.3
+
+- **A sub-agent that ends without a report looks exactly like one that had nothing to say — and the delegation rules said nothing about that case.** Measured in this session: an agent that is *spawned* returns its result on its own, but one continued **via SendMessage has no automatic return path at all** — its closing text goes nowhere. A follow-up task accordingly produced a complete report that never arrived, and the only signal was an idle notification, which is the very same signal a successful run emits. Silence and success were not distinguishable. The shared delegation rules now require naming the return channel in the task prompt, class an idle notification without a result as a failure state rather than a completion, and forbid drawing any conclusion from a report that never arrived. **What you will notice:** in `orchestrator` and `meta-orchestrator` mode, a sub-agent that reports nothing gets followed up instead of being counted as done.
+
 ## 0.31.2
 
 - **The autoskill curator has been running weekly for months and never once marked a skill stale — because the clock it read was one it kept resetting itself.** For a skill with no recorded usage the lifecycle pass fell back to the `SKILL.md` mtime, and every patch by the background reviewer refreshes exactly that timestamp. A skill the reviewer keeps improving but nobody ever pulls could therefore never age, and the 30/90-day thresholds described a transition that could not happen. The clock is now `last_used`, else `installed_at`; the mtime survives only as a last resort for entries that have neither. **What you will notice:** maintained-but-unused skills now really do reach `stale` (>30d) and eventually the archive (>90d — moved, recoverable, never deleted).
