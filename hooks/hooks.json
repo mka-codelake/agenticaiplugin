@@ -27,6 +27,12 @@
             "command": "node",
             "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/check-transition-pending.mjs"],
             "statusMessage": "Checking for pending plugin transition..."
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/skills/mode/mode.mjs", "inject"],
+            "statusMessage": "Loading agent mode..."
           }
         ]
       }

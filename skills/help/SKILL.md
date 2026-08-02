@@ -68,6 +68,11 @@ Show the user the following overview:
 |---------|-------------|
 | **persona** | Set or show the agent's communication persona (writer/engineer/telegrapher/caveman), trading response verbosity against token usage. Opt-in — off by default; subcommands `show`, `list`, `off`. State is global per user. Requires Node.js on PATH (state script + SessionStart hook) |
 
+### Working Mode
+| Command | Description |
+|---------|-------------|
+| **mode** | Set or show the agent's working mode — the division of labor for the session: `task` (the session executes itself), `orchestrator` (it decides, verifies and coordinates while implementation, research, release prep and doc sync are delegated), `meta-orchestrator` (it owns the issue board, one orchestrating teammate per issue in its own worktree). Opt-in — off by default; subcommands `show`, `list`, `off`. State is global per user, independent of `persona`. Requires Node.js on PATH (state script + SessionStart hook) |
+
 ### Self-Learning (Autoskill)
 | Command | Description |
 |---------|-------------|

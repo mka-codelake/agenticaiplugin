@@ -100,6 +100,7 @@ own doctrine (SessionStart) and enforcement (PreToolUse) hooks.
 | `create-cli` | Design CLI parameters, flags, and UX |
 | `grill-me` | Stress-test a plan or decision via a relentless one-question-at-a-time interview |
 | `persona` | Set the agent's communication style (writer/engineer/telegrapher/caveman); opt-in, off by default |
+| `mode` | Set the agent's working mode (task/orchestrator/meta-orchestrator) — who executes and who verifies; opt-in, off by default |
 | `learn` | Distill a source or the current conversation into one reusable learned skill (autoskill) |
 | `curator` | Curate the learned-skill library: lifecycle maintenance + overlap report (autoskill) |
 | `license-check` | Check dependency license compatibility (full scan or `--quick`) |
@@ -221,6 +222,13 @@ directory (`$CLAUDE_CONFIG_DIR`, default `~/.claude`).
 | `autoskill.nudgeInterval` | integer | `10` | Inject a silent learn reminder every N prompts (`0` disables it) |
 | `autoskill.curator.enabled` | `true` \| `false` | `true` | Enable the lazy curator (lifecycle maintenance of learned skills) |
 | `autoskill.curator.intervalDays` | integer | `7` | Days between curator runs |
+| `agentMode` | `"off"` | *(unset)* | `"off"` suppresses the session-start injection of the agent mode text (`/agenticaiplugin:mode`). The CLI keeps working; only the injection is gated. Without a mode set, nothing is injected anyway |
+| `doctrine.core` | `"off"` | *(unset)* | `"off"` disables the core working doctrine block (ask instead of assume, explain what/why, minimal scope, honesty, commit path). Only the exact string `"off"` disables it — any other value, or the key being absent, leaves it on |
+| `doctrine.codeReview` | `"off"` | *(unset)* | `"off"` disables the automatic code-review doctrine block. Exact string `"off"` only |
+| `doctrine.prReviewMonitoring` | `"off"` | *(unset)* | `"off"` disables the PR-review-monitoring doctrine block. Exact string `"off"` only |
+| `gitCommitGuard` | `"off"` | *(unset)* | `"off"` disables the PreToolUse hook that blocks a raw `git commit` and steers to `/agenticaiplugin:gitme`. Exact string `"off"` only |
+| `transitionNotice` | `"off"` \| `"every-session"` | notify on change | Session-start notice while a project still carries legacy copied rules or a `claudedocs/` layout: `"off"` disables it entirely, `"every-session"` notifies every session while pending; by default it notifies only when the pending state changes (tracked per project) |
+| `rulesUpdateNotice` | `"off"` \| `"every-session"` | notify on change | Legacy alias of `transitionNotice`, still honored. `transitionNotice` wins when both are present |
 
 ### Autoskill (self-learning skills)
 
@@ -290,6 +298,7 @@ agenticaiplugin/
 │   ├── learn/                   # On-demand skill distillation (autoskill)
 │   ├── license-check/           # License compatibility checking
 │   ├── markdown-converter/      # File-to-Markdown conversion
+│   ├── mode/                    # Agent working modes (task/orchestrator/meta-orchestrator)
 │   ├── npm-publisher/           # npm release cut + pre-publish audit
 │   ├── persona/                 # Agent communication personas
 │   ├── pr-review-setup/         # Automated PR review action setup
