@@ -20,7 +20,9 @@ const HOOKS_DIR = dirname(fileURLToPath(import.meta.url));
 const SCRIPT = join(HOOKS_DIR, 'inject-doctrine.mjs');
 const DOCTRINE_DIR = join(dirname(HOOKS_DIR), 'doctrine');
 
-const BASE_SENTINEL = /Never assume/;
+// Sentinels must be unique to their own file. `Never assume` was not: the mode text
+// quotes the base rule verbatim, so deleting base.md left six assertions green.
+const BASE_SENTINEL = /# AgenticAI — Core working doctrine/;
 const MODE_SENTINEL = /Active agent mode: `orchestrator`/;
 const DELEGATION_SENTINEL = /hints, not proof/;
 const REVIEW_SENTINEL = /code review after completing/i;
