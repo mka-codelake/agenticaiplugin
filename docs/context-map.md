@@ -127,12 +127,12 @@ directory name suffices.
 | `CLAUDE.md` | session start, hierarchical | **DOC** |
 
 **`fork` is a fifth matcher the plugin never accounted for.** The hooks deliberately do
-not gate on `source` (**CODE** `hooks/inject-doctrine.mjs:72-84`), so they fire there as
+not gate on `source` (**CODE** `hooks/inject-doctrine.mjs:132-149`), so they fire there as
 well — presumably intended for doctrine and mode, but unverified.
 
 ### Order and merging — here a code claim stands against the measurement
 
-`hooks/inject-doctrine.mjs:13-14` claims: *"Multiple SessionStart hooks'
+`hooks/inject-doctrine.mjs:15-16` claims: *"Multiple SessionStart hooks'
 additionalContext are concatenated by Claude Code."*
 
 | Aspect | Finding | Marker |
@@ -193,11 +193,11 @@ The second group is the more dangerous one.
 |---|---|
 | Hooks in exec form, `node`, `${CLAUDE_PLUGIN_ROOT}/….mjs`, **and the file exists** | `hooks/hooks-policy.test.mjs:20-48` |
 | No shell scripts under `hooks/` (recursive) | `hooks/hooks-policy.test.mjs:72-79` |
-| All five SessionStart hooks stay registered | `hooks/hooks-policy.test.mjs:54-71` |
+| All five SessionStart hooks stay registered | `hooks/hooks-policy.test.mjs:54-70` |
 | Whitelist on the **read path** too (tampered state file; for `mode` at the source, since 0.31.4 leaves it no external input) | `skills/persona/persona.test.mjs:122`, `hooks/inject-doctrine.test.mjs:243` |
-| `realpath` comparison in the direct-invocation guard (marketplace symlink) | `hooks/guard-git-commit.test.mjs:110`, `hooks/inject-doctrine.test.mjs:101` |
+| `realpath` comparison in the direct-invocation guard (marketplace symlink) | `hooks/guard-git-commit.test.mjs:110`, `hooks/inject-doctrine.test.mjs:225` |
 | `skillDir` in the workflow: no default, must be absolute | Workflow suites |
-| Mode text names the commit path, no blanket git ban | `skills/mode/mode.test.mjs` (since 0.31.1, effectiveness demonstrated) |
+| Mode text names the commit path, no blanket git ban | `hooks/inject-doctrine.test.mjs` (since 0.31.1, effectiveness demonstrated) |
 | No tool-call syntax fragments in shipped markdown | `repo-hygiene.test.mjs` |
 | Doctrine rule names match their three prose summaries | `repo-hygiene.test.mjs` |
 | This map's `file:line` citations resolve (existence only) | `docs/context-map.test.mjs` |
@@ -232,7 +232,7 @@ measurement with a reproducible artifact.
 
 | Assumption | Stated in | Why it counts |
 |---|---|---|
-| SessionStart fires on `compact` **and** the context lands in the freshly compacted window | `hooks/inject-doctrine.mjs:10-13` | The test only proves that there is **no** gating on `source` — not the effect |
+| SessionStart fires on `compact` **and** the context lands in the freshly compacted window | `hooks/inject-doctrine.mjs:12-15` | The test only proves that there is **no** gating on `source` — not the effect |
 | `PreCompact` cannot preserve context | `docs/plugin-howto.md:360-361` | DOC confirms the recommendation, not the rationale |
 | `additionalContext` is "softer" than a real rule | `docs/plugin-howto.md:362-363` | **DOC** calls it a "system reminder" — strength undetermined |
 | Claude Code blocks Write/Edit under `~/.claude/` | `hooks/autoskill/lib.mjs:27-38` | Load-bearing for the staging architecture |
