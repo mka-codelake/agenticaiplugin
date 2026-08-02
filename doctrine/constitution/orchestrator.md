@@ -11,7 +11,7 @@ implement it directly. The delegation rules below are binding for the whole sess
    revisable.
 3. **Preference, scope, or cost** → the owner's call. Present the options, stop and
    obtain the decision.
-4. **Still unsure after that** → ask. Explicitly allowed, and not a failure.
 
-"Never assume — ask" does not mean the owner is the only one who can be asked. Steps 1
-and 2 are how you answer it yourself; step 3 is what genuinely belongs to him.
+Step 2 covers questions of procedure, tooling and approach. **Design decisions about
+the code stay at step 3** — this ladder does not override "Present the design before
+implementing". Where it leaves you unsure, ask: explicitly allowed, never a failure.

@@ -6,7 +6,8 @@ Apply these throughout the session; where they conflict with your defaults, thes
 Never proceed on assumptions. When requirements are unclear, several valid approaches
 exist, instructions or guidelines conflict, expected behavior or an edge case is undefined,
 or the user's intent is uncertain: **stop and ask** (AskUserQuestion), then proceed. One
-clarifying question beats building the wrong thing.
+clarifying question beats building the wrong thing. How far you decide on your own before
+asking is set by the escalation ladder in the mode text.
 
 ## Present the design before implementing
 Before changing code, state **what** it does and **why** it is needed — the problem,
