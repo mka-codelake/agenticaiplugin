@@ -24,6 +24,14 @@ export const STATE_DIR = join(CONFIG_DIR, 'agenticaiplugin.autoskill');
 export const SKILLS_DIR = join(CONFIG_DIR, 'skills');
 export const LEARNED_LIST = join(STATE_DIR, 'learned.list');
 export const ARCHIVE_DIR = join(STATE_DIR, 'archive');
+// Dated curator reports. `curator-report.md` next to this dir stays as a copy of
+// the newest run so the path documented in skills/curator/SKILL.md keeps working.
+export const REPORTS_DIR = join(STATE_DIR, 'reports');
+// Two separate one-shot notice channels, both consumed by nudge.mjs. They must
+// NOT share a file: writeFileAtomic overwrites, so a curator run would swallow a
+// review notice the user has not picked up yet.
+export const PENDING_NOTICE = join(STATE_DIR, 'pending_notice.txt');
+export const CURATOR_NOTICE = join(STATE_DIR, 'curator_notice.txt');
 // The reviewer LLM stages files here via the Write tool — so this MUST live
 // OUTSIDE the Claude config dir. Claude Code hard-blocks Write/Edit to anything
 // under ~/.claude/ as a "sensitive file", independent of --permission-mode or

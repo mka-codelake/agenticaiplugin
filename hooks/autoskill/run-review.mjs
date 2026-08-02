@@ -31,7 +31,10 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   ARCHIVE_DIR,
+  CURATOR_NOTICE,
   LEARNED_LIST,
+  PENDING_NOTICE,
+  REPORTS_DIR,
   SKILLS_DIR,
   STATE_DIR,
   appendLearned,
@@ -50,7 +53,10 @@ import { buildDigest } from './digest.mjs';
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const LOCK_FILE = join(STATE_DIR, 'review.lock');
 const LOG_FILE = join(STATE_DIR, 'review.log');
+const USAGE_FILE = join(STATE_DIR, 'usage.json');
 const CLAUDE_TIMEOUT_MS = 10 * 60 * 1000;
+// Dated reports kept before the oldest are pruned (~3 months at the 7-day interval).
+const REPORTS_KEEP = 12;
 
 function log(text) {
   try {
@@ -151,6 +157,36 @@ function patchFrontmatter(skillMd, target) {
   writeFileAtomic(skillMd, text);
 }
 
+// ISO string -> epoch seconds, or null when absent/unparseable.
+function isoToEpoch(value) {
+  if (typeof value !== 'string') return null;
+  const ms = Date.parse(value);
+  return Number.isNaN(ms) ? null : Math.floor(ms / 1000);
+}
+
+// Merges fields into one skill's usage entry. `fields` is a callback so it can
+// build on the CURRENT entry: usage.json is re-read immediately before the write
+// because count.mjs does its own read-modify-write on the same file, and a value
+// computed earlier could otherwise clobber a concurrent usage bump.
+function mergeUsage(name, fields) {
+  const usage = readJson(USAGE_FILE) || {};
+  const entry = usage[name] && typeof usage[name] === 'object' ? usage[name] : {};
+  usage[name] = { ...entry, ...fields(entry) };
+  try {
+    writeFileAtomic(USAGE_FILE, `${JSON.stringify(usage, null, 2)}\n`);
+  } catch {
+    /* best effort — telemetry is diagnostics, never worth failing the caller */
+  }
+}
+
+// `installed_at` is written once (first install wins), `last_updated` on every
+// install. `last_used` is NEVER touched here: reviewer maintenance is not usage,
+// and keeping the two apart is what makes the lifecycle clock honest — the
+// SKILL.md mtime cannot, because every reviewer patch refreshes it.
+function recordInstall(name, stamp = nowIso()) {
+  mergeUsage(name, (e) => ({ installed_at: e.installed_at || stamp, last_updated: stamp }));
+}
+
 // Installs every staged skill directory into the library. Deterministic step
 // outside the LLM — only here is the library written.
 export function installStaged(stagingDir, { skillsDir = SKILLS_DIR, logFn = log } = {}) {
@@ -186,6 +222,7 @@ export function installStaged(stagingDir, { skillsDir = SKILLS_DIR, logFn = log 
       continue;
     }
     installed.push(target);
+    recordInstall(target);
     if (!isLearnedSkill(target)) appendLearned(target);
     const skillMd = join(targetDir, 'SKILL.md');
     if (existsSync(skillMd)) patchFrontmatter(skillMd, target);
@@ -274,7 +311,7 @@ function reviewMode(transcript, sid, model) {
     .trim();
   if (summary && !/nothing to save/i.test(summary)) {
     writeFileAtomic(
-      join(STATE_DIR, 'pending_notice.txt'),
+      PENDING_NOTICE,
       `Background skill review (autoskill, ${nowIso()}): ${summary}\n`
     );
   }
@@ -289,13 +326,151 @@ function reviewMode(transcript, sid, model) {
 
 // ── curator mode ────────────────────────────────────────────────────────────
 
+// Idempotent backfill from review.log. The worker has always logged
+// `install: '<name>' -> <dir>` under a `=== <iso> mode=…` header, so install
+// history predating the timestamp fields is reconstructable exactly: first hit
+// -> installed_at, last hit -> last_updated. Only MISSING fields are filled,
+// which makes repeat runs a no-op and needs no state marker. Skills older than
+// the log fall back to the SKILL.md mtime — untouched by the reviewer in those
+// cases, so still truthful, and freezing it here stops future patches from
+// resetting the clock. Returns how many entries were touched. Exported for tests.
+export function backfillTimestamps({ logFile = LOG_FILE, skillsDir = SKILLS_DIR } = {}) {
+  const first = new Map();
+  const last = new Map();
+  try {
+    let stamp = '';
+    for (const line of readFileSync(logFile, 'utf8').split('\n')) {
+      const head = /^=== (\S+) /.exec(line);
+      if (head) {
+        stamp = head[1];
+        continue;
+      }
+      const hit = /^install: .* -> (.+)$/.exec(line);
+      if (!hit || !stamp) continue;
+      const name = hit[1].trim().split(/[\\/]/).pop();
+      if (!name) continue;
+      if (!first.has(name)) first.set(name, stamp);
+      last.set(name, stamp);
+    }
+  } catch {
+    /* no log yet (fresh install) -> mtime fallback below */
+  }
+
+  const usage = readJson(USAGE_FILE) || {};
+  let touched = 0;
+  for (const name of readLearnedList()) {
+    const entry = usage[name] && typeof usage[name] === 'object' ? usage[name] : {};
+    if (entry.installed_at && entry.last_updated) continue;
+    let installedAt = entry.installed_at || first.get(name);
+    if (!installedAt) {
+      try {
+        installedAt = new Date(statSync(join(skillsDir, name, 'SKILL.md')).mtimeMs)
+          .toISOString()
+          .replace(/\.\d{3}Z$/, 'Z');
+      } catch {
+        continue; // neither a log entry nor a file -> nothing trustworthy to write
+      }
+    }
+    usage[name] = {
+      ...entry,
+      installed_at: installedAt,
+      last_updated: entry.last_updated || last.get(name) || installedAt,
+    };
+    touched++;
+  }
+  if (touched > 0) {
+    try {
+      writeFileAtomic(USAGE_FILE, `${JSON.stringify(usage, null, 2)}\n`);
+    } catch {
+      /* best effort */
+    }
+  }
+  return touched;
+}
+
+// Moves a report written before this history existed into the archive, dated by
+// its own `# Curator run <iso>` header. Without this, the first run of the new
+// code would overwrite the only report the user had — destroying the very
+// history the feature introduces. Idempotent: once archived, it is skipped.
+function preserveLegacyReport() {
+  const legacy = join(STATE_DIR, 'curator-report.md');
+  if (!existsSync(legacy)) return;
+  let text = '';
+  try {
+    text = readFileSync(legacy, 'utf8');
+  } catch {
+    return;
+  }
+  const stamp = /^# Curator run (\S+)/m.exec(text);
+  if (!stamp) return;
+  const file = join(REPORTS_DIR, `curator-${stamp[1].replace(/:/g, '')}.md`);
+  if (existsSync(file)) return;
+  try {
+    writeFileAtomic(file, text);
+  } catch {
+    /* best effort */
+  }
+}
+
+// Writes the report into the dated history, refreshes the stable
+// `curator-report.md` and prunes all but the newest REPORTS_KEEP runs. The
+// stable file is a COPY, not a symlink: symlinks need elevated rights on
+// Windows and the plugin must stay portable. Returns the dated path.
+function writeReport(text, stamp) {
+  mkdirSync(REPORTS_DIR, { recursive: true });
+  preserveLegacyReport();
+  // Colons are illegal in Windows filenames; the trimmed form still sorts
+  // lexicographically, which is what the pruning below relies on.
+  const file = join(REPORTS_DIR, `curator-${stamp.replace(/:/g, '')}.md`);
+  writeFileAtomic(file, text);
+  writeFileAtomic(join(STATE_DIR, 'curator-report.md'), text);
+  try {
+    const kept = readdirSync(REPORTS_DIR)
+      .filter((f) => /^curator-.+\.md$/.test(f))
+      .sort();
+    for (const f of kept.slice(0, Math.max(0, kept.length - REPORTS_KEEP))) {
+      rmSync(join(REPORTS_DIR, f), { force: true });
+    }
+  } catch {
+    /* best effort */
+  }
+  return file;
+}
+
+// One-shot notice for the next session — same 💾 channel as the review, but a
+// separate file so neither run can overwrite the other's unread message.
+function writeCuratorNotice({ stamp, lifecycle, findings, reportFile }) {
+  const checked = lifecycle.filter((l) => l.startsWith('- ')).length;
+  const count = (re) => lifecycle.filter((l) => re.test(l)).length;
+  const parts = [
+    `${checked} skill(s) checked`,
+    `${count(/→ stale/)} stale`,
+    `${count(/→ ARCHIVED/)} archived`,
+  ];
+  // findings === null means the LLM pass did not run or failed — stay silent
+  // rather than report "0 findings", which would read as "library is clean".
+  if (findings !== null) parts.push(`${findings} finding(s)`);
+  writeFileAtomic(
+    CURATOR_NOTICE,
+    `Curator run (autoskill, ${stamp}): ${parts.join(', ')}. Report: ${reportFile}\n`
+  );
+}
+
 // Deterministic lifecycle over the manifest: stale > 30d, archive > 90d,
 // NEVER delete, `pinned: true` exempt. Exported for tests.
 export function lifecyclePass({ skillsDir = SKILLS_DIR, now = nowEpoch(), logFn = log } = {}) {
-  const usageFile = join(STATE_DIR, 'usage.json');
-  const usage = readJson(usageFile) || {};
+  const usage = readJson(USAGE_FILE) || {};
   const lines = [];
   const names = readLearnedList();
+  // Provenance suffix — makes visible which of the three timestamps a verdict
+  // rests on, so "stale" can be checked rather than believed.
+  const day = (iso) => (typeof iso === 'string' && iso.length >= 10 ? iso.slice(0, 10) : null);
+  const details = (e) => {
+    const parts = [e.installed_at ? `installed ${day(e.installed_at)}` : 'installed unknown'];
+    if (e.last_updated) parts.push(`updated ${day(e.last_updated)}`);
+    parts.push(e.last_used ? `last used ${day(e.last_used)}` : 'never used');
+    return `\n  (${parts.join(', ')})`;
+  };
   for (const name of names) {
     const dir = join(skillsDir, name);
     if (!existsSync(dir)) {
@@ -314,11 +489,12 @@ export function lifecyclePass({ skillsDir = SKILLS_DIR, now = nowEpoch(), logFn 
       lines.push(`- ${name}: pinned — exempt from automatic transitions`);
       continue;
     }
-    let lastEpoch = now;
-    const lastUsed = usage[name]?.last_used;
-    if (typeof lastUsed === 'string' && !Number.isNaN(Date.parse(lastUsed))) {
-      lastEpoch = Math.floor(Date.parse(lastUsed) / 1000);
-    } else {
+    const entry = usage[name] && typeof usage[name] === 'object' ? usage[name] : {};
+    // Lifecycle clock: real usage first, else the install date. The SKILL.md
+    // mtime is a last resort only — every reviewer patch refreshes it, so a
+    // maintained-but-never-used skill would never age (the defect this replaces).
+    let lastEpoch = isoToEpoch(entry.last_used) ?? isoToEpoch(entry.installed_at);
+    if (lastEpoch === null) {
       try {
         lastEpoch = Math.floor(statSync(skillMd).mtimeMs / 1000);
       } catch {
@@ -331,22 +507,20 @@ export function lifecyclePass({ skillsDir = SKILLS_DIR, now = nowEpoch(), logFn 
         mkdirSync(ARCHIVE_DIR, { recursive: true });
         renameSync(dir, join(ARCHIVE_DIR, name));
         removeLearned(name);
-        lines.push(`- ${name}: unused for ${ageDays}d → ARCHIVED (recoverable: ${join(ARCHIVE_DIR, name)})`);
+        lines.push(
+          `- ${name}: unused for ${ageDays}d → ARCHIVED (recoverable: ${join(ARCHIVE_DIR, name)})${details(entry)}`
+        );
       } catch {
         lines.push(`- ${name}: archiving failed`);
       }
     } else if (ageDays >= 30) {
-      const entry = usage[name] && typeof usage[name] === 'object' ? usage[name] : {};
-      entry.state = 'stale';
-      usage[name] = entry;
-      try {
-        writeFileAtomic(usageFile, `${JSON.stringify(usage, null, 2)}\n`);
-      } catch {
-        /* best effort */
-      }
-      lines.push(`- ${name}: unused for ${ageDays}d → stale`);
+      mergeUsage(name, () => ({ state: 'stale' }));
+      lines.push(`- ${name}: unused for ${ageDays}d → stale${details(entry)}`);
     } else {
-      lines.push(`- ${name}: active (last used ${ageDays}d ago)`);
+      // "unused for", not "last used": the clock may be running off installed_at
+      // for a skill that was never used at all, and the label must not claim a
+      // usage that never happened.
+      lines.push(`- ${name}: active (unused for ${ageDays}d)${details(entry)}`);
     }
   }
   if (lines.length === 0) lines.push('(no learned skills in the manifest)');
@@ -355,15 +529,26 @@ export function lifecyclePass({ skillsDir = SKILLS_DIR, now = nowEpoch(), logFn 
 
 function curatorMode(model) {
   if (!existsSync(LEARNED_LIST)) writeFileAtomic(LEARNED_LIST, '');
-  const report = join(STATE_DIR, 'curator-report.md');
+  const stamp = nowIso();
+  const backfilled = backfillTimestamps();
+  const lifecycle = lifecyclePass();
   const lines = [
-    `# Curator run ${nowIso()}`,
+    `# Curator run ${stamp}`,
     '',
     '## Lifecycle (deterministic: stale >30d, archive >90d, never delete)',
-    ...lifecyclePass(),
+    '',
+    'Clock: `last_used`, else `installed_at`. The SKILL.md mtime is deliberately',
+    'not used — every reviewer patch refreshes it and would keep a maintained but',
+    'never-used skill artificially young.',
+    '',
+    ...lifecycle,
   ];
+  if (backfilled > 0) {
+    lines.push('', `_Backfilled install timestamps for ${backfilled} skill(s) from review.log._`);
+  }
 
   // LLM pass: find overlaps, PROPOSE consolidation only (read-only).
+  let findings = null;
   const learned = readLearnedList();
   if (learned.length > 0) {
     const basePrompt = readFileSync(join(SCRIPT_DIR, 'prompts', 'curator.md'), 'utf8');
@@ -389,13 +574,20 @@ Learned skills (only these are subject to lifecycle/merge proposals): ${learned.
     // "spawn claude ENOENT") in the user-facing report.
     if (rc === 0 && out.trim()) {
       lines.push('', '## LLM analysis (overlaps / consolidation proposals)', out);
+      // Count only lines that OPEN with a verdict keyword (optionally bulleted
+      // or bold). Prose that merely mentions one — "Recommendation: MERGE …" —
+      // restates a finding already counted and must not double up.
+      findings = out
+        .split('\n')
+        .filter((l) => /^[-*\s]*\*{0,2}(MERGE|RENAME|FIX|DELETE-CANDIDATE)\b/.test(l)).length;
     } else {
       lines.push('', '## LLM analysis', '_Skipped — the `claude` CLI is unavailable or failed._');
     }
   }
 
-  writeFileAtomic(report, `${lines.join('\n')}\n`);
-  log(`=== ${nowIso()} mode=curator done, Report: ${report}`);
+  const reportFile = writeReport(`${lines.join('\n')}\n`, stamp);
+  writeCuratorNotice({ stamp, lifecycle, findings, reportFile });
+  log(`=== ${nowIso()} mode=curator done, Report: ${reportFile}`);
 }
 
 // ── entry ───────────────────────────────────────────────────────────────────

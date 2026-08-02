@@ -65,6 +65,26 @@ test('notice and nudge combine into one additionalContext', () => {
   assert.equal(out.systemMessage, '💾 Notiz');
 });
 
+test('review and curator notices are separate channels: both delivered, both consumed', () => {
+  const fx = fixture({ enabled: true, nudgeInterval: 0 });
+  writeFileSync(join(fx.stateDir, 'pending_notice.txt'), 'Review-Notiz\n');
+  writeFileSync(join(fx.stateDir, 'curator_notice.txt'), 'Curator-Notiz\n');
+  const out = JSON.parse(fx.run().stdout);
+  assert.match(out.hookSpecificOutput.additionalContext, /^Review-Notiz\nCurator-Notiz$/);
+  assert.equal(out.systemMessage, '💾 Review-Notiz\n💾 Curator-Notiz');
+  assert.equal(existsSync(join(fx.stateDir, 'pending_notice.txt')), false);
+  assert.equal(existsSync(join(fx.stateDir, 'curator_notice.txt')), false);
+  assert.equal(fx.run().stdout, '', 'both channels are one-shot');
+});
+
+test('a curator notice alone is delivered too (review channel empty)', () => {
+  const fx = fixture({ enabled: true, nudgeInterval: 0 });
+  writeFileSync(join(fx.stateDir, 'curator_notice.txt'), 'Curator run: 3 stale\n');
+  const out = JSON.parse(fx.run().stdout);
+  assert.equal(out.systemMessage, '💾 Curator run: 3 stale');
+  assert.equal(existsSync(join(fx.stateDir, 'curator_notice.txt')), false);
+});
+
 test('nudgeInterval 0 disables the nudge; disabled/reviewer are hard no-ops', () => {
   const fx = fixture({ enabled: true, nudgeInterval: 0 });
   for (const _ of Array(5)) assert.equal(fx.run().stdout, '');

@@ -9,9 +9,9 @@
 // Fail-safe: enabled=false or any unexpected state -> emit nothing, exit 0.
 
 import { existsSync, readFileSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
 import {
-  STATE_DIR,
+  CURATOR_NOTICE,
+  PENDING_NOTICE,
   counterFile,
   ensureStateDirs,
   readConfig,
@@ -39,20 +39,23 @@ function main() {
   let ctx = '';
   let userMsg = '';
 
-  // (a) pending notice from a completed background review
-  const notice = join(STATE_DIR, 'pending_notice.txt');
-  if (existsSync(notice)) {
+  // (a) pending notices from completed background runs — review and curator use
+  // separate files so neither overwrites the other; both are one-shot.
+  const consume = (file) => {
+    if (!existsSync(file)) return '';
     let text = '';
     try {
-      text = readFileSync(notice, 'utf8').trim();
+      text = readFileSync(file, 'utf8').trim();
     } catch {
       text = '';
     }
-    if (text) {
-      ctx = text;
-      userMsg = `💾 ${text}`;
-    }
-    rmSync(notice, { force: true });
+    rmSync(file, { force: true });
+    return text;
+  };
+  const notices = [consume(PENDING_NOTICE), consume(CURATOR_NOTICE)].filter(Boolean);
+  if (notices.length > 0) {
+    ctx = notices.join('\n');
+    userMsg = notices.map((t) => `💾 ${t}`).join('\n');
   }
 
   // (b) periodic nudge
