@@ -19,8 +19,10 @@ const REPO_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const MAP = join(REPO_ROOT, 'docs', 'context-map.md');
 
 // `path/file.ext:12` or `path/file.ext:12-34`, in backticks or free-standing.
-// Citations are repo-root relative; a short form without a path therefore does
-// not resolve and fails — which is the intent, since those are unverifiable.
+// Citations are repo-root relative. A short form without a path (`SOME_CONST:84-90`)
+// carries no file extension, so the pattern does not match it at all: such a
+// citation is skipped in silence, neither checked nor reported. Write citations
+// with their path, or this guard never sees them.
 const CITATION = /([\w./-]+\.(?:mjs|js|md|json|ya?ml)):(\d+)(?:-(\d+))?/g;
 
 function lineCount(text) {

@@ -135,7 +135,7 @@ its own implementation reproduces its own assumptions instead of questioning the
 sub-agent must not fan out further sub-agents. The orchestrator that delegated the work runs
 the review on the combined diff via the primary path above. Before reporting back, run the
 handover check the doctrine defines for this case (tests, debug leftovers, diff scope, known
-deviations — see `hooks/doctrine/code-review.md`); it is a checklist, not a review.
+deviations — see `doctrine/themes/code-review.md`); it is a checklist, not a review.
 
 ## Skill Contents
 

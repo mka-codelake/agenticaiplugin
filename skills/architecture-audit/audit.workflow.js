@@ -250,6 +250,12 @@ function commonContext(ctx) {
     `## Source Files to Examine`,
     ctx.fileList.length ? ctx.fileList.map((f) => `- ${f}`).join("\n") : "- (use the structure summary above; examine representative source files)",
     ctx.scope ? `\nScope: restrict analysis to ${ctx.scope}.` : ``,
+    ``,
+    `## Proportionality — assess this too`,
+    `Assess not only whether the structure is built right, but whether it should exist at`,
+    `all: would a smaller structure solve the same problem? Say so plainly where it would.`,
+    `An assessment calling for something LARGER must name the concrete failure case that`,
+    `rules the smaller structure out.`,
   ];
 }
 

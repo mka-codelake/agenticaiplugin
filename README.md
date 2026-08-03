@@ -100,6 +100,7 @@ own doctrine (SessionStart) and enforcement (PreToolUse) hooks.
 | `qa` | Quality Square traceability (requirements, code, test cases, tests) |
 | `create-cli` | Design CLI parameters, flags, and UX |
 | `grill-me` | Stress-test a plan or decision via a relentless one-question-at-a-time interview |
+| `council` | Convene two or three independent, mutually blind views on one decision, cut by where their evidence comes from rather than by role |
 | `persona` | Set the agent's communication style (writer/engineer/telegrapher/caveman); opt-in, off by default |
 | `learn` | Distill a source or the current conversation into one reusable learned skill (autoskill) |
 | `curator` | Curate the learned-skill library: lifecycle maintenance + overlap report (autoskill) |
@@ -222,12 +223,17 @@ directory (`$CLAUDE_CONFIG_DIR`, default `~/.claude`).
 | `autoskill.nudgeInterval` | integer | `10` | Inject a silent learn reminder every N prompts (`0` disables it) |
 | `autoskill.curator.enabled` | `true` \| `false` | `true` | Enable the lazy curator (lifecycle maintenance of learned skills) |
 | `autoskill.curator.intervalDays` | integer | `7` | Days between curator runs |
-| `doctrine.core` | `"off"` | *(unset)* | `"off"` disables the core working doctrine block (ask instead of assume, present the design and wait for a go before implementing, minimal scope, honesty, commit path). Only the exact string `"off"` disables it — any other value, or the key being absent, leaves it on |
-| `doctrine.codeReview` | `"off"` | *(unset)* | `"off"` disables the automatic code-review doctrine block. Exact string `"off"` only |
+| `doctrine.codeReview` | `"off"` | *(unset)* | `"off"` disables the automatic code-review doctrine block. Only the exact string `"off"` disables it — any other value, or the key being absent, leaves it on |
 | `doctrine.prReviewMonitoring` | `"off"` | *(unset)* | `"off"` disables the PR-review-monitoring doctrine block. Exact string `"off"` only |
 | `gitCommitGuard` | `"off"` | *(unset)* | `"off"` disables the PreToolUse hook that blocks a raw `git commit` and steers to `/agenticaiplugin:gitme`. Exact string `"off"` only |
 | `transitionNotice` | `"off"` \| `"every-session"` | notify on change | Session-start notice while a project still carries legacy copied rules or a `claudedocs/` layout: `"off"` disables it entirely, `"every-session"` notifies every session while pending; by default it notifies only when the pending state changes (tracked per project) |
 | `rulesUpdateNotice` | `"off"` \| `"every-session"` | notify on change | Legacy alias of `transitionNotice`, still honored. `transitionNotice` wins when both are present |
+
+Only the two `doctrine.*` theme blocks above are switchable. The **constitution** is injected
+in every session and has no opt-out: the core working doctrine (ask instead of assume,
+present the design and wait for a go before implementing, minimal scope, be honest and
+transparent, the commit path) plus the orchestrator working mode. A `doctrine.core` key from
+an earlier version is ignored, not an error.
 
 ### Autoskill (self-learning skills)
 
@@ -285,6 +291,7 @@ agenticaiplugin/
 ├── skills/
 │   ├── architecture-audit/      # 7-dimension architecture assessment
 │   ├── code-review/             # 13-specialist code review
+│   ├── council/                 # Independent second view on one decision
 │   ├── create-cli/              # CLI interface design
 │   ├── curator/                 # Learned-skill library curation (autoskill)
 │   ├── git-smart-commit/        # Intelligent commit creation
@@ -297,7 +304,6 @@ agenticaiplugin/
 │   ├── learn/                   # On-demand skill distillation (autoskill)
 │   ├── license-check/           # License compatibility checking
 │   ├── markdown-converter/      # File-to-Markdown conversion
-│   ├── mode/                    # Always-on orchestrator mode text (SessionStart injection)
 │   ├── npm-publisher/           # npm release cut + pre-publish audit
 │   ├── persona/                 # Agent communication personas
 │   ├── pr-review-setup/         # Automated PR review action setup
@@ -306,7 +312,9 @@ agenticaiplugin/
 │   ├── update-plugin/           # Plugin update management
 │   └── youtube-transcript/      # YouTube caption fetcher (pure Node)
 ├── hooks/                       # Lifecycle hooks (doctrine injection, git-commit guard, autoskill, persona, prereq check)
-│   └── doctrine/                # Always-on doctrine markdown (injected at SessionStart)
+├── doctrine/                    # Always-on doctrine markdown (injected at SessionStart)
+│   ├── constitution/            # Core doctrine + orchestrator mode — not switchable
+│   └── themes/                  # Switchable blocks (code review, PR review monitoring)
 ├── prerequisites.json           # Feature prerequisite registry
 ├── docs/
 │   ├── plugin-howto.md          # Plugin development reference

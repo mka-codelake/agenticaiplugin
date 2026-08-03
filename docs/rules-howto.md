@@ -228,10 +228,12 @@ into every project via `/init`. That copying caused version drift across project
 update/sync/migration apparatus to manage it. **AgenticAI no longer does this.** Always-on
 behavior is provided by the plugin itself, three ways:
 
-1. **Doctrine via a SessionStart hook** (`hooks/inject-doctrine.mjs` + `hooks/doctrine/*.md`) —
+1. **Doctrine via a SessionStart hook** (`hooks/inject-doctrine.mjs` + `doctrine/**/*.md`) —
    the behavioral doctrine (ask-before-assuming, present-the-design-and-wait-for-a-go,
    minimal scope, honesty, automatic code review, PR review monitoring) is emitted as
-   `additionalContext` every session. The hook fires on
+   `additionalContext` every session. The texts are split into `doctrine/constitution/`
+   (base doctrine plus the always-active orchestrator mode, no opt-out) and
+   `doctrine/themes/` (the switchable blocks). The hook fires on
    **every** SessionStart source including `compact`, so the doctrine is re-injected after a
    compaction. Trade-off: `additionalContext` is a post-system-prompt context message — softer
    than a first-class rule, but it lives once in the plugin and never drifts.
@@ -240,7 +242,8 @@ behavior is provided by the plugin itself, three ways:
 3. **Skills** for task-triggered guidance (`writing-tests`, `dependency-management`, …).
 
 Per-item opt-out lives in `agenticaiplugin.config.json`
-(`{"doctrine":{"core":"off","codeReview":"off","prReviewMonitoring":"off"},"gitCommitGuard":"off"}`).
+(`{"doctrine":{"codeReview":"off","prReviewMonitoring":"off"},"gitCommitGuard":"off"}`). Only
+the themes are switchable — the constitution has no opt-out.
 
 `.claude/rules/` in a user's project is therefore **the user's own space** — the plugin reads
 nothing there and installs nothing there. `/agenticaiplugin:update-plugin` only *removes* any

@@ -40,7 +40,9 @@ agenticaiplugin/
 │       ├── reference.md      # Progressive disclosure (optional)
 │       └── templates/        # Jinja2 templates (optional)
 ├── hooks/                     # Plugin-level lifecycle hooks (hooks.json, auto-discovered)
-│   └── doctrine/              # Always-on doctrine (markdown) injected by the SessionStart hook
+├── doctrine/                  # Always-on doctrine text, injected by the SessionStart hook
+│   ├── constitution/          # base.md + the active mode — not switchable
+│   └── themes/                # Switchable blocks (config keys under `doctrine`)
 ├── docs/                      # Internal documentation
 │   └── plugin-howto.md       # PRIMARY DEV REFERENCE
 └── CLAUDE.md                 # This file
@@ -59,6 +61,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 ### Key Files
 
 - `.claude-plugin/plugin.json` — Plugin metadata (name, version, author)
+- `docs/architecture.md` — What the plugin is made of and **where a new rule belongs** (guardrail / doctrine / persona / skill / policy, the mode as a composition rule, the three placement questions, and what deliberately does not exist). Read before adding a rule, a doctrine file or a hook
 - `docs/plugin-howto.md` — Primary development reference (frontmatter, patterns, conventions)
 - `docs/rules-howto.md` — Rules template development reference
 - `docs/workflow-integration-howto.md` — Binding pattern for calling repo-local `Workflow` scripts from a `SKILL.md` (spike #9; required reading before migrating a skill to the Workflow feature)
@@ -82,6 +85,7 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 | `/agenticaiplugin:qa` | Quality Square traceability (requirements, code, test cases, tests) |
 | `/agenticaiplugin:create-cli` | Design CLI parameters and UX |
 | `/agenticaiplugin:grill-me` | Stress-test a plan/decision via a relentless interview |
+| `/agenticaiplugin:council` | Convene two or three independent, mutually blind views on one decision — the escalation ladder's second rung |
 | `/agenticaiplugin:markdown-converter` | Convert files to Markdown via markitdown |
 | `/agenticaiplugin:youtube-transcript` | Fetch a YouTube video's captions as plain text (pure Node, no Python/yt-dlp) |
 | `/agenticaiplugin:github-publish` | Prepare repo for public GitHub release (README, badges, logo, license, etc.) |
@@ -112,7 +116,7 @@ Changes are immediately available after marketplace update.
 
 When making feature changes, new commands, or directory changes, check:
 
-1. **Doctrine / enforcement** (`hooks/doctrine/*.md`, `hooks/guard-git-commit.mjs`) — If always-on behavior changed, update the doctrine markdown (injected live by the SessionStart hook — no version headers, no per-project sync). Changing the git-commit sentinel means updating both the guard and `skills/git-smart-commit/SKILL.md`.
+1. **Doctrine / enforcement** (`doctrine/**/*.md`, `hooks/guard-git-commit.mjs`) — If always-on behavior changed, update the doctrine markdown (injected live by the SessionStart hook — no version headers, no per-project sync). A **new** doctrine file must be registered in `hooks/inject-doctrine.mjs` — in its list (`CONSTITUTION`/`THEMES`) — otherwise it is silently ignored. Changing the git-commit sentinel means updating both the guard and `skills/git-smart-commit/SKILL.md`.
 2. **Help-Skill** (`skills/help/SKILL.md`) — Is the overview still current?
 3. **Command tables** (`README.md` **and** root `CLAUDE.md`) — Both command tables list the same commands; keep them in sync (a missed `README.md` update is a common slip).
 4. **CHANGELOG** (`skills/update-plugin/CHANGELOG.md`) — Entry added?
@@ -151,7 +155,7 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 ## Gotchas
 
 - **Skills = progressive disclosure** — only a SKILL.md's frontmatter `description` is always in context; the body loads on demand when the skill is invoked (not every session). Keep descriptions sharp (they drive auto-activation); bodies can be longer without a per-session token cost. Agents have isolated context and can be more detailed.
-- **No copied rules** — the plugin does NOT install rule files into projects. Always-on behavior comes from the plugin itself: doctrine markdown (`hooks/doctrine/*.md`) injected as `additionalContext` by the SessionStart hook `hooks/inject-doctrine.mjs`, and enforcement via the PreToolUse hook `hooks/guard-git-commit.mjs`. The SessionStart hook fires on every source (incl. `compact`), so the doctrine survives compaction. `.claude/rules/` in a project is the user's own space; `/update-plugin` only removes *legacy* `agenticaiplugin-*.md` copies.
+- **No copied rules** — the plugin does NOT install rule files into projects. Always-on behavior comes from the plugin itself: doctrine markdown (`doctrine/constitution/*.md` — not switchable — plus `doctrine/themes/*.md`) injected as `additionalContext` by the SessionStart hook `hooks/inject-doctrine.mjs`, and enforcement via the PreToolUse hook `hooks/guard-git-commit.mjs`. The SessionStart hook fires on every source (incl. `compact`), so the doctrine survives compaction. `.claude/rules/` in a project is the user's own space; `/update-plugin` only removes *legacy* `agenticaiplugin-*.md` copies.
 - **Marketplace update required** — File changes in the plugin directory are NOT immediately active. Always run `/plugin marketplace update` after changes.
 - **Progressive disclosure** — Put details in `reference.md`, not `SKILL.md`. Claude loads reference.md only when explicitly needed, saving tokens.
 

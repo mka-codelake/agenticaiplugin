@@ -51,7 +51,7 @@ test('every registered hook is exec-form node targeting a .mjs script', () => {
 // green suite, and the missing injection is invisible until someone notices the
 // behavior is gone. Pin the roster — adding a startup hook is a deliberate act
 // and must be reflected here.
-test('SessionStart registers exactly the five expected startup scripts', () => {
+test('SessionStart registers exactly the four expected startup scripts', () => {
   const cfg = JSON.parse(readFileSync(join(hooksDir, 'hooks.json'), 'utf8'));
   const registered = (cfg.hooks.SessionStart ?? [])
     .flatMap((matcher) => matcher.hooks)
@@ -63,7 +63,6 @@ test('SessionStart registers exactly the five expected startup scripts', () => {
       'check-prereqs.mjs',
       'check-transition-pending.mjs',
       'inject-doctrine.mjs',
-      'mode.mjs',
       'persona.mjs',
     ],
     'a SessionStart hook was added or removed — confirm the change and update this list'

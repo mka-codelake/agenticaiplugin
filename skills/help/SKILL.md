@@ -55,6 +55,7 @@ Show the user the following overview:
 | **qa** | Quality Assurance: manages bidirectional traceability between requirements, code, test cases, and tests ("Quality Square"). Analyzes code, extracts requirements, derives test cases, produces gap analysis. Option: `--force-rebuild` |
 | **create-cli** | Designs CLI interfaces: arguments, flags, subcommands, help text, output formats, exit codes, prompts. Produces a compact spec for implementation |
 | **grill-me** | Relentless one-question-at-a-time interview to stress-test a plan or decision until you reach shared understanding. Stateless, manual-only |
+| **council** | Convenes two or three independent, mutually blind views on one decision, spawned in parallel and cut by where their evidence comes from (intent / execution / artifact alone), not by role. Every brief asks both whether the thing should be built at all and whether it is built right. For a judgment call that can be argued from evidence but not measured — where it can be measured, measuring wins |
 | **license-check** | Checks license compatibility of all dependencies, tools, scripts, and LLM models against the project license. Modes: standard (full scan including transitive deps) or `--quick` (direct dependencies only). Report saved to `claudedocs/license-check-result.md` |
 
 ### Tools
@@ -148,13 +149,13 @@ The plugin injects its doctrine into every session via a SessionStart hook (re-i
 | Behavior | How |
 |------|----------|
 | **Orchestrator working mode** | Injected every session and not switchable — the session decides, verifies and coordinates; implementation, investigation, release preparation and documentation reconciliation are delegated to sub-agents |
-| **Ask instead of assume** | Doctrine — asks for clarification when uncertain rather than assuming |
+| **Ask instead of assume** | Doctrine — asks for clarification when uncertain rather than assuming, bounded by the escalation ladder in the mode: what is measurable gets measured, what is arguable gets a second view (`/agenticaiplugin:council`), and only preference, scope and cost reach you |
 | **Present the design before implementing, minimal scope, honesty** | Doctrine — problem, options and recommendation first, then wait for a go; surgical changes traceable to the request; no gold-plating |
 | **Automatic code review** | Doctrine — after finishing an implementation task, runs a multi-specialist review before reporting done; a sub-agent/fork reviews nothing and spawns nothing, the delegating orchestrator reviews the combined diff |
 | **PR review monitoring** | Doctrine — after opening a PR or pushing to one, watches the repo's automated review check unprompted, evaluates the findings, and reports |
 | **Git commits via skill** | Enforced — raw `git commit` is blocked by a hook; always commit via `/agenticaiplugin:gitme` (agents/sub-agents: the skill `agenticaiplugin:git-smart-commit`) |
 
-Opt out per item in `agenticaiplugin.config.json`: `{"doctrine":{"core":"off","codeReview":"off","prReviewMonitoring":"off"},"gitCommitGuard":"off"}`. The orchestrator working mode has no opt-out.
+Opt out per item in `agenticaiplugin.config.json`: `{"doctrine":{"codeReview":"off","prReviewMonitoring":"off"},"gitCommitGuard":"off"}`. The core working doctrine and the orchestrator working mode have no opt-out.
 
 ---
 

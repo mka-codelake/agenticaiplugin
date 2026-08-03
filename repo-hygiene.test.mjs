@@ -2,7 +2,7 @@
 // Both suites below guard classes of defect that so far only a human PR review
 // caught. They live in one root-level file because neither has a single module
 // to sit next to: the first walks every markdown file in the repo, the second
-// couples hooks/doctrine/*.md to three summaries in three different directories.
+// couples doctrine/**/*.md to three summaries in three different directories.
 // Run with: node --test
 
 import assert from 'node:assert/strict';
@@ -65,7 +65,7 @@ test('no markdown file carries a bare tool-call syntax fragment on its own line'
 // ---------------------------------------------------------------------------
 
 // The doctrine rule `Explain WHAT and WHY before changing code` was renamed to
-// `Present the design before implementing` in hooks/doctrine/core.md. Three
+// `Present the design before implementing` in doctrine/constitution/base.md. Three
 // places summarize the doctrine in prose and kept carrying the old name; two
 // were fixed because a reviewer named them, the third surfaced a round later.
 //
@@ -76,7 +76,7 @@ test('no markdown file carries a bare tool-call syntax fragment on its own line'
 // wordings would be too loose to fail on a rename.
 //
 // Two checks follow from it:
-//   1. The set of H2 headings in hooks/doctrine/*.md equals the set of table
+//   1. The set of H2 headings in doctrine/**/*.md equals the set of table
 //      keys. Renaming, adding or dropping a rule turns this red first.
 //   2. Every marker occurs in its summary file. Whoever fixes check 1 lands in
 //      this table and is dragged past the summaries in the process.
@@ -85,6 +85,12 @@ test('no markdown file carries a bare tool-call syntax fragment on its own line'
 // the test red. That is a prompt to re-check the marker, not a defect — the
 // markers are matched case-insensitively against whitespace-normalized text, so
 // pure reflow or reformatting does not trip it.
+//
+// SUMMARY_FILES is the floor, not the ceiling: these three summarize EVERY rule,
+// so every heading must have a marker for each of them. Other files reference a
+// single rule (skills/council/SKILL.md quotes one heading by name, docs/architecture.md
+// paraphrases its content) — they are listed under that heading alone, and the
+// coverage check below therefore requires the three, not exactly the three.
 const SUMMARY_FILES = ['README.md', 'skills/help/SKILL.md', 'docs/rules-howto.md'];
 
 const DOCTRINE_SUMMARY_MARKERS = {
@@ -102,6 +108,8 @@ const DOCTRINE_SUMMARY_MARKERS = {
     'README.md': /minimal scope/i,
     'skills/help/SKILL.md': /minimal scope/i,
     'docs/rules-howto.md': /minimal scope/i,
+    'skills/council/SKILL.md': /surgical, minimal scope/i, // names the heading verbatim
+    'docs/architecture.md': /the smallest wins/i, // quotes the rule, not its heading
   },
   'Be honest and transparent': {
     'README.md': /honest/i,
@@ -126,8 +134,8 @@ const DOCTRINE_SUMMARY_MARKERS = {
 };
 
 function doctrineHeadings() {
-  const dir = join(REPO_ROOT, 'hooks', 'doctrine');
-  const git = spawnSync('git', ['ls-files', '-z', 'hooks/doctrine/*.md'], {
+  const dir = join(REPO_ROOT, 'doctrine');
+  const git = spawnSync('git', ['ls-files', '-z', 'doctrine/constitution/*.md', 'doctrine/themes/*.md'], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
   });
@@ -149,19 +157,29 @@ test('every doctrine rule has an entry in the summary marker table', () => {
     doctrineHeadings().sort(),
     Object.keys(DOCTRINE_SUMMARY_MARKERS).sort(),
     'a doctrine rule was renamed, added or removed — update the marker table above ' +
-      'and the summaries in ' + SUMMARY_FILES.join(', '),
+      'and the summaries in ' + markerFiles().join(', '),
   );
 });
 
+/** Every file the marker table refers to, the three summaries included. */
+function markerFiles() {
+  const files = new Set(SUMMARY_FILES);
+  for (const markers of Object.values(DOCTRINE_SUMMARY_MARKERS)) {
+    for (const file of Object.keys(markers)) files.add(file);
+  }
+  return [...files];
+}
+
 test('every doctrine rule is named in all three doctrine summaries', () => {
   const texts = new Map(
-    SUMMARY_FILES.map((f) => [f, readFileSync(join(REPO_ROOT, f), 'utf8').replace(/\s+/g, ' ')]),
+    markerFiles().map((f) => [f, readFileSync(join(REPO_ROOT, f), 'utf8').replace(/\s+/g, ' ')]),
   );
 
   for (const [heading, markers] of Object.entries(DOCTRINE_SUMMARY_MARKERS)) {
+    const missing = SUMMARY_FILES.filter((f) => !(f in markers));
     assert.deepEqual(
-      Object.keys(markers).sort(),
-      [...SUMMARY_FILES].sort(),
+      missing,
+      [],
       `"${heading}": the marker table must cover every summary file`,
     );
     for (const [file, marker] of Object.entries(markers)) {
@@ -176,7 +194,7 @@ test('every doctrine rule is named in all three doctrine summaries', () => {
 });
 
 test('the doctrine summary files exist where the marker table expects them', () => {
-  for (const file of SUMMARY_FILES) {
+  for (const file of markerFiles()) {
     assert.ok(existsSync(join(REPO_ROOT, file)), `${file} is missing — marker table is stale`);
   }
 });

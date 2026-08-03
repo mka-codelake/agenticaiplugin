@@ -353,15 +353,18 @@ The plugin provides its always-on behavior via hooks instead of copying `.claude
 files into projects (Claude Code has no plugin-native rules mechanism, and copying drifts):
 
 - **Doctrine — `hooks/inject-doctrine.mjs` (SessionStart).** Emits the behavioral doctrine
-  (`hooks/doctrine/*.md`) as `hookSpecificOutput.additionalContext`. It fires on **every**
+  (`doctrine/**/*.md`) as `hookSpecificOutput.additionalContext`. It fires on **every**
   SessionStart `source` — `startup`, `resume`, `clear`, and crucially `compact` — and never
   gates on `source`, so the doctrine is re-injected after each compaction (SessionStart fires
   with `source:"compact"` after a compaction and its `additionalContext` lands in the
   compacted context). This is the only reliable way to keep injected instructions present
   across `/compact`; `PreCompact` is observe/block-only and cannot preserve context. Caveat:
   `additionalContext` is a post-system-prompt context message — softer than a first-class rule,
-  which is the accepted trade-off for zero per-project drift. Per-block opt-out via
-  `agenticaiplugin.config.json` `{"doctrine":{"core":"off","codeReview":"off","prReviewMonitoring":"off"}}`.
+  which is the accepted trade-off for zero per-project drift. The texts live in
+  `doctrine/constitution/` (base doctrine plus the always-active orchestrator mode) and
+  `doctrine/themes/` (the switchable blocks); per-theme opt-out via
+  `agenticaiplugin.config.json` `{"doctrine":{"codeReview":"off","prReviewMonitoring":"off"}}`.
+  The constitution has no opt-out — whoever installs the plugin gets it.
 - **Enforcement — `hooks/guard-git-commit.mjs` (PreToolUse, matcher `Bash`).** Returns
   `permissionDecision:"deny"` for a raw `git commit`, steering to `/agenticaiplugin:gitme`. The
   git-smart-commit skill signals a sanctioned commit with an inert `git -c agenticai.gitme=1
@@ -371,7 +374,8 @@ files into projects (Claude Code has no plugin-native rules mechanism, and copyi
   commit. Disable via `{"gitCommitGuard":"off"}`.
 
 Both must satisfy `hooks/hooks-policy.test.mjs` (exec-form `node ${CLAUDE_PLUGIN_ROOT}/….mjs`,
-no shell scripts). `hooks/doctrine/*.md` are data files, not registered hooks.
+no shell scripts). `doctrine/**/*.md` are data files, not registered hooks — they sit at
+the repo root rather than under `hooks/` because they are content, not hook mechanics.
 
 ### Autoskill (self-learning skills, `hooks/autoskill/`)
 
