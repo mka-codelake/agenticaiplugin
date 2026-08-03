@@ -62,7 +62,8 @@ only where there is nothing to run.
 never a fourth opinion.
 
 **Independent means blind:** no view sees another's brief or findings, or they converge on
-whichever opinion landed first.
+whichever opinion landed first. Dispatch them as sub-agents in a **single message**, so
+they run at once and none can see what the others returned.
 
 ## Both questions go into every brief
 
