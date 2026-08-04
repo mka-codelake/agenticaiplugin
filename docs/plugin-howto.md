@@ -869,9 +869,19 @@ says it was able to look. The conventions differ per tool (`grep` exits 1 on no 
 failure; `find` exits 0 whether or not it found anything), so write down next to the command
 which one applies.
 
-The one legitimate exception is stderr that is *expected* noise the reader must not act on — a
-`find ~ …` across an entire home directory hits unreadable directories by design. Suppressing it
-there is a decision, and it belongs in a sentence beside the command; it is never the default.
+Two exceptions are legitimate, and both are decisions that belong in a sentence beside the
+command rather than a default.
+
+The first is stderr that is *expected* noise the reader must not act on — a `find ~ …` across an
+entire home directory hits unreadable directories by design.
+
+The second is a command with **exactly one** failure mode, where the failure is itself the
+answer being sought: `ls somefile` asked purely to learn whether the file exists, or
+`git describe --tags` in a repository that may have no tag. Nothing is lost, because there is no
+second cause the message could have named. The test is whether you can name every way the
+command can fail — if the list has one entry and you handle it, suppress; if you find yourself
+writing "and probably a few other things", you have the `2>/dev/null || echo FIRST_PUBLISH` case
+from #100, where a dropped network read as "this package does not exist yet".
 
 ### Parsing Command Output (skills & agents: `node`, not `jq`)
 
