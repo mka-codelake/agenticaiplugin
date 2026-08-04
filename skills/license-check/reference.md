@@ -439,8 +439,9 @@ case and the one to prefer, since it pins the Gradle version.
 License detection same as Maven (POM-based).
 
 **Gradle needs the version taken from the right place, and a coordinate is not always three
-fields.** Four shapes appear in a real tree, and the last two are what a plain
-`group:artifact:version` pattern drops without a sound:
+fields.** Five shapes appear in a real tree — every one of them observed in the measured run
+below. The third and fourth are what a plain `group:artifact:version` pattern drops without a
+sound; the fifth is one this filter reads although Gradle says it is not a dependency:
 
 | line | version on the classpath | why |
 |---|---|---|
@@ -448,6 +449,7 @@ fields.** Four shapes appear in a real tree, and the last two are what a plain
 | `com.google.guava:guava:31.0-jre -> 33.2.1-jre` | `33.2.1-jre` | conflict resolution |
 | `org.slf4j:slf4j-api:{strictly 2.0.13} -> 2.0.13` | `2.0.13` | rich version constraint — `{` ends the third field early |
 | `org.apache.commons:commons-lang3 -> 3.14.0` | `3.14.0` | **no version in the build file at all** |
+| `commons-codec:commons-codec:1.16.1 -> 1.17.0 (c)` | `1.17.0` | constraint from a BOM — per Gradle's own legend "a dependency constraint, **not a dependency**" |
 
 The fourth is not exotic. Declaring dependencies without a version and letting a BOM or
 platform supply it is the normal arrangement in Spring Boot projects, and the coordinate then
@@ -459,12 +461,29 @@ Same rule as Maven, same reason: a line this filter cannot read must not pass as
 was not there.
 
 Header lines, the configuration description and `(n) - dependencies omitted` carry no colon
-pair and are skipped before that test — as is `\--- project :core`, where the space in front of
-the colon keeps a project-to-project reference (no external licence to look up) out of the
-count. That test ends in a negative lookahead rather than the `$` anchor it reads like it
+pair and are skipped before that test — as is `\--- project ':core'`, where the space in front
+of the quoted name keeps a project-to-project reference (no external licence to look up) out of
+the count. That test ends in a negative lookahead rather than the `$` anchor it reads like it
 wants: `$` is forbidden inside these single-quoted scripts (see `docs/plugin-howto.md`), and
 `(?![A-Za-z0-9_.-])` is satisfied by end-of-line as well as by the space or colon that follows
 a coordinate.
+
+**The `(c)` rows are read, and that is the one place this snippet reports too much rather than
+too little.** A constraint line carries a full coordinate, so nothing in the test above sets it
+apart from a real dependency. Measured on the tree of the run below: its 11 `(c)` lines yielded
+8 distinct coordinates, and every one of them already stood in the tree as a real dependency row
+as well — Gradle shows a constraint only for a module the build actually resolves, so the marker
+alone costs nothing. That this holds *always* is an expectation, not a measurement.
+
+**What does leak through is the BOM module itself.** `spring-boot-dependencies` and
+`jackson-bom` appear as nodes of the tree, but they are POM-only and land on no classpath; the
+filter reported them, Gradle's own resolution did not — 2 of 35 reported rows in the measured
+run. **So a report from this snippet can name BOM artifacts that are not actually shipped.**
+That is the reverse of the failure this section was written against: nothing goes missing
+quietly, two rows are added quietly. Both were Apache-2.0 here, so the verdict held, but a
+reviewer chasing every reported coordinate should know that a POM-only aggregator may be among
+them. Suppressing them would mean deciding from the tree text alone which coordinates are
+POM-only, which the text does not say — naming the limit is the cheaper half of that trade.
 
 **The `2>/dev/null` here was the pure form of the failure this fixes.** With Gradle absent the
 shell writes `command not found` to stderr, stdout stays empty, exit is 127 — measured, both
@@ -472,11 +491,21 @@ for `gradle` and for `./gradlew` in a directory without a wrapper (151 B and 162
 respectively). With stderr discarded, all of that reaches the caller as an empty dependency
 list.
 
-> **Not verified against a running Gradle.** Gradle is not installed in the environment where
-> this change was made, so the shape of the filter is carried over from the Maven and Go cases
-> and from Gradle's documented tree format — the *failure* forms above are measured, the
-> *success* parse is not. Treat an unexpected abort here as a bug in this snippet before
-> treating it as a broken project.
+> **Verified against a running Gradle — 9.6.1 on Java 25, 2026-08-04.** A two-module build
+> pulling in the Spring Boot BOM, Guava, Beam, a `strictly` constraint and a project reference
+> produced a 91-line tree; the filter read it end to end with `odd = 0` and reported 35
+> coordinates. The oracle was Gradle's own resolution
+> (`configurations.runtimeClasspath.incoming.artifactView`), not a reading of the same text:
+> **of the 33 artifacts actually on the classpath, none went missing.** The two surplus rows are
+> the BOM overreporting described above, and every shape in the table occurred for real —
+> including `{strictly …}`, which never turns up without its arrow, since Gradle prints the
+> resolved version after it even when nothing conflicts. The failure forms are measured
+> separately: an empty tree, a wrong configuration name and a broken build file each exit
+> non-zero with a named cause and Gradle's own error left on stderr.
+>
+> Unverified beyond that run: other Gradle versions, whether a constraint can ever name a
+> module that appears nowhere else in the tree, and the `odd > 0` abort itself — no line of
+> that tree was coordinate-shaped without yielding a version.
 
 ### 2.7 .NET (C#)
 
@@ -540,7 +569,10 @@ as an empty, successful licence scan.
 references appear in that array alongside real packages with no field distinguishing them — a
 known and still-open gap in the JSON report. They have no NuGet licence metadata, so looking
 one up will fail; treat a lookup miss on a transitive entry as "possibly a project reference"
-before reporting it as an unlicensed dependency.
+before reporting it as an unlicensed dependency. **Not reproduced on SDK 8.0.423:** in the
+measured solution below the project reference stayed out of `transitivePackages` entirely. The
+advice is kept because acting on it costs nothing and the gap is reported for other SDK
+versions — read it as a case to be ready for, not as behaviour observed here.
 
 **An entry without a version is reported, not dropped**, as `{version: null, resolved: false}`
 — the same treatment `npm ls` gives a platform-specific optional dependency further up this
@@ -559,16 +591,25 @@ in one run and top-level in the next depending on iteration order. Top-level win
 it is the stronger statement about the project, and it is the one that decides whether a
 licence obligation is direct.
 
-> **Not verified against a running dotnet.** The .NET SDK is not installed in the environment
-> where this change was made. What *is* verified: the failure form (measured here), that
-> `--format json` and `--output-version` require **.NET SDK 7.0.200 or newer** (on an older SDK
-> the command errors out, which this filter reports as a failed lookup rather than an empty
-> one), and the field names `projects` / `frameworks` / `topLevelPackages` /
-> `transitivePackages` / `id` / `resolvedVersion`, taken from published output of the command
-> rather than from a live run here. Not verified is the parse against real output.
+> **Verified against a running dotnet — SDK 8.0.423 on Linux, 2026-08-04.** A two-project
+> solution (`Serilog.Sinks.File`, `Microsoft.Extensions.Hosting`, plus a project reference)
+> emitted 35 package entries, 34 of them distinct; the filter returned 34 and exit 0, so
+> **nothing was dropped.** The field names above are the ones the SDK actually writes. The
+> tie-break is not merely described but was triggered for real: `Newtonsoft.Json:13.0.3` arrived
+> transitive from one project and top-level from the other, and left as `"transitive": false`.
+> Both failure forms abort loudly — an empty stream and a non-JSON stream each exit non-zero
+> with a named cause. Not exercised there: an entry without a resolvable version, since every
+> package in that solution resolved — the `{version: null}` path above remains reasoned, not
+> observed.
+>
+> **The version floor stands, and reaching it is not a silent failure.** `--format json` still
+> needs **.NET SDK 7.0.200 or newer**, but an older SDK has only two ways to react: reject the
+> option, leaving stdout empty, or print the table, which makes `JSON.parse` throw. Both end in
+> the abort above, so no separate version check is warranted. Measured through a text-output
+> stand-in — no pre-7.0.200 SDK was on hand.
 >
 > **On .NET 10 the command is spelled `dotnet package list`** — the arguments are unchanged.
-> `dotnet list package` is the form for SDK 9 and earlier.
+> `dotnet list package` is the form for SDK 9 and earlier. Not exercised in the run above.
 
 **Per-package license:** NuGet metadata (requires network access or local cache).
 
