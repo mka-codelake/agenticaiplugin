@@ -76,7 +76,7 @@ ls "{repo_path}/package.json" 2>/dev/null
 # Monorepo signals (any of these → out of scope)
 ls "{repo_path}/lerna.json" 2>/dev/null
 ls "{repo_path}/pnpm-workspace.yaml" 2>/dev/null
-cat "{repo_path}/package.json" 2>/dev/null | grep -E '"workspaces"\s*:'
+cat "{repo_path}/package.json" 2>/dev/null | grep -E '"workspaces"[[:space:]]*:'
 ```
 
 If a monorepo is detected, STOP with a clear message:
@@ -540,15 +540,21 @@ Apply whitelist: emails in `NOTICE`, `LICENSE` (Apache contains contact email in
 
 **3. IP addresses (Warning)** — except `127.0.0.1`, `0.0.0.0`, broadcast `255.x`, documentation ranges (`192.0.2.x`, `198.51.100.x`, `203.0.113.x`):
 ```bash
-grep -rnoE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md"
+grep -rnowE "([0-9]{1,3}\.){3}[0-9]{1,3}" "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md"
 ```
 
 **4. Hostnames (Warning)** — internal/private patterns:
 ```bash
-grep -rnoE "\b(localhost|[a-z0-9-]{1,253}\.local|[a-z0-9-]{1,253}\.lan|[a-z0-9-]{1,253}\.intern|[a-z0-9-]{1,253}\.corp|[a-z0-9-]{1,253}\.intranet|raspberry[a-z0-9-]{0,253}|rpi[0-9-]{0,253}|pihole[a-z0-9-]{0,253}|homelab[a-z0-9-]{0,253})\b" "$PKG_DIR" \
+grep -rnowE "(localhost|[a-z0-9-]{1,253}\.local|[a-z0-9-]{1,253}\.lan|[a-z0-9-]{1,253}\.intern|[a-z0-9-]{1,253}\.corp|[a-z0-9-]{1,253}\.intranet|raspberry[a-z0-9-]{0,253}|rpi[0-9-]{0,253}|pihole[a-z0-9-]{0,253}|homelab[a-z0-9-]{0,253})" "$PKG_DIR" \
   --include="*.js" --include="*.json" --include="*.md" --include="*.txt"
 ```
 Downgrade `localhost` and standalone "local" usage to informational — they're often legitimate.
+
+**Both of these carry their word boundary in `-w`, not in `\b`.** `\b` is a GNU extension; BSD
+and macOS grep read the backslash as literal and demand a `b` in front of the address, which
+takes both scans from 8 and 12 matches to zero. `-w` is documented by both implementations and
+reproduces GNU `\b` match for match — see reference.md Section 3.4 for the measurement and for
+why explicit boundary groups are the wrong replacement.
 
 **5. Real names (Warning)** — best-effort. The author/maintainer name from `package.json` and `NOTICE` is allowed. Other persistent personal names need user confirmation. Skip this scan if no detectable names found beyond expected ones.
 
@@ -574,7 +580,10 @@ grep -rnoE "AKIA[0-9A-Z]{16}" "$PKG_DIR"
 # Quotes are optional so unquoted KEY=value config lines are caught too.
 # -I skips binaries, --exclude-dir=node_modules drops dependency noise.
 # The {16,512} bound is not cosmetic — see below.
-grep -rinoIE "(api[_-]?key|password|secret|token|bearer|credential)\s*[:=]\s*['\"]?[^'\"]{16,512}['\"]?" "$PKG_DIR" \
+# [[:space:]] rather than \s: \s is a GNU extension. BSD grep reads it as a
+# literal s, and the pattern then misses every `key = "value"` with a space
+# around the operator (measured: 5 hits drop to 3).
+grep -rinoIE "(api[_-]?key|password|secret|token|bearer|credential)[[:space:]]*[:=][[:space:]]*['\"]?[^'\"]{16,512}['\"]?" "$PKG_DIR" \
   --exclude-dir=node_modules
 ```
 

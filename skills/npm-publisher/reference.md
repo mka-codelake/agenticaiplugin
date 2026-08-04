@@ -198,11 +198,25 @@ Other matches → ask user per file (could be intentional contact info, could be
 ### 3.4 IP Addresses (Warning)
 
 ```bash
-grep -rnoE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" "$PKG_DIR" \
+grep -rnowE "([0-9]{1,3}\.){3}[0-9]{1,3}" "$PKG_DIR" \
   --include="*.js" --include="*.json" --include="*.md"
 ```
 
-Already bounded on both sides, so `-o` is the whole change here. It does cost the surrounding
+**The word boundary lives in `-w`, not in `\b`.** `\b` is a GNU extension. POSIX leaves a
+backslash before an ordinary character undefined and BSD/macOS grep reads it literally, so
+`\b([0-9]…` demands a `b` in front of the address: **8 matches under GNU, 0 under the BSD
+reading** — the scan reports a clean package without having recognised a single address. `-w` is
+documented by both implementations (BSD defines it as wrapping the expression in `[[:<:]]` and
+`[[:>:]]`) and returned byte-identical output to GNU `\b` on every fixture, including the
+rejections that make the boundary worth having: `1234.5.6.7` and `1.2.3.4567` stay unmatched.
+
+Explicit boundary groups are the tempting replacement and the wrong one. `(^|[^0-9.])…([^0-9.]|$)`
+*consumes* the boundary character, so an address one separator behind another has none left —
+`10.0.0.1 10.0.0.2` was found once instead of twice — and it newly matches `v1.2.3.4`, because
+`v` satisfies `[^0-9.]` where `\b` and `-w` both reject it. Measured over the same fixtures it
+lost 1 of 8 IP hits and 4 of 12 hostname hits while adding that false one.
+
+Already bounded on both sides, so `-o` is the rest of the change. It does cost the surrounding
 context that told a real address from a version string like `1.2.3.4` — but that context was
 never readable in the minified files this scan mostly runs against, where it was the rest of
 the megabyte. Open the file at the reported location when a hit needs judging.
@@ -221,15 +235,17 @@ Findings worth flagging:
 **Bounded pattern** — same quadratic shape as 3.3.
 
 ```bash
-grep -rnoE "\b(localhost|[a-z0-9-]{1,253}\.local|[a-z0-9-]{1,253}\.lan|[a-z0-9-]{1,253}\.intern|[a-z0-9-]{1,253}\.corp|[a-z0-9-]{1,253}\.intranet|raspberry[a-z0-9-]{0,253}|rpi[0-9-]{0,253}|pihole[a-z0-9-]{0,253}|homelab[a-z0-9-]{0,253})\b" "$PKG_DIR" \
+grep -rnowE "(localhost|[a-z0-9-]{1,253}\.local|[a-z0-9-]{1,253}\.lan|[a-z0-9-]{1,253}\.intern|[a-z0-9-]{1,253}\.corp|[a-z0-9-]{1,253}\.intranet|raspberry[a-z0-9-]{0,253}|rpi[0-9-]{0,253}|pihole[a-z0-9-]{0,253}|homelab[a-z0-9-]{0,253})" "$PKG_DIR" \
   --include="*.js" --include="*.json" --include="*.md" --include="*.txt"
 ```
 
+`-w` carries the boundary here for the reason given in 3.4.
+
 253 is the RFC 1035 limit for a whole domain name, deliberately chosen over the 63 that applies
-to a single label. 63 is the technically correct bound and it loses findings: because the
-pattern opens with `\b`, a label longer than the bound has no matching start position at all,
-and a 100-character label — invalid as DNS, perfectly possible as leaked text — went from found
-to not found. 253 keeps it and still turns 1,400,790 B / 41.6 s into 281 B / 0.6 s.
+to a single label. 63 is the technically correct bound and it loses findings: because the match
+has to start at a word boundary, a label longer than the bound has no matching start position at
+all, and a 100-character label — invalid as DNS, perfectly possible as leaked text — went from
+found to not found. 253 keeps it and still turns 1,400,790 B / 41.6 s into 281 B / 0.6 s.
 
 Downgrade to informational: `localhost` alone, "local DB", "local file system" (legitimate documentation patterns).
 
@@ -250,12 +266,30 @@ The most important audit. Use this regex catalog:
 | Anthropic API | `sk-ant-[A-Za-z0-9_-]{32,}` | Anthropic / Claude |
 | Slack Bot/User | `xox[bpaorsl]-[A-Za-z0-9-]{10,}` | Slack token classes |
 | AWS Access Key | `AKIA[0-9A-Z]{16}` | AWS IAM access key |
-| AWS Secret | `(?i)aws_secret_access_key\s*[:=]\s*['\"]?[A-Za-z0-9/+=]{40}['\"]?` | Pair with AKIA or alone |
+| AWS Secret | `aws_secret_access_key[[:space:]]*[:=][[:space:]]*['\"]?[A-Za-z0-9/+=]{40}['\"]?` — run with `-i` | Pair with AKIA or alone |
 | Stripe Secret | `sk_live_[A-Za-z0-9]{24,}` | Production Stripe key |
 | Google API | `AIza[0-9A-Za-z_-]{35}` | Google Cloud API key |
-| Discord Bot | `[MN][A-Za-z\d]{23}\.[\w-]{6}\.[\w-]{27}` | Discord bot token |
-| Generic high-entropy assignment | `(?i)(api[_-]?key\|password\|secret\|token\|bearer\|credential\|access[_-]?token)\s*[:=]\s*['\"]?[^'\"]{16,512}['\"]?` | Lower-confidence catch-all. Quotes optional → also catches unquoted `KEY=value` config lines. **The only pattern in this table with an added upper bound** — see below |
+| Discord Bot | `[MN][A-Za-z0-9]{23}\.[A-Za-z0-9_-]{6}\.[A-Za-z0-9_-]{27}` | Discord bot token |
+| Generic high-entropy assignment | `(api[_-]?key\|password\|secret\|token\|bearer\|credential\|access[_-]?token)[[:space:]]*[:=][[:space:]]*['\"]?[^'\"]{16,512}['\"]?` — run with `-i` | Lower-confidence catch-all. Quotes optional → also catches unquoted `KEY=value` config lines. **The only pattern in this table with an added upper bound** — see below |
 | Private key headers | `-----BEGIN (RSA \|EC \|OPENSSH \|PGP \|)PRIVATE KEY-----` | SSH/PGP private keys embedded as strings |
+
+**This table is the catalog; the command list in the agent file is an excerpt of it.** That list
+is declared there as *minimum coverage*, and six rows here have no command of their own — GitHub
+OAuth, AWS Secret, Stripe, Google, Discord, and the private-key header, which nothing else
+catches. The agent builds those from the rows above, so the rows have to be runnable exactly as
+written.
+
+**Which is why they are POSIX ERE and nothing else — no `(?i)`, no `\s`, `\d`, `\w` or `\b`.**
+`grep -E` is not PCRE. `(?i)` makes GNU grep print `warning: ? at start of expression` and match
+nothing at all: 0 hits against a file holding two AWS secrets, 2 hits once the prefix is dropped
+and `-i` passed instead. That is why the two case-insensitive rows now say `-i` in their regex
+cell; every other row is case-sensitive by design. `\s` is a GNU extension that BSD grep reads as
+a literal `s`, which costs the catch-all every assignment with whitespace around the operator
+(5 hits down to 3) — `[[:space:]]` is the portable spelling and returned byte-identical output.
+The Discord row was worse than non-portable: inside a bracket expression `\d` and `\w` are
+literal on GNU too, so `[A-Za-z\d]{23}` accepted a backslash and the letter `d` but no digits,
+and the row matched a real Discord token on no platform at all (0 hits before the rewrite, 1
+after). For `\b`, see Section 3.4 — the replacement is `-w`, not a boundary group.
 
 **Run every one of these with `grep -o`.** The prefixed patterns need nothing else: each ends
 at the first character outside its own alphabet, so the match is the token, and none of their
