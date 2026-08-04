@@ -423,7 +423,7 @@ for (const line of raw.split("\n")) {
 if (mods.size === 0 || odd > 0) {
   console.error(odd > 0
     ? "gradle printed " + odd + " coordinate-shaped lines this filter could not read - the result is incomplete, do not report it as a full scan"
-    : "gradle printed no dependency coordinates - not a gradle project, wrong configuration name, or the build failed; see the gradle output above");
+    : "gradle printed no dependency coordinates - the configuration is empty, or this is not a gradle project, the configuration name is wrong, or the build failed; see the gradle output above");
   process.exit(1);
 }
 console.log([...mods].sort().join("\n"));
@@ -459,6 +459,12 @@ declared one would report a version that is not in the build — the third field
 anything still shaped like a coordinate that yields no version at all raises `odd` and aborts.
 Same rule as Maven, same reason: a line this filter cannot read must not pass as a line that
 was not there.
+
+**A project with no dependencies at all aborts here too**, with `No dependencies` under the
+configuration heading and nothing else to read. That is a legitimate build, not a broken one —
+the message names it first for that reason. Stopping is still the right move for a licence
+scan: an empty result that means "nothing declared" and one that means "the scan never ran"
+are indistinguishable to the reader, so the caller has to confirm which it is.
 
 Header lines, the configuration description and `(n) - dependencies omitted` carry no colon
 pair and are skipped before that test — as is `\--- project ':core'`, where the space in front
