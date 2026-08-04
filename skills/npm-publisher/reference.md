@@ -100,9 +100,22 @@ Missing → warning. Don't auto-create — push to `github-publish` skill which 
 ### 3.1 Workflow
 
 1. Build a real tarball: `cd "{repo_path}" && npm pack --json` (captures filename). If it yields no tarball name, abort the tarball audit — an empty `$PKG_DIR` makes every scan below report "nothing found" for a package that was never scanned.
-2. Extract to a tempdir: `mktemp -d -t npm-audit-XXXXXXXX`, then `tar -xzf`
+2. Extract to `${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")`, then `tar -xzf`, then delete the `.tgz` right there while its name is still in scope
 3. Run all scans against the extracted `package/` directory
-4. **Always clean up** in a `finally`-equivalent: delete tempdir and the `.tgz` from the package directory
+4. **Always clean up** in a `finally`-equivalent: delete the audit directory
+
+**The audit directory is derived from `{repo_path}`, not drawn from `mktemp`, and every scan
+snippet below re-derives `$PKG_DIR` before it runs.** The audit is a sequence of separate bash
+invocations and a shell variable does not survive between them, so a scan that inherited
+`$PKG_DIR` would run against an empty path — and report a clean package it never opened. A
+random `mktemp` name cannot be recomputed by the next invocation; a derived one can. Copy the
+two-line preamble from `agents/npm-publisher.md` Phase 3e along with any pattern taken from
+here:
+
+```bash
+PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+```
 
 `npm pack` runs `prepack` and `postpack` hooks, so the tarball contents reflect what `npm publish` would actually upload — including any prepack-generated files (e.g., README/LICENSE copies in monorepo subpackages).
 

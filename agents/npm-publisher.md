@@ -489,6 +489,10 @@ For first publishes (Phase 3f finds no prior version), an Installation section i
 This is the privacy/security workhorse. Build a real tarball with `npm pack` (NOT just `--dry-run` — we need the actual files for grep), extract to a tempdir, scan exhaustively, then clean up.
 
 ```bash
+# Derived, not remembered: every scan block below recomputes this exact line.
+AUDIT_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")"
+rm -rf "$AUDIT_DIR" && mkdir -p "$AUDIT_DIR" || exit 1
+
 # Build real tarball — captures prepack hooks if any
 TARBALL=$(cd "{repo_path}" && npm pack --json | node -e '
 let out;
@@ -499,12 +503,25 @@ if (!Array.isArray(out) || !out[0] || !out[0].filename) {
 }
 console.log(out[0].filename);
 ')
-AUDIT_DIR=$(mktemp -d -t npm-audit-XXXXXXXX)
-tar -xzf "{repo_path}/$TARBALL" -C "$AUDIT_DIR"
+[ -n "$TARBALL" ] || { echo "✗ AUDIT ERROR: npm pack produced no tarball — see the npm error above. Stopping the tarball audit instead of scanning nothing." >&2; exit 1; }
+
+tar -xzf "{repo_path}/$TARBALL" -C "$AUDIT_DIR" || { echo "✗ AUDIT ERROR: could not unpack $TARBALL" >&2; exit 1; }
+rm -f "{repo_path}/$TARBALL"   # consumed here, while its name still exists
+
 PKG_DIR="$AUDIT_DIR/package"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: $PKG_DIR is missing after unpacking" >&2; exit 1; }
 ```
 
-**If `$TARBALL` is empty, STOP the tarball audit** and report it as an audit error. Do not continue with an empty `$PKG_DIR` — every scan below would then silently find nothing and the package would look clean without ever having been checked. `npm pack` stderr is deliberately not suppressed here so the reason for the failure is visible.
+**The three guards above are the executable form of one rule: an audit that could not look must say so, not report "no findings".** Prose alone would not carry it — the audit is a sequence of separate bash invocations, so it has to hold even when a block is run on its own.
+
+**Every block below therefore re-derives `$PKG_DIR` instead of inheriting it.** Shell variables do not survive from one bash call to the next; a scan that relied on the assignment above would run `grep -r ""` and report a clean package it never opened. The two-line preamble each block carries is the price of blocks that are individually runnable:
+
+```bash
+PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+```
+
+`basename` rather than a `mktemp` name, because a random directory cannot be recomputed by the next block. Should the derivation ever land on the wrong path — a differently rendered `{repo_path}`, a cleaned `$TMPDIR` — the `[ -d ]` guard aborts loudly; the failure mode is a stopped audit, never a silent pass.
 
 For each scan below, gather findings with file paths and line numbers (when relevant). All scans run against `$PKG_DIR`. Read `${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/reference.md` Section 3 for the full pattern catalog.
 
@@ -524,6 +541,9 @@ as passed.
 
 **1. Absolute filesystem paths (Critical)** — leaks build environment:
 ```bash
+PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+
 grep -rnoE "(/home/[a-zA-Z]|/Users/[a-zA-Z]|/root/[a-zA-Z]|/mnt/[a-z]/)[A-Za-z0-9._/-]{0,200}|C:\\\\[Uu]sers[A-Za-z0-9._\\\\-]{0,200}" \
   "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.map"
 ```
@@ -533,6 +553,9 @@ tail matches the empty string, so every hit the prefix alone would have found is
 
 **2. Email addresses (Warning)** — except those in NOTICE/package.json author/maintainer fields:
 ```bash
+PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+
 grep -rnoE "[a-zA-Z0-9._%+-]{1,64}@[a-zA-Z0-9.-]{1,255}\.[a-zA-Z]{2,24}" "$PKG_DIR" \
   --include="*.js" --include="*.json" --include="*.md" --include="*.txt"
 ```
@@ -540,11 +563,17 @@ Apply whitelist: emails in `NOTICE`, `LICENSE` (Apache contains contact email in
 
 **3. IP addresses (Warning)** — except `127.0.0.1`, `0.0.0.0`, broadcast `255.x`, documentation ranges (`192.0.2.x`, `198.51.100.x`, `203.0.113.x`):
 ```bash
+PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+
 grep -rnowE "([0-9]{1,3}\.){3}[0-9]{1,3}" "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md"
 ```
 
 **4. Hostnames (Warning)** — internal/private patterns:
 ```bash
+PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+
 grep -rnowE "(localhost|[a-z0-9-]{1,253}\.local|[a-z0-9-]{1,253}\.lan|[a-z0-9-]{1,253}\.intern|[a-z0-9-]{1,253}\.corp|[a-z0-9-]{1,253}\.intranet|raspberry[a-z0-9-]{0,253}|rpi[0-9-]{0,253}|pihole[a-z0-9-]{0,253}|homelab[a-z0-9-]{0,253})" "$PKG_DIR" \
   --include="*.js" --include="*.json" --include="*.md" --include="*.txt"
 ```
@@ -560,6 +589,9 @@ why explicit boundary groups are the wrong replacement.
 
 **6. Secret patterns (CRITICAL)** — see reference.md Section 3.6 for full regex catalog. Minimum coverage:
 ```bash
+PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+
 # JWT
 grep -rnoE "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+" "$PKG_DIR"
 # npm token
@@ -600,6 +632,9 @@ Apply false-positive downgrades: matches in `*.test.js`, `*.spec.js`, `fixtures/
 
 **7. Dotfile-Hygiene (CRITICAL — Check Point Research finding)** — these files would leak credentials at scale:
 ```bash
+PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+
 find "$PKG_DIR" -type f \( \
   -path '*/.claude/*' -o \
   -name 'settings.local.json' -o \
@@ -621,6 +656,9 @@ Any match here is critical — these patterns are documented credential-leak vec
 
 **8a. Embedded `sourcesContent` (Warning)** — would leak original TypeScript/source:
 ```bash
+PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+
 find "$PKG_DIR" -name "*.map" -type f -print0 | while IFS= read -r -d '' f; do
   node -e '
 const fs = require("fs");
@@ -636,6 +674,9 @@ done
 
 **8b. `sources` pointing outside the package (informational)** — the map is unusable for consumers:
 ```bash
+PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+
 find "$PKG_DIR" -name "*.map" -type f -print0 | while IFS= read -r -d '' f; do
   node -e '
 const fs = require("fs");
@@ -662,9 +703,14 @@ Both checks print findings on stdout and a `SKIPPED (...)` line on stderr for an
 
 **Cleanup after audit (always — even on error):**
 ```bash
-rm -f "{repo_path}/$TARBALL"
+AUDIT_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")"
 rm -rf "$AUDIT_DIR"
 ```
+
+The `.tgz` is already gone — it is deleted in the pack step above, in the one block where its
+name is still in scope. A `rm -f "{repo_path}/$TARBALL"` here would expand to `rm -f "{repo_path}/"`
+and leave the tarball sitting in the repository, where the next `npm pack` would have to
+consider it.
 
 Store all findings as `tarball_findings = { absolute_paths, emails, ips, hostnames, names, secrets, dotfiles, sourcemaps_with_content, sourcemaps_unreachable }` — each list contains file paths + counts + up to 3 example matches.
 
