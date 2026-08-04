@@ -100,21 +100,24 @@ Missing → warning. Don't auto-create — push to `github-publish` skill which 
 ### 3.1 Workflow
 
 1. Build a real tarball: `cd "{repo_path}" && npm pack --json` (captures filename). If it yields no tarball name, abort the tarball audit — an empty `$PKG_DIR` makes every scan below report "nothing found" for a package that was never scanned.
-2. Extract to `${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")`, then `tar -xzf`, then delete the `.tgz` right there while its name is still in scope
+2. Extract to a fresh `mktemp -d` directory, then `tar -xzf`, then delete the `.tgz` right there while its name is still in scope
 3. Run all scans against the extracted `package/` directory
 4. **Always clean up** in a `finally`-equivalent: delete the audit directory
 
-**The audit directory is derived from `{repo_path}`, not drawn from `mktemp`, and every scan
-snippet below re-derives `$PKG_DIR` before it runs.** The audit is a sequence of separate bash
-invocations and a shell variable does not survive between them, so a scan that inherited
-`$PKG_DIR` would run against an empty path — and report a clean package it never opened. A
-random `mktemp` name cannot be recomputed by the next invocation; a derived one can. Copy the
-two-line preamble from `agents/npm-publisher.md` Phase 3e along with any pattern taken from
-here:
+**The audit directory comes from `mktemp -d` and its path is printed, and every scan snippet
+below gets that printed path pasted in.** The audit is a sequence of separate bash invocations
+and a shell variable does not survive between them, so a scan that inherited `$PKG_DIR` would
+run against an empty path — and report a clean package it never opened. The fix for that is
+*not* a path derived from `{repo_path}`: a computable path in a shared `$TMPDIR` can be a
+symlink by the time this security scan writes through it (CWE-377), and two repos with the same
+basename would collide. A printed path carries just as well as a derived one, without being
+guessable. Copy the two-line preamble from `agents/npm-publisher.md` Phase 3e along with any
+pattern taken from here, and substitute the path — do not leave the placeholder in, and do not
+replace it with a variable from an earlier block:
 
 ```bash
-PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
-[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 ```
 
 `npm pack` runs `prepack` and `postpack` hooks, so the tarball contents reflect what `npm publish` would actually upload — including any prepack-generated files (e.g., README/LICENSE copies in monorepo subpackages).

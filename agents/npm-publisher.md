@@ -512,9 +512,9 @@ For first publishes (Phase 3f finds no prior version), an Installation section i
 This is the privacy/security workhorse. Build a real tarball with `npm pack` (NOT just `--dry-run` — we need the actual files for grep), extract to a tempdir, scan exhaustively, then clean up.
 
 ```bash
-# Derived, not remembered: every scan block below recomputes this exact line.
-AUDIT_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")"
-rm -rf "$AUDIT_DIR" && mkdir -p "$AUDIT_DIR" || exit 1
+# Private, unguessable audit directory. Its path is PRINTED at the end of this block —
+# the scan blocks below get that literal path pasted in, they do not recompute it.
+AUDIT_DIR=$(mktemp -d "${TMPDIR:-/tmp}/npm-audit-XXXXXXXXXX") || { echo "✗ AUDIT ERROR: could not create an audit directory" >&2; exit 1; }
 
 # Build real tarball — captures prepack hooks if any
 TARBALL=$(cd "{repo_path}" && npm pack --json | node -e '
@@ -533,18 +533,22 @@ rm -f "{repo_path}/$TARBALL"   # consumed here, while its name still exists
 
 PKG_DIR="$AUDIT_DIR/package"
 [ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: $PKG_DIR is missing after unpacking" >&2; exit 1; }
+
+# Carry these two paths forward by reading them off this output.
+echo "AUDIT_DIR=$AUDIT_DIR"
+echo "PKG_DIR=$PKG_DIR"
 ```
 
 **The three guards above are the executable form of one rule: an audit that could not look must say so, not report "no findings".** Prose alone would not carry it — the audit is a sequence of separate bash invocations, so it has to hold even when a block is run on its own.
 
-**Every block below therefore re-derives `$PKG_DIR` instead of inheriting it.** Shell variables do not survive from one bash call to the next; a scan that relied on the assignment above would run `grep -r ""` and report a clean package it never opened. The two-line preamble each block carries is the price of blocks that are individually runnable:
+**Every block below needs the `PKG_DIR=` path from that output pasted in literally.** Shell variables do not survive from one bash call to the next, so a scan that relied on the assignment above would run `grep -r ""` and report a clean package it never opened. Do not write `PKG_DIR="$AUDIT_DIR/package"` in a later block and hope the value carries over — it will not; the guard will stop the scan, which is the good case, but the scan still did not run. Take the printed path and put it in:
 
 ```bash
-PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
-[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 ```
 
-`basename` rather than a `mktemp` name, because a random directory cannot be recomputed by the next block. Should the derivation ever land on the wrong path — a differently rendered `{repo_path}`, a cleaned `$TMPDIR` — the `[ -d ]` guard aborts loudly; the failure mode is a stopped audit, never a silent pass.
+`mktemp -d`, not a name derived from `{repo_path}`: a derived name is a name anyone else on the host can compute, and between the `rm -rf` and the `mkdir` it takes to reuse one, that path can become a symlink — after which this audit, a security scan, reads and writes through it (CWE-377/CWE-367). Two repos with the same directory basename would also share it. The random name costs nothing, because the path travels by being *printed and pasted*, not by being recomputed. That is the whole difference to the version this replaces: that one asked a shell variable to outlive its process, which never happens; this one asks you to reuse a value the previous command printed, which is what you already do with the tarball name or a commit SHA. And should a block ever run without the paste — placeholder left in, a stale path from an earlier audit, a cleaned `$TMPDIR` — the `[ -d ]` guard aborts loudly; the failure mode is a stopped audit, never a silent pass.
 
 For each scan below, gather findings with file paths and line numbers (when relevant). All scans run against `$PKG_DIR`. Read `${CLAUDE_PLUGIN_ROOT}/skills/npm-publisher/reference.md` Section 3 for the full pattern catalog.
 
@@ -564,8 +568,8 @@ as passed.
 
 **1. Absolute filesystem paths (Critical)** — leaks build environment:
 ```bash
-PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
-[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
 grep -rnoE "(/home/[a-zA-Z]|/Users/[a-zA-Z]|/root/[a-zA-Z]|/mnt/[a-z]/)[A-Za-z0-9._/-]{0,200}|C:\\\\[Uu]sers[A-Za-z0-9._\\\\-]{0,200}" \
   "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md" --include="*.map"
@@ -576,8 +580,8 @@ tail matches the empty string, so every hit the prefix alone would have found is
 
 **2. Email addresses (Warning)** — except those in NOTICE/package.json author/maintainer fields:
 ```bash
-PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
-[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
 grep -rnoE "[a-zA-Z0-9._%+-]{1,64}@[a-zA-Z0-9.-]{1,255}\.[a-zA-Z]{2,24}" "$PKG_DIR" \
   --include="*.js" --include="*.json" --include="*.md" --include="*.txt"
@@ -586,16 +590,16 @@ Apply whitelist: emails in `NOTICE`, `LICENSE` (Apache contains contact email in
 
 **3. IP addresses (Warning)** — except `127.0.0.1`, `0.0.0.0`, broadcast `255.x`, documentation ranges (`192.0.2.x`, `198.51.100.x`, `203.0.113.x`):
 ```bash
-PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
-[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
 grep -rnowE "([0-9]{1,3}\.){3}[0-9]{1,3}" "$PKG_DIR" --include="*.js" --include="*.json" --include="*.md"
 ```
 
 **4. Hostnames (Warning)** — internal/private patterns:
 ```bash
-PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
-[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
 grep -rnowE "(localhost|[a-z0-9-]{1,253}\.local|[a-z0-9-]{1,253}\.lan|[a-z0-9-]{1,253}\.intern|[a-z0-9-]{1,253}\.corp|[a-z0-9-]{1,253}\.intranet|raspberry[a-z0-9-]{0,253}|rpi[0-9-]{0,253}|pihole[a-z0-9-]{0,253}|homelab[a-z0-9-]{0,253})" "$PKG_DIR" \
   --include="*.js" --include="*.json" --include="*.md" --include="*.txt"
@@ -612,8 +616,8 @@ why explicit boundary groups are the wrong replacement.
 
 **6. Secret patterns (CRITICAL)** — see reference.md Section 3.6 for full regex catalog. Minimum coverage:
 ```bash
-PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
-[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
 # JWT
 grep -rnoE "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+" "$PKG_DIR"
@@ -655,8 +659,8 @@ Apply false-positive downgrades: matches in `*.test.js`, `*.spec.js`, `fixtures/
 
 **7. Dotfile-Hygiene (CRITICAL — Check Point Research finding)** — these files would leak credentials at scale:
 ```bash
-PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
-[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
 find "$PKG_DIR" -type f \( \
   -path '*/.claude/*' -o \
@@ -679,8 +683,8 @@ Any match here is critical — these patterns are documented credential-leak vec
 
 **8a. Embedded `sourcesContent` (Warning)** — would leak original TypeScript/source:
 ```bash
-PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
-[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
 find "$PKG_DIR" -name "*.map" -type f -print0 | while IFS= read -r -d '' f; do
   node -e '
@@ -697,8 +701,8 @@ done
 
 **8b. `sources` pointing outside the package (informational)** — the map is unusable for consumers:
 ```bash
-PKG_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")/package"
-[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — run the npm pack step above first. Not scanning." >&2; exit 1; }
+PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
+[ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
 find "$PKG_DIR" -name "*.map" -type f -print0 | while IFS= read -r -d '' f; do
   node -e '
@@ -726,9 +730,17 @@ Both checks print findings on stdout and a `SKIPPED (...)` line on stderr for an
 
 **Cleanup after audit (always — even on error):**
 ```bash
-AUDIT_DIR="${TMPDIR:-/tmp}/npm-audit-$(basename "{repo_path}")"
-rm -rf "$AUDIT_DIR"
+AUDIT_DIR="<paste the AUDIT_DIR path printed by the pack step above>"
+case "$AUDIT_DIR" in
+  */npm-audit-*) rm -rf "$AUDIT_DIR" ;;
+  *) echo "✗ AUDIT ERROR: '$AUDIT_DIR' is not an audit directory — deleted nothing. Paste the AUDIT_DIR path printed by the npm pack step above." >&2; exit 1 ;;
+esac
 ```
+
+The `case` is there because this is the one block that pastes a path into an `rm -rf`. An
+unsubstituted placeholder or a mis-pasted `{repo_path}` would otherwise be deleted on sight;
+matching the `npm-audit-` shape `mktemp` produced costs two lines and bounds the damage to
+directories this audit created.
 
 The `.tgz` is already gone — it is deleted in the pack step above, in the one block where its
 name is still in scope. A `rm -f "{repo_path}/$TARBALL"` here would expand to `rm -f "{repo_path}/"`
