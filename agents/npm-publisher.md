@@ -141,14 +141,37 @@ Otherwise, decide on a version bump, sync source-file VERSION constants, generat
 PKG_NAME=$(node -p 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).name' "{repo_path}/package.json")
 PKG_VERSION=$(node -p 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).version' "{repo_path}/package.json")
 
-# Registry state
-PUBLISHED_LATEST=$(npm view "$PKG_NAME" version 2>/dev/null || echo "FIRST_PUBLISH")
+# Registry state — FIRST_PUBLISH is a 404 and nothing else
+NPM_ERR=$(mktemp)
+if PUBLISHED_LATEST=$(npm view "$PKG_NAME" version 2>"$NPM_ERR"); then
+  :
+elif grep -q 'E404\|404 Not Found' "$NPM_ERR"; then
+  PUBLISHED_LATEST=FIRST_PUBLISH
+else
+  echo "✗ ABORT: 'npm view $PKG_NAME version' failed, and not with a 404 — the package may well exist:" >&2
+  cat "$NPM_ERR" >&2
+  rm -f "$NPM_ERR"
+  exit 1
+fi
+rm -f "$NPM_ERR"
 
 # Last release tag (best-effort)
 LAST_TAG=$(git -C "{repo_path}" describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo "")
 ```
 
 Store: `pkg_name`, `pkg_version`, `published_latest`, `last_tag`.
+
+**`FIRST_PUBLISH` means one thing: the registry answered 404.** A missing login, a dropped
+network, a registry outage and a typo in the package name all make `npm view` fail too, and
+`2>/dev/null || echo FIRST_PUBLISH` turned every one of them into "this package does not exist
+yet" — which then skips the version comparison in 2.2/2.3 and publishes against a registry
+state nobody ever read. The exit code separates the two; anything that is not a 404 stops the
+run with npm's own message on screen. See `docs/plugin-howto.md`, "Never Redirect the
+Diagnosing Stream Away".
+
+`LAST_TAG` on the next line keeps its `|| echo ""` on purpose: `git describe` has exactly one
+failure mode here — no matching tag — and an empty `LAST_TAG` is handled as such downstream
+(reference.md Section 9, "Last tag missing"). It is a local read with no network behind it.
 
 Branch on `published_latest` and `pkg_version` per Section 9.1 of reference.md:
 
