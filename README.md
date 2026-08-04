@@ -101,6 +101,7 @@ own doctrine (SessionStart) and enforcement (PreToolUse) hooks.
 | `create-cli` | Design CLI parameters, flags, and UX |
 | `grill-me` | Stress-test a plan or decision via a relentless one-question-at-a-time interview |
 | `council` | Convene two or three independent, mutually blind views on one decision, cut by where their evidence comes from rather than by role |
+| `tracker` | Work an issue tracker in blocks: map how the issues couple, evaluate each by reproducing rather than reading, implement in dependency order |
 | `persona` | Set the agent's communication style (writer/engineer/telegrapher/caveman); opt-in, off by default |
 | `learn` | Distill a source or the current conversation into one reusable learned skill (autoskill) |
 | `curator` | Curate the learned-skill library: lifecycle maintenance + overlap report (autoskill) |
@@ -309,6 +310,7 @@ agenticaiplugin/
 │   ├── pr-review-setup/         # Automated PR review action setup
 │   ├── promote-perms/           # Permission promotion
 │   ├── qa/                      # Quality Square traceability
+│   ├── tracker/                 # Working an issue tracker in blocks
 │   ├── update-plugin/           # Plugin update management
 │   └── youtube-transcript/      # YouTube caption fetcher (pure Node)
 ├── hooks/                       # Lifecycle hooks (doctrine injection, git-commit guard, autoskill, persona, prereq check)
