@@ -4,7 +4,7 @@ Token-optimized reference for AI agents developing Claude Code plugins.
 
 | | |
 |---|---|
-| **Last touched** | 2026-08-01 (last content change, per `git log`) |
+| **Last touched** | 2026-08-04 (last content change, per `git log`) |
 | **Header added** | 2026-08-02 |
 | **Claude Code** | 2.1.220 (current version at the time of this header) |
 | **Plugin** | 0.31.1 |

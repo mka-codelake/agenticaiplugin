@@ -732,6 +732,7 @@ Both checks print findings on stdout and a `SKIPPED (...)` line on stderr for an
 ```bash
 AUDIT_DIR="<paste the AUDIT_DIR path printed by the pack step above>"
 case "$AUDIT_DIR" in
+  */npm-audit-*/*) echo "✗ AUDIT ERROR: '$AUDIT_DIR' is inside an audit directory, not the directory itself — deleted nothing. Paste the AUDIT_DIR path, not the PKG_DIR one." >&2; exit 1 ;;
   */npm-audit-*) rm -rf "$AUDIT_DIR" ;;
   *) echo "✗ AUDIT ERROR: '$AUDIT_DIR' is not an audit directory — deleted nothing. Paste the AUDIT_DIR path printed by the npm pack step above." >&2; exit 1 ;;
 esac
