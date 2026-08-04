@@ -76,7 +76,7 @@ ls "{repo_path}/package.json" 2>/dev/null
 # Monorepo signals (any of these → out of scope)
 ls "{repo_path}/lerna.json" 2>/dev/null
 ls "{repo_path}/pnpm-workspace.yaml" 2>/dev/null
-cat "{repo_path}/package.json" 2>/dev/null | grep -E '"workspaces"[[:space:]]*:'
+grep -E '"workspaces"[[:space:]]*:' "{repo_path}/package.json"
 ```
 
 If a monorepo is detected, STOP with a clear message:
@@ -145,7 +145,7 @@ PKG_VERSION=$(node -p 'JSON.parse(require("fs").readFileSync(process.argv[1], "u
 NPM_ERR=$(mktemp)
 if PUBLISHED_LATEST=$(npm view "$PKG_NAME" version 2>"$NPM_ERR"); then
   :
-elif grep -q 'E404\|404 Not Found' "$NPM_ERR"; then
+elif grep -qE 'E404|404 Not Found' "$NPM_ERR"; then
   PUBLISHED_LATEST=FIRST_PUBLISH
 else
   echo "✗ ABORT: 'npm view $PKG_NAME version' failed, and not with a 404 — the package may well exist:" >&2
