@@ -97,10 +97,13 @@ const fixture = (name) => readFileSync(join(REPO_ROOT, 'skills/license-check/fix
 // ends the argument early and hands the rest to the shell. node -e receives the body
 // directly here, which means no test below could ever catch that — this one can.
 test('no embedded filter contains a single quote', () => {
+  // Both characters, because the shape has to survive two contexts: a `'` closes the
+  // argument early in either, and a `$` is expanded by the shell when the pipeline runs
+  // inside `$( )`. plugin-howto.md states the contract as "no `'` and no `$`".
   const offenders = SOURCES.flatMap(extractFilters)
-    .filter((f) => f.body.includes("'"))
-    .map((f) => `${f.file}:${f.line}`);
-  assert.deepEqual(offenders, [], "a `'` closes the shell argument early");
+    .filter((f) => f.body.includes("'") || f.body.includes('$'))
+    .map((f) => `${f.file}:${f.line} (${f.body.includes("'") ? "'" : '$'})`);
+  assert.deepEqual(offenders, [], "a `'` closes the shell argument early; a `$` is expanded inside `$( )`");
 });
 
 // ---------------------------------------------------------------------------
