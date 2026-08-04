@@ -288,8 +288,14 @@ find "$PKG_DIR" -type f \( \
   -name '.npmrc' -o \
   -path '*/.aws/*' -o -path '*/.ssh/*' -o \
   -name 'id_rsa*' -o -name '*.pem' -o -name '*.key' -o -name '*.p12' -o -name '*.pfx' \
-\) 2>/dev/null
+\)
 ```
+
+`2>/dev/null` is deliberately absent here, and `find` reads its exit code the other way round
+from `grep`: it exits **0** once it has searched, with or without hits, so an empty listing is a
+real all-clear. A non-zero exit means it could not look everywhere — an empty `$PKG_DIR`, a
+missing directory, an unreadable subtree — and then even a *non-empty* hit list is incomplete.
+Suppressed, every one of those arrives as "this package is clean" (issue #102).
 
 **Reference:** Check Point Research scanned ~46,500 npm packages in late 2025 and found:
 - 428 packages contained `.claude/settings.local.json`

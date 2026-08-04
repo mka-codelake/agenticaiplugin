@@ -598,8 +598,13 @@ find "$PKG_DIR" -type f \( \
   -name '.npmrc' -o \
   -path '*/.aws/*' -o -path '*/.ssh/*' -o \
   -name 'id_rsa*' -o -name '*.pem' -o -name '*.key' -o -name '*.p12' -o -name '*.pfx' \
-\) 2>/dev/null
+\)
 ```
+
+`find` reads its exit code the other way round from `grep`: it exits **0** once it has searched,
+with or without hits, so an empty listing here is a real all-clear. A non-zero exit means it
+could not look everywhere — an empty `$PKG_DIR`, a missing directory, an unreadable subtree —
+and then even a *non-empty* hit list is incomplete. That is why this scan keeps stderr too.
 
 Any match here is critical — these patterns are documented credential-leak vectors. Reference: Check Point Research scanned ~46,500 npm packages and found `.claude/settings.local.json` in 428 of them, with 30+ containing real tokens.
 
