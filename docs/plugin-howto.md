@@ -854,34 +854,23 @@ Every user-invocable skill that acts as a command MUST include two standardized 
 
 ### Never Redirect the Diagnosing Stream Away
 
-**No command in a SKILL.md or an agent instruction redirects stderr away** — neither
-`2>/dev/null` nor `2>&1` into a pipe. stderr is the only channel that separates *looked and
-found nothing* from *could not look*, and both of those reach the reader as empty stdout.
-Measured twice: `2>/dev/null` turned "the tool is not installed" into "this project has no
-dependencies" (#63), and "the directory does not exist" into "this tarball is clean" (#102) —
-the latter in a scan marked CRITICAL, beside sibling scans that all reported their own failure.
-Under `--json` the redirect does a second kind of damage: those tools put the machine-readable
-error on stdout and the human-readable cause on stderr, so `2>&1` feeds the cause to the filter
-instead of to the reader.
+**When you write or touch a command in a SKILL.md or an agent instruction, do not redirect its
+stderr away** — neither `2>/dev/null` nor `2>&1` into a pipe. stderr is the only channel that
+separates *looked and found nothing* from *could not look*, and both of those reach the reader
+as empty stdout. Measured twice: `2>/dev/null` turned "the tool is not installed" into "this
+project has no dependencies" (#63), and "the directory does not exist" into "this tarball is
+clean" (#102) — the latter in a scan marked CRITICAL, beside sibling scans that all reported
+their own failure. Under `--json` the redirect does a second kind of damage: those tools put the
+machine-readable error on stdout and the human-readable cause on stderr, so `2>&1` feeds the
+cause to the filter instead of to the reader.
 
-Read the exit code, not just the output — a scan counts as passed only when the command also
-says it was able to look. The conventions differ per tool (`grep` exits 1 on no match and ≥ 2 on
-failure; `find` exits 0 whether or not it found anything), so write down next to the command
-which one applies.
+Suppressing is legitimate where the noise is *expected* and the reader must not act on it — a
+`find ~ …` across an entire home directory hits unreadable directories by design — or where the
+command has a single failure mode that is itself the answer, such as `ls somefile` asked only to
+learn whether the file exists. Both are decisions, and they belong in a sentence beside the
+command rather than in a default.
 
-Two exceptions are legitimate, and both are decisions that belong in a sentence beside the
-command rather than a default.
-
-The first is stderr that is *expected* noise the reader must not act on — a `find ~ …` across an
-entire home directory hits unreadable directories by design.
-
-The second is a command with **exactly one** failure mode, where the failure is itself the
-answer being sought: `ls somefile` asked purely to learn whether the file exists, or
-`git describe --tags` in a repository that may have no tag. Nothing is lost, because there is no
-second cause the message could have named. The test is whether you can name every way the
-command can fail — if the list has one entry and you handle it, suppress; if you find yourself
-writing "and probably a few other things", you have the `2>/dev/null || echo FIRST_PUBLISH` case
-from #100, where a dropped network read as "this package does not exist yet".
+This governs what you write; it is not a licence to sweep a file you happen to be editing.
 
 ### Parsing Command Output (skills & agents: `node`, not `jq`)
 
