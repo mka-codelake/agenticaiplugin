@@ -99,8 +99,8 @@ Missing → warning. Don't auto-create — push to `github-publish` skill which 
 
 ### 3.1 Workflow
 
-1. Build a real tarball: `cd "{repo_path}" && npm pack --json` (captures filename). If it yields no tarball name, abort the tarball audit — an empty `$PKG_DIR` makes every scan below report "nothing found" for a package that was never scanned.
-2. Extract to a fresh `mktemp -d` directory, then `tar -xzf`, then delete the `.tgz` right there while its name is still in scope
+1. Create the audit directory first: `mktemp -d` with an explicit template
+2. Build a real tarball: `cd "{repo_path}" && npm pack --json` (captures filename). If it yields no tarball name, abort the tarball audit — an empty `$PKG_DIR` makes every scan below report "nothing found" for a package that was never scanned. Then `tar -xzf` into the audit directory and delete the `.tgz` right there, while its name is still in scope
 3. Run all scans against the extracted `package/` directory
 4. **Always clean up** in a `finally`-equivalent: delete the audit directory
 
