@@ -4,7 +4,7 @@ Token-optimized reference for AI agents developing Claude Code plugins.
 
 | | |
 |---|---|
-| **Last touched** | 2026-08-01 (last content change, per `git log`) |
+| **Last touched** | 2026-08-04 (last content change, per `git log`) |
 | **Header added** | 2026-08-02 |
 | **Claude Code** | 2.1.220 (current version at the time of this header) |
 | **Plugin** | 0.31.1 |
@@ -852,6 +852,26 @@ Every user-invocable skill that acts as a command MUST include two standardized 
 
 **Applies to:** All user-invocable skills that perform an action. Pure knowledge skills (auto-activated only, `user-invocable: false`) may skip this.
 
+### Never Redirect the Diagnosing Stream Away
+
+**When you write or touch a command in a SKILL.md or an agent instruction, do not redirect its
+stderr away** — neither `2>/dev/null` nor `2>&1` into a pipe. stderr is the only channel that
+separates *looked and found nothing* from *could not look*, and both of those reach the reader
+as empty stdout. Measured twice: `2>/dev/null` turned "the tool is not installed" into "this
+project has no dependencies" (#63), and "the directory does not exist" into "this tarball is
+clean" (#102) — the latter in a scan marked CRITICAL, beside sibling scans that all reported
+their own failure. Under `--json` the redirect does a second kind of damage: those tools put the
+machine-readable error on stdout and the human-readable cause on stderr, so `2>&1` feeds the
+cause to the filter instead of to the reader.
+
+Suppressing is legitimate where the noise is *expected* and the reader must not act on it — a
+`find ~ …` across an entire home directory hits unreadable directories by design — or where the
+command has a single failure mode that is itself the answer, such as `ls somefile` asked only to
+learn whether the file exists. Both are decisions, and they belong in a sentence beside the
+command rather than in a default.
+
+This governs what you write; it is not a licence to sweep a file you happen to be editing.
+
 ### Parsing Command Output (skills & agents: `node`, not `jq`)
 
 **Bash snippets in SKILL.md and agent instructions parse JSON with `node`, never with
@@ -882,16 +902,11 @@ public image with HTTP 200 and a full tag list (an empty token gives 403, no hea
 the one value a naive read produces is the one that passes). So always assert the shape
 you depend on and abort loudly when it is missing.
 
-Two corollaries, each from a measured false negative (#63):
-
-- **Never truncate a JSON stream with `head`.** It leaves an invalid fragment, and summary
-  fields sit at the *end*: `npm audit --json | head -200` cut `metadata.vulnerabilities`
-  away completely. The filter script is what keeps the output small — not `head`.
-- **Never redirect the diagnosing stream away** — neither `2>/dev/null` nor `2>&1` into the
-  pipe. Under `--json` these tools put the machine-readable error on stdout and the
-  human-readable cause on stderr; folding stderr into the pipe feeds it to the filter
-  instead of the reader, and `2>/dev/null` turns "the tool is not installed" into
-  "this project has no dependencies".
+**Never truncate a JSON stream with `head`** — a corollary from a measured false negative
+(#63). It leaves an invalid fragment, and summary fields sit at the *end*: `npm audit --json |
+head -200` cut `metadata.vulnerabilities` away completely. The filter script is what keeps the
+output small — not `head`. The stream these commands must never lose is stderr; that rule is
+its own section above.
 
 **Filter where the response is large — and only there.** The benefit is proportional to
 response size: PyPI answers 3.2 MB of release history for one version string, `npm view …
