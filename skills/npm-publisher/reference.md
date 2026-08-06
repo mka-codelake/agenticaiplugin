@@ -652,9 +652,11 @@ Then parse each commit's subject:
 
 Aggregate across all commits — the highest-impact signal wins (any `major` → bump major; else any `feat` → minor; else patch).
 
-**Filter out** — both recognisable by subject, which is all the filter above returns:
+**Filter out** — both recognisable by subject content, not by literal string match:
 - Merge commits (`Merge branch ...`, `Merge pull request ...`) — auto-generated, no semantic value
-- Previous `chore(release):` commits — these mark prior releases, not new content
+- Previous release commits — `chore(release):` is the expected wording (9.7), but
+  `git-smart-commit` decides the actual subject each time, not this scan, so a release commit
+  worded differently is still excluded
 
 Co-author trailers used to need filtering here as well. They do not any more: they live in the
 body, and the body no longer leaves the filter — only the `breaking` boolean derived from it
@@ -717,7 +719,10 @@ If none found: ask the user via AskUserQuestion. Default Yes — create `CHANGEL
 chore(release): v{X.Y.Z}
 ```
 
-No body required for routine releases. The CHANGELOG entry IS the documentation. Optional body: short summary if the bump is unusual (e.g., a major version warranting context).
+This is the expected subject, not a literal instruction handed to `git-smart-commit`: the skill
+takes no message parameter and composes the commit itself from the staged diff (agents/npm-publisher.md
+Section 2.6). No body required for routine releases. The CHANGELOG entry IS the documentation.
+Optional body: short summary if the bump is unusual (e.g., a major version warranting context).
 
 ### 9.8 Skip conditions
 

@@ -518,19 +518,19 @@ This is the most critical step. Follow reference.md Section 5 strictly — it is
 git -C {repo_path} add -A
 ```
 
-**Commit** the staged files by invoking the skill `agenticaiplugin:git-smart-commit` with message:
+**Commit** the staged files by invoking the skill `agenticaiplugin:git-smart-commit`. The skill
+takes no message parameter — it analyzes the staged diff itself and writes its own message, so
+do not pass one. Do not run `git commit` directly. Nothing downstream in this workflow reads the
+commit subject back, so its exact wording is not load-bearing here; for reference, the diff
+typically covers:
 
 ```
-docs: prepare repository for public release
-
 Add LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md,
 GitHub Actions release workflow, issue templates, and project logo.
 Enhance README with badges, logo, and status banner.
 {If translations were applied: Translate German content to English ({N} files).}
 {If sensitive content was redacted: Redact sensitive content ({categories}).}
 ```
-
-Do not run `git commit` directly.
 
 **Output a structured summary:**
 

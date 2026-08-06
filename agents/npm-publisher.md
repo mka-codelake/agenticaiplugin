@@ -295,9 +295,11 @@ Aggregate the highest-impact signal across the rows above:
 - ELSE ANY commit has `feat:` or `feat(...):` → `minor`
 - ELSE → `patch`
 
-Filter out: merge commits and previous `chore(release):` commits — both recognisable by
-subject. Co-author trailers need no filtering any more: they live in the body, which no longer
-reaches you.
+Filter out: merge commits and previous release commits — both recognisable by subject content,
+not by literal string match. `chore(release):` is the expected wording (Section 2.6), but
+git-smart-commit decides the actual subject each time, not this agent, so recognise a release
+commit by what it says, not only by that exact prefix. Co-author trailers need no filtering any
+more: they live in the body, which no longer reaches you.
 
 **Step C — Compute next version per reference.md Section 9.3:**
 
@@ -398,8 +400,12 @@ Omit empty subsections.
 git -C "{repo_path}" add package.json {synced source files} CHANGELOG.md
 ```
 
-**Commit** the staged files by invoking the skill `agenticaiplugin:git-smart-commit` with message
-`chore(release): v{next_version}`. Do not run `git commit` directly.
+**Commit** the staged files by invoking the skill `agenticaiplugin:git-smart-commit`. The skill
+takes no message parameter — it analyzes the staged diff itself and writes its own subject, so
+do not pass one. Do not run `git commit` directly. Given a version bump plus a matching
+CHANGELOG section, its own convention detection reliably lands on `chore(release): v{next_version}`
+or an equivalent recognisable release subject; treat that as the expected wording, not a
+guaranteed one — Step B below filters on it in later runs.
 
 **Output to user:**
 ```
@@ -407,7 +413,7 @@ git -C "{repo_path}" add package.json {synced source files} CHANGELOG.md
   - package.json: version updated
   - {VERSION constant synced in {N} source files | VERSION constants not checked — no source dir (src, app/src, lib), Step F printed SKIPPED}
   - CHANGELOG.md: new section added
-  - Commit: chore(release): v{next_version}
+  - Commit: {actual subject git-smart-commit wrote, expected `chore(release): v{next_version}`}
 
 Continuing to audits...
 ```
@@ -924,7 +930,7 @@ NPM Publish — Audit Status
     {check} Bumped {old_version} → {new_version} ({bump_type}, {N} commits)
     {✓ source VERSION constants synced ({M} files) | ℹ not checked — no source dir (src, app/src, lib)}
     {check} CHANGELOG.md entry added
-    {check} Commit: chore(release): v{new_version}
+    {check} Commit: {actual subject git-smart-commit wrote, expected chore(release): v{new_version}}
 
   Account
     {check} Logged in as {user | "not logged in — run `npm login`"}
