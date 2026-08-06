@@ -1036,10 +1036,12 @@ After redactions, re-grep the redacted patterns in the working tree to verify ze
 Re-run the critical audits after fixes:
 
 ```bash
-# Run any project-defined quality gates first
-cd "{repo_path}" && npm run typecheck 2>/dev/null || true
-cd "{repo_path}" && npm run lint 2>/dev/null || true
-cd "{repo_path}" && npm run build 2>/dev/null || true
+# Run any project-defined quality gates first. Stderr is not suppressed here:
+# a missing script and a missing `npm` binary both need to stay visible instead
+# of collapsing into the same silent "|| true" as a real gate failure.
+cd "{repo_path}" && npm run typecheck || true
+cd "{repo_path}" && npm run lint || true
+cd "{repo_path}" && npm run build || true
 
 # Re-run the dry-run — must be warning-free
 cd "{repo_path}" && npm publish --dry-run 2>&1 | tee /tmp/npm-publish-verify.log
