@@ -75,6 +75,14 @@ const ARTIFACTS = [
  * wrapper — and nothing else — leaves the two texts comparable while any real Jinja
  * (`{% … %}`, `{{ variable }}`) survives and is caught by the assertions below.
  * A no-op on the repository's file.
+ *
+ * Assumes the wrapped expression holds no single quote of its own: `[^']*` stops at the
+ * first one, so `{{ '${{ x == ''y'' }}' }}` would come out half-unwrapped. Nothing in
+ * either artifact does that today, and Jinja's own escaping for it is awkward enough
+ * that it is unlikely to appear. Should it, the failure is loud rather than silent —
+ * the leftover `{{` trips the assertion below, or the two texts stop matching and the
+ * equality check names the line. Widen this only against a real case, and then by
+ * teaching it the quoting rule rather than by loosening the character class.
  */
 const unescapeJinjaLiterals = (text) => text.replace(/\{\{\s*'([^']*)'\s*\}\}/g, '$1');
 
