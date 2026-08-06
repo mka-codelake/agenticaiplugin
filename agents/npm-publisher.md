@@ -637,6 +637,11 @@ set -o pipefail   # piping every grep below through mask() must not hide a grep 
 
 # Mask a matched secret: first/last 4 characters survive, the rest becomes '…'.
 # File and line number stay untouched — they are already needed to fix the finding.
+# Rebuilds the `file:line:` prefix from the first two colon-separated fields, so a
+# path containing a colon would be printed truncated. That cannot happen here — the
+# scan only ever runs against $PKG_DIR, an unpacked tarball under a temp directory.
+# The match itself may contain colons; those survive, because everything after the
+# `file:line:` prefix is masked as one string, not re-split.
 mask() { awk -F: '{c=$0; sub(/^[^:]*:[0-9]+:/, "", c); n=length(c); m=(n<=8) ? "…" : substr(c,1,4) "…" substr(c,n-3,4); print $1 ":" $2 ":" m}'; }
 
 # JWT
