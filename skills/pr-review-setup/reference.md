@@ -198,7 +198,10 @@ fails at parse time on the runner. After writing, read the file back and verify:
 - No leftover template markers: no `{{ '`, no `' }}`, no `{%`, no `%}`. Literal
   `${{ ... }}` Actions expressions are expected and correct — they are the point
   of the escaping in §4.1.
-- Both `if: steps.token.outputs.present == 'true'` guards are present.
+- Every step that must not run without the token carries
+  `if: steps.token.outputs.present == 'true'` — today the workflow-only guard,
+  the checkout and the review itself. Count them rather than trusting the
+  number here: this line said "both" until a third step was added.
 - The data-not-instructions paragraph is present and sits **above** the context
   list. A reviewer that reads the project's files before that paragraph has
   already taken them as instructions.
