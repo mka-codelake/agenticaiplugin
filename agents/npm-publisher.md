@@ -221,6 +221,11 @@ If `PKG_VERSION == PUBLISHED_LATEST`:
 **Step A — Analyze commits since last release:**
 
 ```bash
+# Re-derive LAST_TAG: it was set in 2.0's bash block, which does not survive
+# into this one (see the PKG_DIR note in Phase 3e). Same reasoning as PKG_NAME
+# in 3f — a fresh read is cheap and the alternative is a silently empty variable.
+LAST_TAG=$(git -C "{repo_path}" describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo "")
+
 # Use last tag if available, fall back to last release commit
 if [ -n "$LAST_TAG" ]; then
   RANGE="${LAST_TAG}..HEAD"
@@ -686,6 +691,7 @@ Any match here is critical — these patterns are documented credential-leak vec
 PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
 [ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
+set -o pipefail
 find "$PKG_DIR" -name "*.map" -type f -print0 | while IFS= read -r -d '' f; do
   node -e '
 const fs = require("fs");
@@ -704,6 +710,7 @@ done
 PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
 [ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
+set -o pipefail
 find "$PKG_DIR" -name "*.map" -type f -print0 | while IFS= read -r -d '' f; do
   node -e '
 const fs = require("fs");
@@ -723,6 +730,8 @@ done
 Report as: *Source-map references files outside the published tarball. Consumers cannot use it for debugging.*
 
 Rationale: this is not a leak but dead weight. The consumer installs the package, `../src/` does not exist in `node_modules/<pkg>/`, and go-to-source breaks. It is the mirror image of 8a — a source-map that is useless because it carries too little rather than too much.
+
+**Both scans set `pipefail` before their `find | while` pipe.** Without it, a `find` that hits a `Permission denied` in an unreadable subdirectory exits 1, but the pipeline reports the exit code of `while`, which is 0 — the files `find` could not reach are simply absent from the output, with nothing to say the scan did not see everything.
 
 Note: a source-map without `sourcesContent` whose `sources` all stay inside the package is clean. Absolute paths in `sources` deliberately overlap with check 1 — there they match as a raw path string (Critical, build-environment leak), here as a semantic statement that the map points out of the package. One line may legitimately produce both findings; do not deduplicate them.
 
