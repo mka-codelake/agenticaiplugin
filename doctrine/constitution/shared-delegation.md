@@ -16,6 +16,11 @@ with your own commands: run the test or build command yourself instead of believ
 reported test output, and grep the whole repository for remnants of what the fix was
 meant to remove instead of trusting the agent's list of touched files.
 
+**Your own brief can be wrong — say so inside it.** Tell the agent to refute the assumptions
+your prompt carries (a path, a scope, a criterion) and to report what it corrected; one that
+is not told builds on them. Measured here: six briefs in one session named a wrong path, too
+narrow a scope or an unusable criterion, and the executing agent caught every one.
+
 **Silence is not a result.** A sub-agent that ends without a report is indistinguishable
 from one that had nothing to say. Name the return channel in the task prompt — a report
 arrives by SendMessage, and an agent continued *via* SendMessage has no automatic return

@@ -478,7 +478,13 @@ attention than the positive statements, not less.
   8751 bytes; without `constitution/orchestrator.md` 7793 bytes with base, delegation
   rules and both themes intact; without both constitution mode files 5015 bytes with
   base and themes intact — UTF-8 bytes of `additionalContext`, not characters: the
-  doctrine holds multi-byte punctuation, so the two differ). There is
+  doctrine holds multi-byte punctuation, so the two differ). The **full** figure moves
+  with every doctrine edit and stood at **8707 bytes** on 2026-08-06; the two ablation
+  figures are relative to the 2026-08-03 state and were not re-measured. Read the
+  absolute number as a snapshot, the *method* as the durable part — and measure it with
+  `Buffer.byteLength`, not `String.length`: the first attempt at the 2026-08-06 figure
+  counted characters and came out 52 short, which is exactly the trap this parenthesis
+  warns about. There is
   deliberately **no switch** for this — a config key
   or an environment variable would be an opt-out through the back door, and not being
   switchable is the guarantee 0.31.4 makes. Every measurement this map rests on used a
