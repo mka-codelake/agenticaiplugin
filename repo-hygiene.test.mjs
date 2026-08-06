@@ -64,6 +64,82 @@ test('no markdown file carries a bare tool-call syntax fragment on its own line'
 
 // ---------------------------------------------------------------------------
 
+// A frontmatter `description` is the only part of a skill that is always in
+// context, so it is what decides whether the skill is ever activated. In an
+// UNQUOTED (plain) YAML scalar two sequences destroy it, and neither is exotic:
+//
+//   ` #`  (space + hash)   starts a comment — everything after it is dropped
+//                          SILENTLY, the skill keeps a truncated description
+//   `: `  (colon + space)  makes the whole frontmatter unparseable
+//
+// Measured 2026-08-06 against PyYAML: `Fix flaky CI in repo #112.` parses to
+// `Fix flaky CI in repo`, while `repo#112` without the leading space survives
+// intact. Nine shipped descriptions in this repo contain `: ` right now (the
+// `TRIGGER WORDS: …` and `Invoke via: …` phrasings) and are unharmed for one
+// reason only: they happen to be written as block scalars (`>`/`|`), where the
+// characters are literal. Write the next one as a plain scalar with the same
+// wording and the skill loses its frontmatter — which is why this is a test and
+// not a note. It is also the guard behind the rule in skills/learn/SKILL.md,
+// where an LLM writes the description and issue numbers are routine.
+//
+// LIMIT: this checks plain scalars only. A *quoted* description with an
+// unescaped inner quote is also broken — but that fails loudly at parse time,
+// whereas the ` #` case is the silent one this guard exists for.
+const PLAIN_SCALAR_BREAKERS = [
+  [' #', 'starts a YAML comment — everything after it is silently dropped'],
+  [': ', 'makes the frontmatter unparseable'],
+];
+
+/** The frontmatter `description` of a shipped skill/agent, with its YAML style. */
+function shippedDescriptions() {
+  const git = spawnSync('git', ['ls-files', '-z', 'skills/*/SKILL.md', 'agents/*.md'], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+  });
+  assert.equal(git.status, 0, `git ls-files failed: ${git.stderr}`);
+  // git pathspecs let `*` cross `/`, so the list also contains the coordinator's
+  // task files (agents/project-initializer/*.md). Those carry no frontmatter and
+  // reach no index — restrict to the auto-discovery level rather than skipping
+  // whatever happens to lack a frontmatter block, so the assert below stays a
+  // real check on the files this guard claims to cover.
+  const files = git.stdout
+    .split('\0')
+    .filter((f) => /^agents\/[^/]+\.md$/.test(f) || /^skills\/[^/]+\/SKILL\.md$/.test(f));
+  assert.ok(files.length > 20, `expected the shipped skill/agent corpus, got ${files.length}`);
+
+  return files.map((file) => {
+    const text = readFileSync(join(REPO_ROOT, file), 'utf8');
+    const frontmatter = /^---\r?\n(.*?)\r?\n---/s.exec(text)?.[1];
+    assert.ok(frontmatter, `${file} has no frontmatter block`);
+    // The value runs from `description:` to the next top-level key or the end —
+    // plain scalars may continue over several indented lines.
+    const match = /^description:[ \t]*(.*?)(?=^[\w-]+:|$(?![\s\S]))/ms.exec(`${frontmatter}\n`);
+    assert.ok(match, `${file} has no description`);
+    const value = match[1];
+    const style = /^\s*[>|]/.test(value) ? 'block' : /^\s*["']/.test(value) ? 'quoted' : 'plain';
+    return { file, value, style };
+  });
+}
+
+test('no shipped description is a plain YAML scalar that breaks at ` #` or `: `', () => {
+  const offenders = [];
+  for (const { file, value, style } of shippedDescriptions()) {
+    if (style !== 'plain') continue;
+    for (const [seq, effect] of PLAIN_SCALAR_BREAKERS) {
+      if (value.includes(seq)) {
+        offenders.push(`${file}: unquoted "${seq}" in description — ${effect}`);
+      }
+    }
+  }
+  assert.deepEqual(
+    offenders,
+    [],
+    'quote the description ("…", inner quotes as \\") or write it as a block scalar (>)',
+  );
+});
+
+// ---------------------------------------------------------------------------
+
 // The doctrine rule `Explain WHAT and WHY before changing code` was renamed to
 // `Present the design before implementing` in doctrine/constitution/base.md. Three
 // places summarize the doctrine in prose and kept carrying the old name; two
