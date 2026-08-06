@@ -20,7 +20,8 @@ export const CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.cla
 export const CONFIG_FILE = join(CONFIG_DIR, 'agenticaiplugin.config.json');
 export const STATE_DIR = join(CONFIG_DIR, 'agenticaiplugin.autoskill');
 // Learned skills install flat into the USER-level skill library (cross-project
-// knowledge; nested dirs are not discovered by Claude Code).
+// knowledge; nested dirs are not discovered by Claude Code — MEASURED
+// 2026-08-06 in both arms, see docs/context-map.md §2).
 export const SKILLS_DIR = join(CONFIG_DIR, 'skills');
 export const LEARNED_LIST = join(STATE_DIR, 'learned.list');
 export const ARCHIVE_DIR = join(STATE_DIR, 'archive');
@@ -32,18 +33,26 @@ export const REPORTS_DIR = join(STATE_DIR, 'reports');
 // review notice the user has not picked up yet.
 export const PENDING_NOTICE = join(STATE_DIR, 'pending_notice.txt');
 export const CURATOR_NOTICE = join(STATE_DIR, 'curator_notice.txt');
-// The reviewer LLM stages files here via the Write tool — so this MUST live
-// OUTSIDE the Claude config dir. Claude Code hard-blocks Write/Edit to anything
-// under ~/.claude/ as a "sensitive file", independent of --permission-mode or
-// --allowedTools; staging under CONFIG_DIR silently makes every reviewer write
-// fail (the standalone autoskill kept staging in its own state dir for exactly
-// this reason). Everything else — counters, learned.list, logs, and the install
-// target ~/.claude/skills/ — is written with Node fs (no guard) and stays under
-// CONFIG_DIR. In a real review the worker (run-review.prepareStaging) creates a
-// fresh per-run mkdtemp dir (0700, unpredictable) and exports it via
-// AUTOSKILL_STAGING_DIR, so the reviewer and its read-guard child both resolve
-// that exact path here. Staging is pure scratch: wiped at the start and end of a
-// run.
+// The reviewer LLM stages files here via the Write tool — deliberately OUTSIDE
+// the Claude config dir. Two reasons, and they are NOT of equal strength:
+//   1. Path-traversal hardening (v0.23.1, PR #38). The worker hands out a fresh
+//      per-run mkdtemp dir (0700, unpredictable), so a staged path cannot be
+//      steered into the config dir or the installed skill library. This is the
+//      reason that carries the design, and the measurement below leaves it
+//      untouched.
+//   2. Historically also: Write/Edit under ~/.claude/ was blocked as a
+//      "sensitive file" — the standalone autoskill kept staging in its own
+//      state dir for exactly that reason. That block does NOT exist in Claude
+//      Code 2.1.223: Write created a file under ~/.claude/ and Edit then
+//      changed it (MEASURED 2026-08-06, see docs/context-map.md §4). Nobody
+//      may move staging back under CONFIG_DIR on the strength of that finding;
+//      reason 1 stands on its own.
+// Everything else — counters, learned.list, logs, and the install target
+// ~/.claude/skills/ — is written with Node fs (no guard) and stays under
+// CONFIG_DIR. In a real review the worker (run-review.prepareStaging) creates
+// that per-run dir and exports it via AUTOSKILL_STAGING_DIR, so the reviewer and
+// its read-guard child both resolve the exact same path here. Staging is pure
+// scratch: wiped at the start and end of a run.
 //
 // WARNING: do NOT write to this fixed fallback default directly — always obtain
 // a staging dir from run-review.prepareStaging(). The fixed path is only what
