@@ -513,7 +513,7 @@ Clear description.
 | Field | Required | Format | Default |
 |-------|----------|--------|---------|
 | `name` | NO | Lowercase, hyphens | file name without `.md` (prefixed with the sub-directory, if any) |
-| `description` | YES | Max 1024 chars, include triggers | - |
+| `description` | NO, but effectively required | Max 1024 chars, include triggers | a placeholder — the agent then has nothing to match on |
 | `tools` | NO | Comma-separated | Inherit all |
 | `model` | NO | `sonnet`, `opus`, `haiku` | `sonnet` |
 | `effort` | NO | `low`, `medium`, `high`, `xhigh`, `max` | inherits session — see [Effort + Model](#effort--model) |
@@ -526,7 +526,8 @@ Agents can automatically load specific skills when they start using the `skills:
 
 **Syntax:**
 ```yaml
-skills: git-smart-commit          # several skills: comma-separated
+# several skills: comma-separated
+skills: git-smart-commit
 ```
 
 **Behavior:**
