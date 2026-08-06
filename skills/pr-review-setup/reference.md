@@ -325,10 +325,15 @@ that never said so.
   exists — a guard matching nothing reports "untouched".
 - An empty file list aborts the job: every PR has at least one file, so an
   empty answer is a lookup that failed, not a workflow left alone.
-- An empty path derived from that variable aborts the job as well. Actions
-  always sets it, but if it ever did not, every comparison below would turn
-  into "matches everything" rather than "matches nothing" — and the step would
-  block PRs with a message naming no file at all.
+- A `GITHUB_WORKFLOW_REF` no path can be read out of aborts the job as well,
+  and says which of the two happened: the variable was unset, or it held a
+  value nothing could be derived from. The second half is the one that took a
+  measurement to find. `${GITHUB_WORKFLOW_REF#*/*/}` only cuts when the value
+  really has that shape; given fewer than two slashes it hands the value back
+  unchanged, so a leftover like `acme/widget` is not empty, reads like a path,
+  matches no file in the PR — and the guard reports "untouched" for a PR it
+  never checked. Testing for an empty result alone therefore misses it; the
+  step also treats "nothing was stripped" as "no path in there".
 - The file list is matched on `previous_filename` as well as `filename`. A PR
   that renames the workflow *away* from the tracked path shows the old path
   only in the former; matching `filename` alone finds nothing, calls the

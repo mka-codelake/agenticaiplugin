@@ -65,16 +65,38 @@ jobs:
           GH_TOKEN: {{ '${{ github.token }}' }}
           PR_NUMBER: {{ '${{ github.event.pull_request.number }}' }}
         run: |
-          # GITHUB_WORKFLOW_REF is "<owner>/<repo>/<path>@<ref>".
+          # Actions always sets GITHUB_WORKFLOW_REF; if it ever does not, the
+          # two comparisons below break in opposite directions. An empty path
+          # matches no `filename` at all, but it does match the empty
+          # `previous_filename` that every file carries which was not renamed.
+          # Measured: the step then announced a rename of whichever file came
+          # last, and blocked every PR holding more than one. Stop before
+          # making a claim out of that.
+          if [ -z "${GITHUB_WORKFLOW_REF:-}" ]; then
+            echo "::error::GITHUB_WORKFLOW_REF is not set, so this step cannot tell whether PR #$PR_NUMBER changes its own workflow file."
+            exit 1
+          fi
+
+          # GITHUB_WORKFLOW_REF is "<owner>/<repo>/<path>@<ref>". The strip only
+          # cuts when the value really has that shape: given fewer than two
+          # slashes it returns the value unchanged, and a leftover like
+          # "acme/widget" is then not empty and reads like a path while matching
+          # no file in the PR — same silent "untouched" as above, but past the
+          # emptiness check. So "nothing was cut" counts as "no path in there".
           workflow_file="${GITHUB_WORKFLOW_REF#*/*/}"
+          if [ "$workflow_file" = "$GITHUB_WORKFLOW_REF" ]; then
+            workflow_file=""
+          fi
+          # Trailing "@<ref>". Stripping it can empty the path on its own, for a
+          # value whose shape passed the check above but whose path part is the
+          # empty string, so the verdict below comes after this and not before.
           workflow_file="${workflow_file%%@*}"
 
-          # Actions always sets that variable; if it ever does not, the path is
-          # empty and every comparison below turns into "matches everything"
-          # rather than "matches nothing". Stop before making a claim out of
-          # that.
+          # Named apart from the unset case on purpose: a variable that is
+          # missing and a variable holding something no path can be read out of
+          # are different things to go and look at.
           if [ -z "$workflow_file" ]; then
-            echo "::error::GITHUB_WORKFLOW_REF yielded no workflow path, so this step cannot tell whether PR #$PR_NUMBER changes its own workflow file."
+            echo "::error::GITHUB_WORKFLOW_REF is \"$GITHUB_WORKFLOW_REF\", which yields no <owner>/<repo>/<path> workflow path, so this step cannot tell whether PR #$PR_NUMBER changes its own workflow file."
             exit 1
           fi
 
