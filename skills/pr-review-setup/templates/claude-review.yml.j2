@@ -271,6 +271,23 @@ jobs:
             `.claude/adrs/`) — they override generic best practices.
 {% endif %}
 
+            ## Before you write a finding
+            **Anchor it in what you read.** A line number you cite must come
+            from the file as you read it, never from an estimate — you had the
+            file open when you cited it. If you are not certain of the exact
+            line, name the file and quote the code fragment instead of guessing
+            a number. A finding whose line number points at nothing gets
+            checked, not found, and dropped: a wrong number takes a valid point
+            down with it.
+
+            **Read what already stands at the line you are about to fault.** A
+            comment or note there giving a reason for the code being this way
+            is an answer to your point, addressed to you — exactly like a
+            pull-request description that puts something out of scope. Treat it
+            as one: either say why that reason does not hold, or leave the
+            point out. A point that was already answered costs a round and
+            finds nothing.
+
             ## Output — POST THE REVIEW AS A PR COMMENT
             You MUST post your review as a single pull-request comment. First
             write the comment body with the Write tool to a file in the current
