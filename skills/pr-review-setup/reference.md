@@ -345,6 +345,35 @@ that never said so.
   meaning "untouched". This is a suspicion, not a diagnosis — which is why it
   names the cap in the error instead of claiming the file was changed.
 
+**A test for this workflow can never ship in the same PR as the workflow.**
+The rule above admits no exception for files that belong together, and a test
+asserting the guard's behaviour belongs to the guard as directly as anything
+can. Changing both at once produces a PR the guard rejects — correctly, and with
+no way to satisfy it from inside that PR. The order is fixed, and only one way
+round works:
+
+1. The workflow change lands alone.
+2. The test change follows immediately after, off the updated default branch.
+
+The reverse deadlocks. A test carrying an expectation the workflow does not meet
+yet turns the workflow PR itself red, and that PR cannot bring the fix along —
+adding the test to it is exactly what the guard blocks. So the window in which
+the default branch holds a workflow its test has not caught up with is
+unavoidable; keep it to the two PRs, not to a later cleanup.
+
+**The guard does not protect itself.** It hangs behind
+`if: steps.token.outputs.present == 'true'`, so a PR that breaks token detection
+— a transposed secret name is enough — switches the guard off along with the
+review: the job goes green, with neither a review nor a splitting notice. This
+falls out of the bootstrap order of Section 5, which requires the workflow to be
+able to land and pass before the secret exists; a guard that ran unconditionally
+would turn every pre-secret PR red and break the setup path. There is no smaller
+arrangement that keeps both properties, so this is documented as a known limit
+rather than tracked as a defect. What it costs the reader is a habit: when a PR
+touches the token step, read the run log rather than the check mark — the tell
+from earlier in this section, a green check finishing in seconds, is the only
+signal left.
+
 ### 6.3 `claude_args` splits on whitespace
 
 The block is tokenized on whitespace before it reaches the CLI. An unquoted
