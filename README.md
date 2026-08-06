@@ -236,6 +236,13 @@ present the design and wait for a go before implementing, minimal scope, be hone
 transparent, the commit path) plus the orchestrator working mode. A `doctrine.core` key from
 an earlier version is ignored, not an error.
 
+If the file exists but **cannot be read or parsed** (invalid JSON — a stray UTF-8
+BOM from Notepad is the classic case — or a non-object root), every setting above
+silently falls back to its default, including `autoskill.enabled` → `false`. The
+session-start check prints a warning naming the file and the reason. Note the
+limit: a **typo in a key** or a wrong value type still parses, so it stays silent
+and simply has no effect — check the spelling against the table above.
+
 ### Autoskill (self-learning skills)
 
 Opt-in mechanism that watches your sessions and distills reusable **learned
