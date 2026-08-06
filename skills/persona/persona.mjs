@@ -23,7 +23,11 @@
 // selectable for hooks on Windows, and jq is absent on most Windows installs).
 // State path uses only $CLAUDE_CONFIG_DIR / the home directory. The style
 // snippets are resolved relative to THIS file (import.meta.url), NOT
-// $CLAUDE_PLUGIN_ROOT — that variable is empty in the normal tool context.
+// $CLAUDE_PLUGIN_ROOT: that variable is substituted as TEXT into hooks.json,
+// SKILL.md and agents/*.md bodies — as a shell environment variable it is empty
+// (measured; substitution table in docs/plugin-howto.md), so process.env is the
+// wrong place to look for it. This script is started both ways — from hooks.json
+// and from the skill's own Bash call — and self-location holds for both.
 // The allowed persona values here are the authority; they must match the
 // style snippets in styles/.
 

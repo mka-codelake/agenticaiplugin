@@ -63,7 +63,6 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 - `.claude-plugin/plugin.json` — Plugin metadata (name, version, author)
 - `docs/architecture.md` — What the plugin is made of and **where a new rule belongs** (guardrail / doctrine / persona / skill / policy, the mode as a composition rule, the three placement questions, and what deliberately does not exist). Read before adding a rule, a doctrine file or a hook
 - `docs/plugin-howto.md` — Primary development reference (frontmatter, patterns, conventions)
-- `docs/rules-howto.md` — Rules template development reference
 - `docs/workflow-integration-howto.md` — Binding pattern for calling repo-local `Workflow` scripts from a `SKILL.md` (spike #9; required reading before migrating a skill to the Workflow feature)
 - `docs/context-map.md` — What puts which content into whose context, and when (doctrine, `CLAUDE.md`, skills, forks, sub-agents). Every statement carries a provenance marker (DOC / MEASURED / CODE / ASSUMED); consult before assuming a rule reaches a given context
 - `skills/code-review/orchestration.md` — Multi-specialist review orchestration playbook
@@ -156,7 +155,7 @@ When a skill or rule **instructs to invoke/call/spawn an agent**, always use the
 ## Gotchas
 
 - **Skills = progressive disclosure** — only a SKILL.md's frontmatter `description` is always in context; the body loads on demand when the skill is invoked (not every session). Keep descriptions sharp (they drive auto-activation); bodies can be longer without a per-session token cost. Agents have isolated context and can be more detailed.
-- **No copied rules** — the plugin does NOT install rule files into projects. Always-on behavior comes from the plugin itself: doctrine markdown (`doctrine/constitution/*.md` — not switchable — plus `doctrine/themes/*.md`) injected as `additionalContext` by the SessionStart hook `hooks/inject-doctrine.mjs`, and enforcement via the PreToolUse hook `hooks/guard-git-commit.mjs`. The SessionStart hook fires on every source (incl. `compact`), so the doctrine survives compaction. `.claude/rules/` in a project is the user's own space; `/update-plugin` only removes *legacy* `agenticaiplugin-*.md` copies.
+- **No copied rules** — the plugin does NOT install rule files into projects. Always-on behavior comes from the plugin itself: doctrine markdown (`doctrine/constitution/*.md` — not switchable — plus `doctrine/themes/*.md`) injected as `additionalContext` by the SessionStart hook `hooks/inject-doctrine.mjs`, and enforcement via the PreToolUse hook `hooks/guard-git-commit.mjs` — the mechanism in full, including what survives a compaction, in `docs/architecture.md`. `.claude/rules/` in a project is the user's own space; `/update-plugin` only removes *legacy* `agenticaiplugin-*.md` copies.
 - **Marketplace update required** — File changes in the plugin directory are NOT immediately active. Always run `/plugin marketplace update` after changes.
 - **Progressive disclosure** — Put details in `reference.md`, not `SKILL.md`. Claude loads reference.md only when explicitly needed, saving tokens.
 

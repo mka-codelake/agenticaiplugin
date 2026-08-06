@@ -44,7 +44,11 @@
 // Portability: Node only — no bash, no jq (issues #23/#24: bash is not reliably
 // selectable for hooks on Windows, and jq is absent on most Windows installs).
 // The doctrine files are resolved relative to THIS file (import.meta.url), NOT
-// $CLAUDE_PLUGIN_ROOT — that variable is empty in the normal tool context.
+// $CLAUDE_PLUGIN_ROOT: that variable is substituted as TEXT into hooks.json,
+// SKILL.md and agents/*.md bodies — as a shell environment variable it is empty
+// (measured; substitution table in docs/plugin-howto.md), so process.env is the
+// wrong place to look for it. Self-location also holds when the script is run
+// directly, the way the tests run it.
 
 import { readFileSync, realpathSync } from 'node:fs';
 import { homedir } from 'node:os';

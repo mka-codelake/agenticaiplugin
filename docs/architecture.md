@@ -31,6 +31,34 @@ There is currently exactly one guardrail: `hooks/guard-git-commit.mjs` blocks a 
 `hooks/hooks.json` as SessionStart hooks. The persona is opt-in and off until it is set;
 the doctrine is not.
 
+## How always-on behavior is delivered (without copied rules)
+
+Because a plugin cannot ship rules that auto-load, an earlier approach *copied* rule files
+into every project via `/init`. That copying caused version drift across projects and a whole
+update/sync/migration apparatus to manage it. **AgenticAI no longer does this.** Always-on
+behavior is provided by the plugin itself, three ways:
+
+1. **Doctrine via a SessionStart hook** (`hooks/inject-doctrine.mjs` + `doctrine/**/*.md`) —
+   the behavioral doctrine (ask-before-assuming, present-the-design-and-wait-for-a-go,
+   minimal scope, honesty, automatic code review, PR review monitoring) is emitted as
+   `additionalContext` every session. The texts are split into `doctrine/constitution/`
+   (base doctrine plus the always-active orchestrator mode, no opt-out) and
+   `doctrine/themes/` (the switchable blocks). When the hook fires, and whether the
+   injection survives a compaction: `docs/context-map.md` §2, with the evidence status.
+   How much weight `additionalContext` carries against a first-class rule is undetermined
+   and sits on that map's assumption list (§5).
+2. **Enforcement via a PreToolUse hook** (`hooks/guard-git-commit.mjs`) — hard behavior (never
+   run raw `git commit`) is *enforced*, not merely requested. This is stronger than a rule.
+3. **Skills** for task-triggered guidance (`writing-tests`, `dependency-management`, …).
+
+Per-item opt-out lives in `agenticaiplugin.config.json`
+(`{"doctrine":{"codeReview":"off","prReviewMonitoring":"off"},"gitCommitGuard":"off"}`); only
+the themes are switchable, see *The mode* below.
+
+`.claude/rules/` in a user's project is therefore **the user's own space** — the plugin reads
+nothing there and installs nothing there. `/agenticaiplugin:update-plugin` only *removes* any
+legacy `agenticaiplugin-*.md` copies left by older versions.
+
 ## The mode
 
 A **mode** is the composition rule for a session's doctrine — not a state anyone selects:
@@ -116,16 +144,12 @@ problem it solves is a defect here, not a reserve.
 Measurement setups and raw numbers: **#114**. It is the source for the injection's
 non-reach into sub-agents, the finding that wording does not change how binding a rule is,
 and the collapse of an injected rule against an explicit user instruction — the last of
-which is why guardrails exist at all. The same issue also carries the compaction
-measurement (2026-08-02, `claude-sonnet-5`, 25 runs): with the rule injected, the compacted
-arm obeyed it 8/10 against 10/10 uncompacted — Fisher exact p = 0.237, no detectable
-difference — while the uninjected control arm obeyed it 0/5. The injection therefore
-survives a compaction.
+which is why guardrails exist at all.
 
-The limits belong to that result. One model, one rule, one task type; manual `/compact`
-instead of an auto-compaction at the window limit; the check turn immediately after the
-compaction. A residual effect on the order of 100 % → 80 % is neither established nor ruled
-out — that would take roughly 40 runs per arm.
+The same issue carries the compaction measurement, which is what lets this architecture
+put always-on rules into a channel that a `/compact` could have wiped. Result, arms and
+the limits that belong to it: `docs/context-map.md` §2 — deliberately not repeated here,
+because a measurement quoted in two places drifts in one of them.
 
 ---
 

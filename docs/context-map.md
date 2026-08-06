@@ -127,7 +127,7 @@ directory name suffices.
 | `CLAUDE.md` | session start, hierarchical | **DOC** |
 
 **`fork` is a fifth matcher the plugin never accounted for.** The hooks deliberately do
-not gate on `source` (**CODE** `hooks/inject-doctrine.mjs:120-137`), so they fire there as
+not gate on `source` (**CODE** `hooks/inject-doctrine.mjs:124-141`), so they fire there as
 well — presumably intended for doctrine and mode, but unverified.
 
 ### Surviving a compaction — measured, no longer assumed
@@ -195,7 +195,7 @@ machine.
 | `~/.claude/rules/` | **no** | **CODE** |
 | Auto-memory `~/.claude/projects/*/memory/` | **no** | **CODE** |
 | Learned skills `~/.claude/skills/learned-*/` | **no** | **CODE** |
-| `persona.state` | **no** | **CODE** `skills/persona/persona.mjs:35-38` |
+| `persona.state` | **no** | **CODE** `skills/persona/persona.mjs:39-42` |
 | `agenticaiplugin.config.json` (all opt-outs) | **no** | **CODE** |
 
 **The consequence has never been stated in one place:** after a fresh installation the
@@ -253,6 +253,13 @@ The second group is the more dangerous one.
 Two of three variables that load-bearing mechanisms hang on have **no documented
 guarantee**. They work, but nobody has promised they will stay.
 
+*Where* they are substituted is **MEASURED** — the blind-test table in
+`docs/plugin-howto.md:181-187`: in a `SKILL.md` body and (for `${CLAUDE_PLUGIN_ROOT}`) in an
+`agents/*.md` body yes, in a companion file or a sub-agent prompt no, as a shell environment
+variable empty. The scope matters, because three places used to state the shell result as a
+blanket claim about the tool context at large and drew a design decision from it; they now
+name the shell.
+
 ---
 
 ## 5. Open assumptions — the measurement list
@@ -268,8 +275,7 @@ measurement with a reproducible artifact.
 | Nested skill folders are not discovered | `hooks/autoskill/lib.mjs:22-24` | Determines the flat layout |
 | Skill index truncates `description` at 60 characters | `skills/learn/SKILL.md:60-61` | — |
 | The marketplace copy is an unfiltered tree copy | `docs/workflow-integration-howto.md:37` | Reason why `.workflow.js` comes along |
-| Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:435-445` | **Stands in tension** with the marketplace update rule (`CLAUDE.md:159`) |
-| `${CLAUDE_PLUGIN_ROOT}` "is empty in the tool context" | `skills/persona/persona.mjs:26`, `hooks/inject-doctrine.mjs:47` | Stated as a blanket claim; a later measurement addendum narrows it to the shell — the scripts carry the old wording **uncorrected** |
+| Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:435-453` | The claim itself is untested. It no longer stands in tension with the marketplace update rule (`CLAUDE.md:159`): the install path holds an unlinked copy that already differs from the working tree (**MEASURED** 2026-08-06), so the two rules address different locations |
 
 ---
 
@@ -285,16 +291,20 @@ Not assumptions but findings — each one a work item.
    The roster is compared as a set, so an *added* hook fails too — deliberately, to keep
    the roster a conscious decision.
 3. **A new doctrine file is silently ignored.** `MODE_PARTS`, `CONSTITUTION` and `THEMES`
-   in `hooks/inject-doctrine.mjs:68-79` name every file that gets injected. Dropping a
+   in `hooks/inject-doctrine.mjs:72-83` name every file that gets injected. Dropping a
    file into `doctrine/` therefore does nothing, and nothing says so. **Still open** — and
    note that defect 1 was the same class: a mechanism that stays silent instead of
    failing.
 4. ~~**The command tables are already drifting** — `qa` is in `README.md`, missing in
    `CLAUDE.md`.~~ — **fixed** in the same PR that added this map. No test guards the
    tables against the next drift.
-5. **`docs/rules-howto.md` dates from January 2025** and describes a mechanism the
-   plugin deliberately no longer uses. Its header now says so explicitly; the content
-   itself is still unverified.
+5. ~~**`docs/rules-howto.md` dates from January 2025** and describes a mechanism the
+   plugin deliberately no longer uses.~~ — **fixed.** The single part still in force —
+   how the plugin delivers always-on behavior — moved verbatim into
+   `docs/architecture.md`, which also took the file's place as the third doctrine
+   summary in `repo-hygiene.test.mjs`. The remaining 431 lines documented
+   `.claude/rules/` mechanics the plugin never used and were deleted rather than
+   re-verified.
 
 ---
 

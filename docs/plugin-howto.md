@@ -350,19 +350,19 @@ can reuse it.
 ### Doctrine injection & enforcement hooks
 
 The plugin provides its always-on behavior via hooks instead of copying `.claude/rules/`
-files into projects (Claude Code has no plugin-native rules mechanism, and copying drifts):
+files into projects (Claude Code has no plugin-native rules mechanism, and copying drifts —
+why, and what the alternatives were, in `docs/architecture.md`):
 
 - **Doctrine — `hooks/inject-doctrine.mjs` (SessionStart).** Emits the behavioral doctrine
-  (`doctrine/**/*.md`) as `hookSpecificOutput.additionalContext`. It fires on **every**
-  SessionStart `source` — `startup`, `resume`, `clear`, and crucially `compact` — and never
-  gates on `source`, so the doctrine is re-injected after each compaction (SessionStart fires
-  with `source:"compact"` after a compaction and its `additionalContext` lands in the
-  compacted context). This is the only reliable way to keep injected instructions present
-  across `/compact`; `PreCompact` is observe/block-only and cannot preserve context. Caveat:
-  `additionalContext` is a post-system-prompt context message — softer than a first-class rule,
-  which is the accepted trade-off for zero per-project drift. The texts live in
-  `doctrine/constitution/` (base doctrine plus the always-active orchestrator mode) and
-  `doctrine/themes/` (the switchable blocks); per-theme opt-out via
+  (`doctrine/**/*.md`) as `hookSpecificOutput.additionalContext`. It never gates on `source`,
+  which is what carries the doctrine across a `/compact` — the sources the hook fires on and
+  the measurement on whether the re-injected rule is still obeyed are in
+  `docs/context-map.md` §2, with their evidence status. SessionStart was chosen over
+  `PreCompact` because `PreCompact` is observe/block-only and cannot preserve context.
+  Caveat: `additionalContext` is a post-system-prompt context message — softer than a
+  first-class rule, which is the accepted trade-off for zero per-project drift. The texts
+  live in `doctrine/constitution/` (base doctrine plus the always-active orchestrator mode)
+  and `doctrine/themes/` (the switchable blocks); per-theme opt-out via
   `agenticaiplugin.config.json` `{"doctrine":{"codeReview":"off","prReviewMonitoring":"off"}}`.
   The constitution has no opt-out — whoever installs the plugin gets it.
 - **Enforcement — `hooks/guard-git-commit.mjs` (PreToolUse, matcher `Bash`).** Returns
@@ -442,6 +442,15 @@ Skills in these directories auto-reload without restart:
 1. Create/modify skill file
 2. Skill immediately available
 3. No session restart needed
+
+**This does not cover plugin skills**, and the marketplace update rule in `CLAUDE.md` is
+not a contradiction of it — the two speak about different locations. A plugin is not read
+from the directory it is developed in: installing copies the tree to
+`~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`, and the session runs that copy.
+Measured on this installation (2026-08-06): no symlink anywhere under the install path, and
+`docs/plugin-howto.md`, `hooks/inject-doctrine.mjs` and `doctrine/constitution/base.md` each
+differ from the working tree. Editing a plugin file changes nothing until
+`/plugin marketplace update` re-copies it.
 
 ### Progressive Disclosure (reference.md)
 

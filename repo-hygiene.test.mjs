@@ -87,49 +87,54 @@ test('no markdown file carries a bare tool-call syntax fragment on its own line'
 // pure reflow or reformatting does not trip it.
 //
 // SUMMARY_FILES is the floor, not the ceiling: these three summarize EVERY rule,
-// so every heading must have a marker for each of them. Other files reference a
-// single rule (skills/council/SKILL.md quotes one heading by name, docs/architecture.md
-// paraphrases its content) — they are listed under that heading alone, and the
-// coverage check below therefore requires the three, not exactly the three.
-const SUMMARY_FILES = ['README.md', 'skills/help/SKILL.md', 'docs/rules-howto.md'];
+// one per audience — README.md for the outside, skills/help/SKILL.md inside a
+// session, docs/architecture.md for whoever works on the plugin. So every heading
+// must have a marker for each of them. Other files reference a single rule
+// (skills/council/SKILL.md quotes one heading by name) — they are listed under
+// that heading alone, and the coverage check below therefore requires the three,
+// not exactly the three.
+const SUMMARY_FILES = ['README.md', 'skills/help/SKILL.md', 'docs/architecture.md'];
 
 const DOCTRINE_SUMMARY_MARKERS = {
   'Never assume — ask': {
     'README.md': /ask instead of assume/i,
     'skills/help/SKILL.md': /ask instead of assume/i,
-    'docs/rules-howto.md': /ask[\s-]before[\s-]assuming/i,
+    'docs/architecture.md': /ask[\s-]before[\s-]assuming/i,
   },
   'Present the design before implementing': {
     'README.md': /present the design and wait for a go before implementing/i,
     'skills/help/SKILL.md': /present the design before implementing/i,
-    'docs/rules-howto.md': /present[\s-]the[\s-]design[\s-]and[\s-]wait[\s-]for[\s-]a[\s-]go/i,
+    'docs/architecture.md': /present[\s-]the[\s-]design[\s-]and[\s-]wait[\s-]for[\s-]a[\s-]go/i,
   },
   'Surgical, minimal scope': {
     'README.md': /minimal scope/i,
     'skills/help/SKILL.md': /minimal scope/i,
-    'docs/rules-howto.md': /minimal scope/i,
+    // docs/architecture.md states this rule twice: once in the doctrine summary
+    // it now carries, once as a paraphrase of its own ("the smallest wins") in
+    // the scope section. The marker guards the summary — that is what
+    // SUMMARY_FILES is for — so the paraphrase gets no second key here.
+    'docs/architecture.md': /minimal scope/i,
     'skills/council/SKILL.md': /surgical, minimal scope/i, // names the heading verbatim
-    'docs/architecture.md': /the smallest wins/i, // quotes the rule, not its heading
   },
   'Be honest and transparent': {
     'README.md': /honest/i,
     'skills/help/SKILL.md': /honest/i,
-    'docs/rules-howto.md': /honest/i,
+    'docs/architecture.md': /honest/i,
   },
   Commits: {
     'README.md': /commit path/i,
     'skills/help/SKILL.md': /git commits via skill/i,
-    'docs/rules-howto.md': /raw `git commit`/i,
+    'docs/architecture.md': /raw `git commit`/i,
   },
   'Automatic code review after completing a task': {
     'README.md': /automatic code[\s-]review/i,
     'skills/help/SKILL.md': /automatic code[\s-]review/i,
-    'docs/rules-howto.md': /automatic code[\s-]review/i,
+    'docs/architecture.md': /automatic code[\s-]review/i,
   },
   'PR review monitoring': {
     'README.md': /PR[\s-]review[\s-]monitoring/i,
     'skills/help/SKILL.md': /PR[\s-]review[\s-]monitoring/i,
-    'docs/rules-howto.md': /PR[\s-]review[\s-]monitoring/i,
+    'docs/architecture.md': /PR[\s-]review[\s-]monitoring/i,
   },
 };
 
