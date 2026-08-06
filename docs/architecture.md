@@ -43,9 +43,10 @@ behavior is provided by the plugin itself, three ways:
    minimal scope, honesty, automatic code review, PR review monitoring) is emitted as
    `additionalContext` every session. The texts are split into `doctrine/constitution/`
    (base doctrine plus the always-active orchestrator mode, no opt-out) and
-   `doctrine/themes/` (the switchable blocks). When the hook fires, whether the injection
-   survives a compaction, and how `additionalContext` compares with a first-class rule:
-   `docs/context-map.md` §2 carries those statements with their evidence status.
+   `doctrine/themes/` (the switchable blocks). When the hook fires, and whether the
+   injection survives a compaction: `docs/context-map.md` §2, with the evidence status.
+   How much weight `additionalContext` carries against a first-class rule is undetermined
+   and sits on that map's assumption list (§5).
 2. **Enforcement via a PreToolUse hook** (`hooks/guard-git-commit.mjs`) — hard behavior (never
    run raw `git commit`) is *enforced*, not merely requested. This is stronger than a rule.
 3. **Skills** for task-triggered guidance (`writing-tests`, `dependency-management`, …).
