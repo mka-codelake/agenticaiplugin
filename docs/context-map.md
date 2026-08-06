@@ -275,7 +275,7 @@ measurement with a reproducible artifact.
 | Nested skill folders are not discovered | `hooks/autoskill/lib.mjs:22-24` | Determines the flat layout |
 | Skill index truncates `description` at 60 characters | `skills/learn/SKILL.md:60-61` | — |
 | The marketplace copy is an unfiltered tree copy | `docs/workflow-integration-howto.md:37` | Reason why `.workflow.js` comes along |
-| Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:435-448` | The claim itself is untested; it no longer conflicts with the marketplace update rule (`CLAUDE.md:159`), which addresses a different location |
+| Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:435-453` | The claim itself is untested. It no longer stands in tension with the marketplace update rule (`CLAUDE.md:159`): the install path holds an unlinked copy that already differs from the working tree (**MEASURED** 2026-08-06), so the two rules address different locations |
 
 ---
 

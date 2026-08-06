@@ -443,6 +443,15 @@ Skills in these directories auto-reload without restart:
 2. Skill immediately available
 3. No session restart needed
 
+**This does not cover plugin skills**, and the marketplace update rule in `CLAUDE.md` is
+not a contradiction of it — the two speak about different locations. A plugin is not read
+from the directory it is developed in: installing copies the tree to
+`~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`, and the session runs that copy.
+Measured on this installation (2026-08-06): no symlink anywhere under the install path, and
+`docs/plugin-howto.md`, `hooks/inject-doctrine.mjs` and `doctrine/constitution/base.md` each
+differ from the working tree. Editing a plugin file changes nothing until
+`/plugin marketplace update` re-copies it.
+
 ### Progressive Disclosure (reference.md)
 
 - Keep SKILL.md concise (main rules only)
