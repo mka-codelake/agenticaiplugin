@@ -276,19 +276,44 @@ test('failing `gh`: exit 1 without a verdict', { skip: SKIP }, () => {
   assert.doesNotMatch(r.log, /::notice::/, 'a failed lookup must not end in a green annotation');
 });
 
-test('missing GITHUB_WORKFLOW_REF: exit 1 rather than comparing against an empty path', { skip: SKIP }, () => {
-  // An empty path makes every comparison "matches everything" — or, as here, nothing —
-  // and the guard would report untouched for a PR it never checked.
-  //
-  // Known gap, deliberately not asserted here because it would be a red test rather than
-  // a covered case: the abort triggers on an EMPTY path only. `GITHUB_WORKFLOW_REF` with
-  // too few slashes to strip (`acme/widget`) leaves `workflow_file` holding that raw
-  // string — non-empty, matching no file, so the guard reports untouched and exits 0
-  // without a word for a PR that does change the workflow. Measured. Actions always sets
-  // the full ref, so this needs the same "if it ever does not" that motivated the abort.
-  const r = runGuard({ files: [file('modified', WF)], env: { GITHUB_WORKFLOW_REF: '' } });
-  assert.equal(r.code, 1);
-  assert.match(r.log, /::error::GITHUB_WORKFLOW_REF yielded no workflow path/);
+// Every GITHUB_WORKFLOW_REF from which no path can be read has to end the step, because
+// the guard's own answer to "no path" is to match nothing — and it reports matching
+// nothing as "untouched". Each case below is run against a PR that DOES change the
+// workflow next to another file, i.e. one the guard must reject: a green exit here is
+// not a lenient reading, it is the guard walking past the thing it exists to catch.
+//
+// The value-without-a-path cases were a measured defect, not a hypothetical. The strip
+// `${GITHUB_WORKFLOW_REF#*/*/}` only cuts when the shape matches; with fewer than two
+// slashes it hands back the value unchanged, and the emptiness check then waves through
+// a `workflow_file` of "acme/widget" — non-empty, matching no file, exit 0 without a
+// word. The trailing case is the one a plain shape test still misses: two slashes are
+// there, so the shape passes, but the path part is empty once "@<ref>" comes off.
+for (const [label, ref, expected] of [
+  ['unset', '', /::error::GITHUB_WORKFLOW_REF is not set/],
+  ['owner/repo, nothing to strip', 'acme/widget', /::error::GITHUB_WORKFLOW_REF is "acme\/widget", which yields no/],
+  ['a single word', 'acme', /::error::GITHUB_WORKFLOW_REF is "acme", which yields no/],
+  ['right shape, empty path part', 'acme/widget/@refs/heads/main', /which yields no <owner>\/<repo>\/<path>/],
+]) {
+  test(`GITHUB_WORKFLOW_REF ${label}: exit 1 with the cause named`, { skip: SKIP }, () => {
+    const r = runGuard({
+      files: [file('modified', WF), ...others(1)],
+      env: { GITHUB_WORKFLOW_REF: ref },
+    });
+    assert.equal(r.code, 1, 'a PR that changes the workflow must not pass on an unreadable ref');
+    assert.match(r.log, expected);
+    assert.doesNotMatch(r.log, /::notice::/, 'nothing was checked, so nothing may be waved through');
+  });
+}
+
+// The two aborts must stay distinguishable in the log: "the variable is missing" and
+// "the variable holds something unusable" send whoever reads it to different places.
+test('the unset and the unreadable ref do not share one message', { skip: SKIP }, () => {
+  const pr = [file('modified', WF), ...others(1)];
+  const unset = runGuard({ files: pr, env: { GITHUB_WORKFLOW_REF: '' } });
+  const junk = runGuard({ files: pr, env: { GITHUB_WORKFLOW_REF: 'acme/widget' } });
+  assert.notEqual(unset.log.trim(), junk.log.trim());
+  assert.doesNotMatch(unset.log, /is "/, 'there is no value to quote when the variable is unset');
+  assert.match(junk.log, /acme\/widget/, 'the unusable value belongs in the message');
 });
 
 test(`${CAP} files without the workflow among them: exit 1, naming the cap`, { skip: SKIP }, () => {
