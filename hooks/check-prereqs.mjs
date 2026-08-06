@@ -85,6 +85,11 @@ function readConfig() {
   return { config: parsed, problem: null };
 }
 
+// Deliberately NOT debounced through the marker file the way prereqNotice() is.
+// The prerequisite notice repeats a state the user cannot always fix; this one
+// repeats a state the user alone can fix, and staying silent about it after the
+// first session would recreate the exact failure this warning exists to end —
+// a setting that is off without anyone saying so. It costs no model context.
 function buildConfigWarning(problem) {
   return [
     `agenticaiplugin: ${CONFIG_FILE} ${problem}.`,
