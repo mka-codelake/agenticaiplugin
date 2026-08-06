@@ -350,19 +350,19 @@ can reuse it.
 ### Doctrine injection & enforcement hooks
 
 The plugin provides its always-on behavior via hooks instead of copying `.claude/rules/`
-files into projects (Claude Code has no plugin-native rules mechanism, and copying drifts):
+files into projects (Claude Code has no plugin-native rules mechanism, and copying drifts —
+why, and what the alternatives were, in `docs/architecture.md`):
 
 - **Doctrine — `hooks/inject-doctrine.mjs` (SessionStart).** Emits the behavioral doctrine
-  (`doctrine/**/*.md`) as `hookSpecificOutput.additionalContext`. It fires on **every**
-  SessionStart `source` — `startup`, `resume`, `clear`, and crucially `compact` — and never
-  gates on `source`, so the doctrine is re-injected after each compaction (SessionStart fires
-  with `source:"compact"` after a compaction and its `additionalContext` lands in the
-  compacted context). This is the only reliable way to keep injected instructions present
-  across `/compact`; `PreCompact` is observe/block-only and cannot preserve context. Caveat:
-  `additionalContext` is a post-system-prompt context message — softer than a first-class rule,
-  which is the accepted trade-off for zero per-project drift. The texts live in
-  `doctrine/constitution/` (base doctrine plus the always-active orchestrator mode) and
-  `doctrine/themes/` (the switchable blocks); per-theme opt-out via
+  (`doctrine/**/*.md`) as `hookSpecificOutput.additionalContext`. It never gates on `source`,
+  which is what carries the doctrine across a `/compact` — the sources the hook fires on and
+  the measurement on whether the re-injected rule is still obeyed are in
+  `docs/context-map.md` §2, with their evidence status. SessionStart was chosen over
+  `PreCompact` because `PreCompact` is observe/block-only and cannot preserve context.
+  Caveat: `additionalContext` is a post-system-prompt context message — softer than a
+  first-class rule, which is the accepted trade-off for zero per-project drift. The texts
+  live in `doctrine/constitution/` (base doctrine plus the always-active orchestrator mode)
+  and `doctrine/themes/` (the switchable blocks); per-theme opt-out via
   `agenticaiplugin.config.json` `{"doctrine":{"codeReview":"off","prReviewMonitoring":"off"}}`.
   The constitution has no opt-out — whoever installs the plugin gets it.
 - **Enforcement — `hooks/guard-git-commit.mjs` (PreToolUse, matcher `Bash`).** Returns

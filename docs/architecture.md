@@ -143,16 +143,12 @@ problem it solves is a defect here, not a reserve.
 Measurement setups and raw numbers: **#114**. It is the source for the injection's
 non-reach into sub-agents, the finding that wording does not change how binding a rule is,
 and the collapse of an injected rule against an explicit user instruction — the last of
-which is why guardrails exist at all. The same issue also carries the compaction
-measurement (2026-08-02, `claude-sonnet-5`, 25 runs): with the rule injected, the compacted
-arm obeyed it 8/10 against 10/10 uncompacted — Fisher exact p = 0.237, no detectable
-difference — while the uninjected control arm obeyed it 0/5. The injection therefore
-survives a compaction.
+which is why guardrails exist at all.
 
-The limits belong to that result. One model, one rule, one task type; manual `/compact`
-instead of an auto-compaction at the window limit; the check turn immediately after the
-compaction. A residual effect on the order of 100 % → 80 % is neither established nor ruled
-out — that would take roughly 40 runs per arm.
+The same issue carries the compaction measurement, which is what lets this architecture
+put always-on rules into a channel that a `/compact` could have wiped. Result, arms and
+the limits that belong to it: `docs/context-map.md` §2 — deliberately not repeated here,
+because a measurement quoted in two places drifts in one of them.
 
 ---
 
