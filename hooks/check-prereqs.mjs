@@ -21,6 +21,14 @@
 // session. Bootstrap limitation (documented in docs/plugin-howto.md): if the
 // missing prerequisite is Node itself, this script cannot run; that case is
 // covered by the project-initializer's init/update-time check and the README.
+//
+// Second job (issue #119): warn the user when that config file exists but
+// cannot be read or parsed. Every consumer of the config silently falls back to
+// its default in that case — for `autoskill` the default is OFF, so a stray BOM
+// or a missing comma switches off a feature the user explicitly enabled, and
+// takes the one channel that would have shown it (the review notice) with it.
+// The warning goes out as `systemMessage` — visible to the user in the
+// terminal, NOT part of the model's context.
 
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
@@ -40,6 +48,47 @@ function readJson(path) {
   } catch {
     return null;
   }
+}
+
+// Read the user config and classify WHY it did not yield a usable object.
+// Deliberately separate from readJson(): that helper conflates "parse error"
+// with "the file legitimately contains null", and this warning must not fire
+// for a reason it cannot name.
+//
+// Scope (issue #119) — this covers only the failures that make the WHOLE file
+// inert at once: the file cannot be read, is not valid JSON, or does not hold a
+// JSON object. It deliberately does NOT validate keys or value types: a typo
+// like {"autoskil":...} or a wrong type like {"doctrine":"off"} stays silent.
+// Catching those needs a list of known keys kept in sync with the README — a
+// drift surface this hook is not worth. Not an oversight; a drawn line.
+function readConfig() {
+  let raw;
+  try {
+    raw = readFileSync(CONFIG_FILE, 'utf8');
+  } catch (err) {
+    // No config at all is the normal case — everything else (a directory, no
+    // read permission, an I/O error) is a config the user meant to be read.
+    if (err && err.code === 'ENOENT') return { config: null, problem: null };
+    return { config: null, problem: `cannot be read (${err?.code || 'read error'})` };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    return { config: null, problem: `is not valid JSON (${err?.message || 'parse error'})` };
+  }
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return { config: null, problem: 'does not contain a JSON object' };
+  }
+  return { config: parsed, problem: null };
+}
+
+function buildConfigWarning(problem) {
+  return [
+    `agenticaiplugin: ${CONFIG_FILE} ${problem}.`,
+    'All plugin settings fall back to their defaults — features you enabled there',
+    '(e.g. autoskill) are OFF for this session until the file is fixed.',
+  ].join('\n');
 }
 
 // Probe one prerequisite. Unknown check types count as met (fail-safe: a newer
@@ -123,21 +172,12 @@ function buildNotice(unmet) {
   ].join('\n');
 }
 
-function main() {
-  let event = 'SessionStart';
-  try {
-    const input = JSON.parse(readFileSync(0, 'utf8'));
-    if (input && typeof input.hook_event_name === 'string' && input.hook_event_name) {
-      event = input.hook_event_name;
-    }
-  } catch {
-    // no/invalid stdin -> keep default event
-  }
-
+// Returns the prerequisite notice, or null when nothing is to be reported.
+// Keeps its early returns local: the config warning must reach the user even
+// when this half stays silent.
+function prereqNotice(config) {
   const registry = readJson(REGISTRY_FILE);
-  if (!registry || !Array.isArray(registry.prerequisites)) return;
-
-  const config = readJson(CONFIG_FILE);
+  if (!registry || !Array.isArray(registry.prerequisites)) return null;
 
   const unmet = [];
   for (const entry of registry.prerequisites) {
@@ -152,16 +192,36 @@ function main() {
   const changed = JSON.stringify(unmetIds) !== JSON.stringify(lastIds);
 
   if (changed) writeMarker(unmetIds);
-  if (unmet.length === 0) return;
+  if (unmet.length === 0) return null;
 
   const everySession = config?.prereqNotice === 'every-session';
-  if (!everySession && !changed) return;
+  if (!everySession && !changed) return null;
 
-  process.stdout.write(
-    `${JSON.stringify({
-      hookSpecificOutput: { hookEventName: event, additionalContext: buildNotice(unmet) },
-    })}\n`
-  );
+  return buildNotice(unmet);
+}
+
+function main() {
+  let event = 'SessionStart';
+  try {
+    const input = JSON.parse(readFileSync(0, 'utf8'));
+    if (input && typeof input.hook_event_name === 'string' && input.hook_event_name) {
+      event = input.hook_event_name;
+    }
+  } catch {
+    // no/invalid stdin -> keep default event
+  }
+
+  const { config, problem } = readConfig();
+  const notice = prereqNotice(config);
+
+  // A hook may write exactly ONE JSON object — a second write would produce a
+  // second line and break the parse. Both messages go into the same object.
+  const out = {};
+  if (problem) out.systemMessage = buildConfigWarning(problem);
+  if (notice) out.hookSpecificOutput = { hookEventName: event, additionalContext: notice };
+  if (Object.keys(out).length === 0) return;
+
+  process.stdout.write(`${JSON.stringify(out)}\n`);
 }
 
 try {

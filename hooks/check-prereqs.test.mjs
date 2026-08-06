@@ -9,7 +9,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
@@ -42,6 +42,17 @@ function run(fixture, { input = '{"hook_event_name":"SessionStart"}' } = {}) {
 
 function registryWith(...entries) {
   return { prerequisites: entries };
+}
+
+function configFile(fixture) {
+  mkdirSync(fixture.configDir, { recursive: true });
+  return join(fixture.configDir, 'agenticaiplugin.config.json');
+}
+
+function writeConfigRaw(fixture, contents) {
+  const path = configFile(fixture);
+  writeFileSync(path, contents);
+  return path;
 }
 
 const metEntry = {
@@ -127,10 +138,13 @@ test('fail-safe: missing or corrupt registry emits nothing, exit 0', () => {
 
 test('fail-safe: corrupt config falls back to on-change default', () => {
   const fx = makeFixture(registryWith(unmetEntry));
-  mkdirSync(fx.configDir, { recursive: true });
-  writeFileSync(join(fx.configDir, 'agenticaiplugin.config.json'), '{{{broken');
-  assert.notEqual(run(fx).stdout, '');
-  assert.equal(run(fx).stdout, '', 'corrupt config must behave like on-change');
+  writeConfigRaw(fx, '{{{broken');
+  assert.match(JSON.parse(run(fx).stdout).hookSpecificOutput.additionalContext, /`ghost`/);
+  // Second run: the prerequisite notice must fall silent (on-change default),
+  // while the config warning stays — the two halves are independent (#119).
+  const second = JSON.parse(run(fx).stdout);
+  assert.equal(second.hookSpecificOutput, undefined, 'corrupt config must behave like on-change');
+  assert.match(second.systemMessage, /is not valid JSON/);
 });
 
 test('unknown check types count as met (forward compatibility)', () => {
@@ -188,4 +202,109 @@ test('requiredWhen gate: unmet entry is skipped unless its feature is enabled', 
   const on = makeFixture(registryWith(gated));
   writeConfig(on, { autoskill: { enabled: true } });
   assert.match(run(on).stdout, /`ghost`/);
+});
+
+// --- unreadable/unparsable config is reported to the user (issue #119) -------
+//
+// Every consumer of agenticaiplugin.config.json silently falls back to its
+// default when the file cannot be parsed — for autoskill that default is OFF.
+// These tests pin the warning, and the counter-checks below pin that it stays
+// silent for configs that actually work.
+
+// The registry half is silent here (`node` is met), so each case also proves
+// the warning does not depend on the prerequisite notice being emitted.
+function warningFor(contents) {
+  const fx = makeFixture(registryWith(metEntry));
+  writeConfigRaw(fx, contents);
+  const r = run(fx);
+  assert.equal(r.status, 0, r.stderr);
+  return JSON.parse(r.stdout);
+}
+
+test('config warning: broken JSON is reported even when all prerequisites are met', () => {
+  const out = warningFor('{"autoskill":{"enabled":true}');
+  assert.match(out.systemMessage, /agenticaiplugin\.config\.json is not valid JSON/);
+  assert.match(out.systemMessage, /autoskill/, 'must name what the user loses');
+  assert.equal(out.hookSpecificOutput, undefined, 'no prerequisite notice was due');
+});
+
+test('config warning: an empty config file is reported', () => {
+  assert.match(warningFor('').systemMessage, /is not valid JSON/);
+});
+
+test('config warning: a UTF-8 BOM in front of valid JSON is reported', () => {
+  // Notepad/PowerShell write the BOM by default and JSON.parse rejects it —
+  // the config looks correct in an editor but has no effect whatsoever.
+  const out = warningFor('﻿{"autoskill":{"enabled":true}}');
+  assert.match(out.systemMessage, /is not valid JSON/);
+});
+
+test('config warning: a non-object root is reported', () => {
+  for (const contents of ['"off"', 'null', '[]']) {
+    assert.match(
+      warningFor(contents).systemMessage,
+      /does not contain a JSON object/,
+      `root ${contents} must be reported`
+    );
+  }
+});
+
+test('config warning: a directory in place of the config file is reported', () => {
+  const fx = makeFixture(registryWith(metEntry));
+  mkdirSync(join(fx.configDir, 'agenticaiplugin.config.json'), { recursive: true });
+  const out = JSON.parse(run(fx).stdout);
+  assert.match(out.systemMessage, /cannot be read/);
+});
+
+test(
+  'config warning: an unreadable config file is reported',
+  { skip: process.platform === 'win32' ? 'POSIX permissions only' : false },
+  () => {
+    const fx = makeFixture(registryWith(metEntry));
+    const path = writeConfigRaw(fx, '{"autoskill":{"enabled":true}}');
+    chmodSync(path, 0o000);
+    try {
+      readFileSync(path, 'utf8');
+      return; // running as root: the file stays readable, nothing to assert
+    } catch {
+      // expected — the fixture really is unreadable for this user
+    }
+    const out = JSON.parse(run(fx).stdout);
+    assert.match(out.systemMessage, /cannot be read \(EACCES\)/);
+  }
+);
+
+test('config warning: a working config produces no warning', () => {
+  // The counter-check: without it the tests above could not show that the
+  // warning distinguishes anything at all.
+  const fx = makeFixture(registryWith(metEntry));
+  writeConfigRaw(fx, '{"autoskill":{"enabled":true},"prereqNotice":"every-session"}');
+  assert.equal(run(fx).stdout, '', 'valid config + met prerequisites must stay silent');
+
+  // ... and with no config file at all (the normal case) it also stays silent.
+  assert.equal(run(makeFixture(registryWith(metEntry))).stdout, '');
+});
+
+test('config warning: key typos and wrong value types are NOT covered (documented limit)', () => {
+  // Deliberate scope boundary: no key list, no schema. These configs parse, so
+  // they stay silent even though they have no effect. Pinned so the limit is a
+  // decision on record rather than an accident.
+  for (const contents of ['{"autoskil":{"enabled":true}}', '{"doctrine":"off"}']) {
+    const fx = makeFixture(registryWith(metEntry));
+    writeConfigRaw(fx, contents);
+    assert.equal(run(fx).stdout, '', `${contents} is out of scope for the warning`);
+  }
+});
+
+test('config warning and prerequisite notice share one JSON object', () => {
+  // A hook may write exactly one JSON object; two writes would emit two lines
+  // and break the parse on the reading side.
+  const fx = makeFixture(registryWith(unmetEntry));
+  writeConfigRaw(fx, '{{{broken');
+  const r = run(fx);
+  assert.equal(r.stdout.trimEnd().split('\n').length, 1, 'exactly one line of stdout');
+  const out = JSON.parse(r.stdout);
+  assert.match(out.systemMessage, /is not valid JSON/);
+  assert.match(out.hookSpecificOutput.additionalContext, /`ghost`/);
+  assert.equal(out.hookSpecificOutput.hookEventName, 'SessionStart');
 });
