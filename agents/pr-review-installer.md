@@ -158,6 +158,9 @@ with write access to pull requests. Therefore:
    - the `prompt: |` block scalar uniformly indented, nothing outdented below
      the block's own indentation,
    - the `--allowed-tools` value quoted and on one line,
+   - that value carrying no `gh api repos/` and none of `Bash(cat:`,
+     `Bash(head:`, `Bash(tail:`, `Bash(wc:` — the two negative invariants of
+     reference.md §1, which every structural check above passes right over,
    - the numbering under "Context to load FIRST" running 1..n without gaps.
 
    A rendering slip produces a file that looks plausible and fails at parse time

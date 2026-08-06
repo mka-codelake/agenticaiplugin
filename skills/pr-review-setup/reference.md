@@ -205,6 +205,12 @@ fails at parse time on the runner. After writing, read the file back and verify:
 - The `prompt: |` block scalar is uniformly indented; no line inside it is
   outdented below the block's own indentation.
 - The `--allowed-tools` value is wrapped in double quotes and sits on one line.
+- That same value contains no `gh api repos/`. §1 keeps it out on purpose; a
+  rendered line carrying it means the list was widened on the way here — most
+  plausibly by aligning it with a hand-written workflow that still has it.
+- It contains none of `Bash(cat:`, `Bash(head:`, `Bash(tail:`, `Bash(wc:`, for
+  the same reason (§1). Every structural check above passes with those present,
+  so nothing else catches them.
 - The numbering under "Context to load FIRST" runs 1..n without gaps.
 
 If the project already has a YAML parser available to it, parsing the file is a
