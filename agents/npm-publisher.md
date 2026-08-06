@@ -10,6 +10,7 @@ description: >
   `npm pack --dry-run` before optional publish.
   Use when user runs /agenticaiplugin:npm-publish.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
+skills: git-smart-commit
 model: sonnet
 effort: xhigh
 color: cyan
@@ -395,8 +396,10 @@ Omit empty subsections.
 
 ```bash
 git -C "{repo_path}" add package.json {synced source files} CHANGELOG.md
-git -C "{repo_path}" commit -m "chore(release): v{next_version}"
 ```
+
+**Commit** the staged files by invoking the skill `agenticaiplugin:git-smart-commit` with message
+`chore(release): v{next_version}`. Do not run `git commit` directly.
 
 **Output to user:**
 ```
@@ -1121,3 +1124,4 @@ Offer: "Create a GitHub Release for tag `v{version}` with auto-generated notes?"
 8. **Use AskUserQuestion** rather than assuming — especially for redactions, version bumps, and CHANGELOG review.
 9. **Plan before execute** — Phase 6 plan preview is mandatory before any Phase 7 write operation. (Phase 2 has its own AskUserQuestion gates and does not need to wait for Phase 6.)
 10. **Single-package only** — detect monorepos in Phase 0 and abort with clear message; out of scope for this skill.
+11. **Never commit directly.** Use the skill `agenticaiplugin:git-smart-commit`.

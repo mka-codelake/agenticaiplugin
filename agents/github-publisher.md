@@ -6,6 +6,7 @@ description: >
   CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, GitHub Actions, and issue templates.
   Use when user runs /agenticaiplugin:github-publish.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
+skills: git-smart-commit
 model: sonnet
 effort: xhigh
 color: purple
@@ -515,14 +516,21 @@ This is the most critical step. Follow reference.md Section 5 strictly — it is
 
 ```bash
 git -C {repo_path} add -A
-git -C {repo_path} commit -m "docs: prepare repository for public release
+```
+
+**Commit** the staged files by invoking the skill `agenticaiplugin:git-smart-commit` with message:
+
+```
+docs: prepare repository for public release
 
 Add LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md,
 GitHub Actions release workflow, issue templates, and project logo.
 Enhance README with badges, logo, and status banner.
 {If translations were applied: Translate German content to English ({N} files).}
-{If sensitive content was redacted: Redact sensitive content ({categories}).}"
+{If sensitive content was redacted: Redact sensitive content ({categories}).}
 ```
+
+Do not run `git commit` directly.
 
 **Output a structured summary:**
 
@@ -595,3 +603,4 @@ Next steps:
 6. **Ask when uncertain** — use AskUserQuestion rather than assuming
 7. **All changes on feature branch** — never commit directly to main/master
 8. **Plan before execute** — always show the action plan and get approval first
+9. **Never commit directly.** Use the skill `agenticaiplugin:git-smart-commit`.
