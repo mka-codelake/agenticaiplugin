@@ -19,8 +19,6 @@ jobs:
   review:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       # The secrets context is not allowed in `if:` expressions, so detect the
       # token via env indirection. All later steps are skipped (job stays
