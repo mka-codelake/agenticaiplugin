@@ -624,20 +624,26 @@ why explicit boundary groups are the wrong replacement.
 PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
 [ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
+set -o pipefail   # piping every grep below through mask() must not hide a grep error as clean
+
+# Mask a matched secret: first/last 4 characters survive, the rest becomes '…'.
+# File and line number stay untouched — they are already needed to fix the finding.
+mask() { awk -F: '{c=$0; sub(/^[^:]*:[0-9]+:/, "", c); n=length(c); m=(n<=8) ? "…" : substr(c,1,4) "…" substr(c,n-3,4); print $1 ":" $2 ":" m}'; }
+
 # JWT
-grep -rnoE "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+" "$PKG_DIR"
+grep -rnoE "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+" "$PKG_DIR" | mask
 # npm token
-grep -rnoE "npm_[A-Za-z0-9]{36,}" "$PKG_DIR"
+grep -rnoE "npm_[A-Za-z0-9]{36,}" "$PKG_DIR" | mask
 # GitHub PAT
-grep -rnoE "ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{82,}" "$PKG_DIR"
+grep -rnoE "ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{82,}" "$PKG_DIR" | mask
 # OpenAI API
-grep -rnoE "sk-[A-Za-z0-9]{32,}|sk-proj-[A-Za-z0-9_-]{40,}" "$PKG_DIR"
+grep -rnoE "sk-[A-Za-z0-9]{32,}|sk-proj-[A-Za-z0-9_-]{40,}" "$PKG_DIR" | mask
 # Anthropic API
-grep -rnoE "sk-ant-[A-Za-z0-9_-]{32,}" "$PKG_DIR"
+grep -rnoE "sk-ant-[A-Za-z0-9_-]{32,}" "$PKG_DIR" | mask
 # Slack
-grep -rnoE "xox[bpaorsl]-[A-Za-z0-9-]{10,}" "$PKG_DIR"
+grep -rnoE "xox[bpaorsl]-[A-Za-z0-9-]{10,}" "$PKG_DIR" | mask
 # AWS access key
-grep -rnoE "AKIA[0-9A-Z]{16}" "$PKG_DIR"
+grep -rnoE "AKIA[0-9A-Z]{16}" "$PKG_DIR" | mask
 # Generic high-entropy assignments
 # Scans ALL files (not just *.js/*.json): generic/prefixless credentials (DB passwords,
 # bearer tokens) also live in config files (.env, .ini, .conf, renamed variants).
@@ -648,7 +654,7 @@ grep -rnoE "AKIA[0-9A-Z]{16}" "$PKG_DIR"
 # literal s, and the pattern then misses every `key = "value"` with a space
 # around the operator (measured: 5 hits drop to 3).
 grep -rinoIE "(api[_-]?key|password|secret|token|bearer|credential)[[:space:]]*[:=][[:space:]]*['\"]?[^'\"]{16,512}['\"]?" "$PKG_DIR" \
-  --exclude-dir=node_modules
+  --exclude-dir=node_modules | mask
 ```
 
 **The seven prefixed patterns needed nothing but `-o`** — each one ends at the first character
@@ -659,6 +665,13 @@ unquoted minified config line runs to the end of the file: with `-o` and no boun
 returned **1,500,136 B** for one match. Bounded at 512 it returns **215 B**. The bound cannot
 hide a credential — a value longer than 512 characters still matches, it is just printed
 truncated.
+
+**`mask()` is why this section's output is safe to show, paste, or leave in a transcript.**
+Every match here would otherwise print in full — file and line number are untouched, so the
+finding is still actionable, but the value itself reads as `AKIA…MNOP` rather than the live
+credential. Measured against seven fabricated secrets covering all eight patterns above
+(scratchpad, no real credential involved): every match came back correctly bookended, none in
+full.
 
 Apply false-positive downgrades: matches in `*.test.js`, `*.spec.js`, `fixtures/`, `*.example`, `*.sample` are warnings (still report), not critical.
 
