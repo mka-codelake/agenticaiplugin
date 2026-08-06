@@ -416,10 +416,14 @@ tokens.
   runtime (a static JSON cannot resolve the plugin path) with the read-guard in
   exec form. The reviewer may only write into a **per-run staging directory that
   lives OUTSIDE the config dir** — a fresh `0700` `mkdtemp` under the OS temp dir
-  (`prepareStaging()` in `run-review.mjs`), because Claude Code hard-blocks
-  `Write`/`Edit` under `~/.claude/` as a "sensitive file". Do NOT move staging
-  back under `agenticaiplugin.autoskill/` — that silently re-breaks every
-  reviewer write. The deterministic install step in `run-review.mjs` is the ONLY
+  (`prepareStaging()` in `run-review.mjs`). The reason that carries this today is
+  path-traversal hardening (v0.23.1, PR #38): an unpredictable `0700` dir cannot
+  be steered into the config dir or the installed library. The *original* reason —
+  Claude Code blocking `Write`/`Edit` under `~/.claude/` as a "sensitive file" —
+  **no longer holds**: in 2.1.223, `Write` created such a file and `Edit` changed
+  it (MEASURED 2026-08-06, `docs/context-map.md` §4). Do NOT move staging back
+  under `agenticaiplugin.autoskill/` on the strength of that measurement — the
+  hardening reason stands on its own. The deterministic install step in `run-review.mjs` is the ONLY
   code that touches the library — enforcing the `learned-` prefix,
   `user-invocable: false`, and manifest-based protection of non-learned skills.
 - **User commands:** `/agenticaiplugin:learn` (targeted distillation) and

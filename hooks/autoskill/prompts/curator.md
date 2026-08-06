@@ -8,7 +8,10 @@ Tasks:
    here.)
 2. Identify OVERLAPS: skills that cover the same class of task, duplicate
    guidance, or should be one umbrella skill with support files.
-3. Identify QUALITY issues: descriptions over 60 characters, session-artifact
+3. Identify QUALITY issues: descriptions that run well past one line (they sit
+   in every session's context — there is no truncation, so an overlong one just
+   costs), descriptions where an unquoted ` #` or `: ` breaks the YAML (a
+   description ending mid-sentence at a `#` is the tell), session-artifact
    names (PR numbers, "fix-X-today"), negative tool claims, environment-bound
    content that violates the anti-capture rules.
 4. For each finding, output a concrete recommendation:

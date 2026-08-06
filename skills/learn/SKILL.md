@@ -57,8 +57,17 @@ agent-created skills lives at
    - `name:` starts with the prefix `learned-` (marks agent-created skills),
      then lowercase-hyphenated at CLASS level (no "fix-X-today", no error
      strings or ticket numbers).
-   - `description:` ONE sentence, **maximum 60 characters**, ends with a period
-     — count the characters! The skill index truncates at 60.
+   - `description:` ONE sentence, ends with a period. Keep it to roughly one
+     line — it is always in context, so it costs per session, not per use.
+     There is no length limit to work around: a 71-character description is
+     delivered in full (**MEASURED** 2026-08-06, `docs/context-map.md` §2).
+   - **Put the `description` in double quotes as soon as it contains ` #`
+     (space + hash) or `: ` (colon + space)**, escaping any inner `"` as `\"`.
+     Both are routine in a learned description — issue numbers, and lists in
+     the form `TRIGGER WORDS: …` — and both wreck an unquoted YAML value:
+     ` #` opens a comment, so everything after it is dropped **silently**, and
+     `: ` makes the whole frontmatter unparseable. A `#` with no space before
+     it (`repo#112`) is harmless and needs no quoting.
    - `user-invocable: false` — learned skills are passive background knowledge
      for the model, not commands in the /-menu. Only omit it if the user
      explicitly wants a manually invocable command.

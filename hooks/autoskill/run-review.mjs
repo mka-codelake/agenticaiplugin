@@ -6,9 +6,11 @@
 // Invocation: node run-review.mjs <review|curator> [transcript_path] [session_id]
 //
 // The reviewer must NOT write into the skill library directly: it writes into
-// STAGING_DIR (lib.mjs — deliberately OUTSIDE the Claude config dir, which
-// Claude Code hard-blocks for writes; enforced by read-guard.mjs via a
-// runtime-generated settings file — a static settings JSON cannot resolve the
+// STAGING_DIR (lib.mjs — deliberately OUTSIDE the Claude config dir; see the
+// comment there for why, and note that the old "Claude Code blocks writes
+// there" reason was measured false in 2.1.223 while the path-traversal reason
+// still carries it; enforced by read-guard.mjs via a runtime-generated settings
+// file — a static settings JSON cannot resolve the
 // staging path), and THIS script installs staged skills deterministically. Only here
 // is the library touched: `learned-` prefix and `user-invocable: false` are
 // enforced, non-learned skills are protected via the manifest.

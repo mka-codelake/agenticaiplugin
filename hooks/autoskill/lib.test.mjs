@@ -59,9 +59,12 @@ test('user values win; non-integer/negative numbers fall back', () => {
   assert.equal(bad.nudgeInterval, 10, 'non-integer -> default');
 });
 
-test('REGRESSION: STAGING_DIR never lives under the Claude config dir (write-blocked "sensitive" zone)', () => {
+test('REGRESSION: STAGING_DIR never lives under the Claude config dir', () => {
   // Root cause of the v0.22.x rollout bug: staging under ~/.claude/ made every
-  // reviewer Write fail with a "sensitive file" error. STAGING_DIR is computed
+  // reviewer Write fail with a "sensitive file" error. That block no longer
+  // exists (MEASURED 2026-08-06 on 2.1.223, docs/context-map.md §4), but the
+  // invariant stays: it is now carried by the path-traversal hardening from
+  // PR #38, which does not depend on any block. STAGING_DIR is computed
   // at import time from env, so probe it in a child process with a controlled
   // CLAUDE_CONFIG_DIR. Guards the invariant, not the current path choice.
   const lib = new URL('./lib.mjs', import.meta.url).href;

@@ -40,7 +40,7 @@ statement** — it says what has to be re-checked at the next CLI update.
 | **DOC** | Official Claude Code documentation | Re-fetch the URL, compare against the retrieval date |
 | **MEASURED** | Measured first-hand, with a method | Repeat the measurement (setup see below) |
 | **CODE** | Derivable from plugin code | Read `file:line` |
-| **ASSUMED** | Claimed, evidenced nowhere | **Nothing** — this is where measuring has to happen before anything is built on it |
+| **ASSUMED** | Claimed, evidenced nowhere | **Nothing** — this is where measuring has to happen before anything is built on it (§5 names the two rows that stay unmeasured deliberately, and why) |
 
 `ASSUMED` is the most important category. Several load-bearing design decisions of the
 plugin rest on unsubstantiated comments to this day.
@@ -180,6 +180,64 @@ text that must outrank another one may never rely on position. It has to say so 
 name *what* it outranks. (The doctrine carried a matching override clause until 0.31.4; it
 existed for `meta-orchestrator` and went with it — see #117.)
 
+### Whether a skill reaches the index at all — measured
+
+Three assumptions about the skill index were lifted on **2026-08-06** (Claude Code
+**2.1.223**, one version past the survey baseline). They belong together because one
+measurement setup answers all three.
+
+| Claim | Result | Marker |
+|---|---|---|
+| Nested skill folders (`skills/nest/x/SKILL.md`) are not discovered | **confirmed**, in both the plugin and the user arm | **MEASURED** |
+| The index truncates `description` at 60 characters | **refuted** — no truncation at any length | **MEASURED** |
+| Skills under `~/.claude/skills/` hot-reload | **confirmed for the user level**; the plugin level is a different path and stays open | **MEASURED** (partly) |
+
+**Setup, both arms, each with a control:**
+
+- *Plugin arm*: throwaway plugin in an empty directory, run via `claude --plugin-dir
+  <copy>` — the established path for every measurement in this map (see §7). A flat
+  `skills/zzflatprobe/SKILL.md` against a nested `skills/nest/zznestprobe/SKILL.md`:
+  flat **visible**, nested **absent**. The control run reversed the order *and* asked
+  about a skill that was never created; the ghost came back absent and the ordering did
+  not change the outcome, which rules out both position bias and confabulation.
+- *User arm* — the one the claim in `hooks/autoskill/lib.mjs:22-24` is actually about,
+  since learned skills install into `CONFIG_DIR/skills`: `~/.claude/skills/zzuserflat/`
+  against `~/.claude/skills/zznest/zzusernest/` → **nested absent, flat visible**. Both
+  probes removed afterwards, library verified back at its prior count.
+- *Independent of any self-report*: the skill roster the harness itself writes into a
+  session listed `zzuserflat` and never `zzusernest`. That is the index, not a model
+  claiming to read it — and the same roster is what refutes the truncation. A
+  71-character ruler string came back uncut; independently of that number, the
+  user-level library holds descriptions of several hundred characters, and those too
+  stand in the roster **complete, to the final period**. So the refutation does not
+  rest on hitting the right length: there is no cutoff at any length.
+- *Hot-reload*: the user-level probe showed up in a **running** session, with no
+  restart. The marketplace half of that question is settled elsewhere and not repeated
+  here — `docs/plugin-howto.md:435-453` records why the two rules never contradicted
+  each other: the session runs an install copy, not the working tree.
+
+🛑 **Trap that costs every repetition:** `CLAUDE_CONFIG_DIR=<throwaway> claude -p` does
+**not** work as an isolation trick — it breaks authentication (`Not logged in · Please
+run /login`), which reads like the measurement being impossible. Either go through
+`--plugin-dir`, or measure in the real config dir and clean up afterwards.
+
+**What this does not say:** it measures 2.1.223. That the truncation never existed is
+not shown — only that it does not exist now. Display surfaces other than the index were
+not checked.
+
+**Consequence, already implemented.** The 60-character limit is gone from all three places
+that imposed it — `skills/learn/SKILL.md:60-63` and, more importantly, the two autoskill
+prompts that actually write learned descriptions unattended
+(`hooks/autoskill/prompts/review.md:55-58`, `hooks/autoskill/prompts/curator.md:11-16`).
+What replaced it is the rule that really bites, and it has nothing to do with length: an
+unquoted YAML scalar ends at ` #` (space + hash), so a learned description carrying an
+issue number loses everything after it **without a word** — while `: ` costs the whole
+frontmatter (measured against PyYAML; `repo#112` without the space is harmless). Stated as
+an instruction to quote at `skills/learn/SKILL.md:64-70` and
+`hooks/autoskill/prompts/review.md:63-68`, and guarded for shipped skills by
+`repo-hygiene.test.mjs`. No description was damaged when this was found — the defect was
+latent, and the guard is what keeps it that way.
+
 ---
 
 ## 3. What travels along
@@ -229,6 +287,7 @@ The second group is the more dangerous one.
 | `skillDir` in the workflow: no default, must be absolute | Workflow suites |
 | Mode text names the commit path, no blanket git ban | `hooks/inject-doctrine.test.mjs` (since 0.31.1, effectiveness demonstrated) |
 | No tool-call syntax fragments in shipped markdown | `repo-hygiene.test.mjs` |
+| No shipped `description` is a plain YAML scalar broken by ` #` or `: ` | `repo-hygiene.test.mjs` |
 | Doctrine rule names match their three prose summaries | `repo-hygiene.test.mjs` |
 | This map's `file:line` citations resolve (existence only) | `docs/context-map.test.mjs` |
 
@@ -260,22 +319,69 @@ variable empty. The scope matters, because three places used to state the shell 
 blanket claim about the tool context at large and drew a design decision from it; they now
 name the shell.
 
+### An enforcement the plugin credited to Claude Code — refuted
+
+`hooks/autoskill/lib.mjs` claimed a hard block: Write/Edit to anything under `~/.claude/`
+refused as a "sensitive file", *"independent of `--permission-mode` or `--allowedTools`"*.
+The autoskill staging architecture was justified with it.
+
+**MEASURED** (2026-08-06, Claude Code 2.1.223): the Write tool **created**
+`~/.claude/agenticai-issue112-probe.tmp`, the Edit tool then **changed** it. No block, no
+prompt, no "sensitive file" notice; probe removed. The run was not a permissions bypass —
+the same session, under the auto mode's permission classifier, had a harmless read-only
+`grep` denied in the same stretch. A write that passes while a read is refused is not a
+loophole in the measurement, it is the counter-example.
+
+🛑 **The inference this does not license.** "The stated reason no longer holds" is not
+"the mechanism can go". Per-run `mkdtemp` (0700, unpredictable path) carries the
+path-traversal hardening from v0.23.1 / PR #38 — a second, independent reason that this
+measurement does not touch. **What was wrong here is the comment, not the code**; the
+comment now names both reasons and says which one carries the design
+(`hooks/autoskill/lib.mjs:36-49`).
+
+The general shape is worth more than the single finding: the plugin had **assumed an
+enforcement by the host** and built on it. That belongs in this section next to the rules
+that are merely written down — a guarantee nobody verified is not weaker than an
+unenforced rule of our own, it is worse, because it looks like someone else's job.
+
 ---
 
 ## 5. Open assumptions — the measurement list
 
 Load-bearing design decisions without evidence. Every row is a candidate for a
-measurement with a reproducible artifact.
+measurement with a reproducible artifact. The list is short now, and the two sections
+below say why: four rows were measured away on 2026-08-06, and two are staying
+unmeasured on purpose.
 
 | Assumption | Stated in | Why it counts |
 |---|---|---|
-| `PreCompact` cannot preserve context | `docs/plugin-howto.md:360-361` | DOC confirms the recommendation, not the rationale |
-| `additionalContext` is "softer" than a real rule | `docs/plugin-howto.md:362-363` | **DOC** calls it a "system reminder" — strength undetermined |
-| Claude Code blocks Write/Edit under `~/.claude/` | `hooks/autoskill/lib.mjs:35-38` | Load-bearing for the staging architecture |
-| Nested skill folders are not discovered | `hooks/autoskill/lib.mjs:22-24` | Determines the flat layout |
-| Skill index truncates `description` at 60 characters | `skills/learn/SKILL.md:60-61` | — |
 | The marketplace copy is an unfiltered tree copy | `docs/workflow-integration-howto.md:37` | Reason why `.workflow.js` comes along |
-| Skills under `~/.claude/skills/` hot-reload | `docs/plugin-howto.md:435-453` | The claim itself is untested. It no longer stands in tension with the marketplace update rule (`CLAUDE.md:159`): the install path holds an unlinked copy that already differs from the working tree (**MEASURED** 2026-08-06), so the two rules address different locations |
+
+### Resolved on 2026-08-06 — where they went
+
+Four rows left this list in one sitting. Two of them were **false**, and both of those had
+been sorted as "can wait" beforehand — which is the standing argument against ranking
+unmeasured assumptions by how load-bearing they feel.
+
+| Was assumed | Outcome | Now recorded in |
+|---|---|---|
+| Claude Code blocks Write/Edit under `~/.claude/` | **refuted** | §4, "An enforcement the plugin credited to Claude Code" |
+| Skill index truncates `description` at 60 characters | **refuted** | §2, "Whether a skill reaches the index at all" |
+| Nested skill folders are not discovered | **confirmed** | §2, same |
+| Skills under `~/.claude/skills/` hot-reload | **confirmed** for the user level | §2, same; the plugin level is a different path (#111) |
+
+### Deliberately not going to be measured
+
+These two stay written down and stay `ASSUMED` **on purpose**. They are not a backlog, and
+carrying them as one made this list look like unfinished work forever.
+
+| Assumption | Stated in | Why it is not worth measuring |
+|---|---|---|
+| `additionalContext` is "softer" than a real rule | `docs/plugin-howto.md:362-363` | "Softer" is an adjective, not a testable claim. Formulate a decision that turns on it and it becomes measurable — until then there is nothing to measure. The one adjacent question that *was* decidable (does a re-injected rule survive a compaction) is measured in §2 |
+| `PreCompact` cannot preserve context | `docs/plugin-howto.md:360-361` | No decision hangs on it: **DOC** recommends SessionStart regardless, and that is the mechanism in use. Measuring would confirm a rationale for a choice already made on other grounds |
+
+They are kept rather than deleted for one reason: an assumption nobody can see any more
+gets made again from scratch next time.
 
 ---
 
