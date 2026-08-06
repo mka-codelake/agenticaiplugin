@@ -342,6 +342,17 @@ they never opted into (missing/unreadable config means the gate is NOT
 satisfied, matching the opt-in default). Example: the `claude` CLI is only
 required when `autoskill.enabled` is `true`.
 
+**Config warning (issue #119):** `check-prereqs.mjs` also warns — via
+`systemMessage`, i.e. to the user's terminal, not into the model's context —
+when `agenticaiplugin.config.json` exists but cannot be read or parsed. Every
+consumer falls back to its default in that case, and for `autoskill` that
+default is OFF, so a stray BOM silently disables a feature the user turned on.
+Covered: read errors, invalid JSON, a non-object root. **Not** covered by
+design: key typos and wrong value types (they parse) — that would need a key
+list kept in sync with the README. Two constraints if you touch this hook: a
+hook may write exactly **one** JSON object (both messages share it), and the
+warning must not sit behind the prerequisite notice's early returns.
+
 **Portability note:** GitHub Copilot CLI hooks use the same shell-command +
 JSON-stdin/stdout model — Node hook scripts port 1:1. OpenCode plugins run
 in-process under Bun; keep hook logic in importable functions so a thin adapter
