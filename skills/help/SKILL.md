@@ -56,6 +56,7 @@ Show the user the following overview:
 | **create-cli** | Designs CLI interfaces: arguments, flags, subcommands, help text, output formats, exit codes, prompts. Produces a compact spec for implementation |
 | **grill-me** | Relentless one-question-at-a-time interview to stress-test a plan or decision until you reach shared understanding. Stateless, manual-only |
 | **council** | Convenes two or three independent, mutually blind views on one decision, spawned in parallel and cut by where their evidence comes from (intent / execution / artifact alone), not by role. Every brief asks both whether the thing should be built at all and whether it is built right. For a judgment call that can be argued from evidence but not measured — where it can be measured, measuring wins |
+| **tracker** | Works a whole issue tracker instead of one task: maps how the open issues couple *before* cutting blocks, evaluates each issue with its own agent that reproduces the finding rather than reading it, implements in dependency order, and hands every PR to you for the merge. Built from the failure modes of a real run — the coupling that surfaces by accident, the half-fixed defect that looks finished, the finding split off with nowhere to go |
 | **license-check** | Checks license compatibility of all dependencies, tools, scripts, and LLM models against the project license. Modes: standard (full scan including transitive deps) or `--quick` (direct dependencies only). Report saved to `claudedocs/license-check-result.md` |
 
 ### Tools
