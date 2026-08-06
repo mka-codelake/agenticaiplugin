@@ -512,8 +512,8 @@ Clear description.
 
 | Field | Required | Format | Default |
 |-------|----------|--------|---------|
-| `name` | YES | Lowercase, hyphens | - |
-| `description` | YES | Max 1024 chars, include triggers | - |
+| `name` | NO | Lowercase, hyphens | file name without `.md` (prefixed with the sub-directory, if any) |
+| `description` | NO, but effectively required | Max 1024 chars, include triggers | a placeholder — the agent then has nothing to match on |
 | `tools` | NO | Comma-separated | Inherit all |
 | `model` | NO | `sonnet`, `opus`, `haiku` | `sonnet` |
 | `effort` | NO | `low`, `medium`, `high`, `xhigh`, `max` | inherits session — see [Effort + Model](#effort--model) |
@@ -525,9 +525,16 @@ Clear description.
 Agents can automatically load specific skills when they start using the `skills:` frontmatter field.
 
 **Syntax:**
+```yaml
+# several skills: comma-separated
+skills: git-smart-commit
+```
+
 **Behavior:**
 - Skills are loaded into the agent's isolated context at startup
-- Comma-separated list of skill names (matches skill's frontmatter `name:` field)
+- Comma-separated list of skill **directory** names — the value matches
+  `skills/<directory>/SKILL.md`, not a `name:` field (skills usually have none;
+  `name:` itself defaults to the directory name)
 - Skills must exist in plugin, project, or global skills directories
 - Reduces need for manual skill loading in agent instructions
 

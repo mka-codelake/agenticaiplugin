@@ -134,8 +134,9 @@ Report back instead that the review has to happen at orchestrator level — an a
 its own implementation reproduces its own assumptions instead of questioning them, and a
 sub-agent must not fan out further sub-agents. The orchestrator that delegated the work runs
 the review on the combined diff via the primary path above. Before reporting back, run the
-handover check the doctrine defines for this case (tests, debug leftovers, diff scope, known
-deviations — see `doctrine/themes/code-review.md`); it is a checklist, not a review.
+handover check: tests green (or say plainly that none exist or none ran), no debug leftovers
+(log output, commented-out code, contextless TODOs), the diff contains only what was
+requested, known deviations named. It is a checklist, not a review — report it as one.
 
 ## Skill Contents
 
