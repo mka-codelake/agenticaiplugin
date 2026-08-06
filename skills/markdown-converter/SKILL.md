@@ -7,7 +7,7 @@ effort: low
 
 # Markdown Converter
 
-Convert files to Markdown using `uvx markitdown` — no installation required.
+Convert files to Markdown using `uvx markitdown` — no installation of markitdown itself required, but `uvx` needs `uv` on PATH.
 
 ## Usage
 

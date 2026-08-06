@@ -21,6 +21,36 @@
         "linux": "npm install -g @anthropic-ai/claude-code",
         "darwin": "npm install -g @anthropic-ai/claude-code"
       }
+    },
+    {
+      "id": "gh",
+      "check": { "type": "binary", "name": "gh", "versionArg": "--version" },
+      "features": ["npm-publisher (creates GitHub releases via `gh release create`)", "pr-review-setup (the human setup step stores the repo secret via `gh secret set`)", "handover (optional cross-check against `gh pr list` / `gh issue list` — degrades gracefully without it)"],
+      "hints": {
+        "win32": "winget install GitHub.cli",
+        "linux": "distro packages often lag behind current releases — install via the official repo (https://github.com/cli/cli/blob/trunk/docs/install_linux.md) or your package manager",
+        "darwin": "brew install gh"
+      }
+    },
+    {
+      "id": "curl",
+      "check": { "type": "binary", "name": "curl", "versionArg": "--version" },
+      "features": ["code-review (dependency-deprecation checks query package registries via `curl`)"],
+      "hints": {
+        "win32": "included since Windows 10 1803+; older builds: winget install cURL.cURL",
+        "linux": "install via your package manager (e.g. apt install curl / dnf install curl) if not already present",
+        "darwin": "preinstalled on macOS — brew install curl for a newer version"
+      }
+    },
+    {
+      "id": "tar",
+      "check": { "type": "binary", "name": "tar", "versionArg": "--version" },
+      "features": ["npm-publisher (unpacks the built tarball for a pre-publish content audit via `tar -xzf`)"],
+      "hints": {
+        "win32": "included since Windows 10 1803+ (bsdtar); older builds: use WSL or install via winget",
+        "linux": "preinstalled on virtually all distros; install via your package manager otherwise (e.g. apt install tar)",
+        "darwin": "preinstalled on macOS (bsdtar)"
+      }
     }
   ]
 }
