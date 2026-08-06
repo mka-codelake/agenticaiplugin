@@ -47,21 +47,67 @@ jobs:
       # unreviewed, and that one has to be read by hand regardless.
       #
       # Behind the token guard on purpose. Without a token no review was
-      # expected in the first place, and turning that PR red would break the
-      # promise the bootstrap order rests on — the workflow lands before the
-      # token exists without ever showing a red check. A file that is `added`
-      # rather than `modified` is that bootstrap PR and stays green too.
+      # expected in the first place, and turning that PR red would break what
+      # the setup order depends on: this workflow can land before the token
+      # exists without ever showing a red check. A file that is `added` rather
+      # than `modified` is that first PR, and stays green as well.
+      #
+      # The path is read from GITHUB_WORKFLOW_REF instead of being written in:
+      # renaming this file would otherwise leave the guard comparing against a
+      # path that no longer exists, and a guard that matches nothing reports
+      # "untouched" — silently the opposite of what it is here to do.
       - name: Require a workflow-only PR
         if: steps.token.outputs.present == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          WORKFLOW_FILE: .github/workflows/claude-review.yml
         run: |
+          # Actions always sets GITHUB_WORKFLOW_REF; if it ever does not, the
+          # two comparisons below break in opposite directions. An empty path
+          # matches no `filename` at all, but it does match the empty
+          # `previous_filename` that every file carries which was not renamed.
+          # Measured: the step then announced a rename of whichever file came
+          # last, and blocked every PR holding more than one. Stop before
+          # making a claim out of that.
+          if [ -z "${GITHUB_WORKFLOW_REF:-}" ]; then
+            echo "::error::GITHUB_WORKFLOW_REF is not set, so this step cannot tell whether PR #$PR_NUMBER changes its own workflow file."
+            exit 1
+          fi
+
+          # GITHUB_WORKFLOW_REF is "<owner>/<repo>/<path>@<ref>". The strip only
+          # cuts when the value really has that shape: given fewer than two
+          # slashes it returns the value unchanged, and a leftover like
+          # "acme/widget" is then not empty and reads like a path while matching
+          # no file in the PR — same silent "untouched" as above, but past the
+          # emptiness check. So "nothing was cut" counts as "no path in there".
+          workflow_file="${GITHUB_WORKFLOW_REF#*/*/}"
+          if [ "$workflow_file" = "$GITHUB_WORKFLOW_REF" ]; then
+            workflow_file=""
+          fi
+          # Trailing "@<ref>". Stripping it can empty the path on its own, for a
+          # value whose shape passed the check above but whose path part is the
+          # empty string, so the verdict below comes after this and not before.
+          workflow_file="${workflow_file%%@*}"
+
+          # Named apart from the unset case on purpose: a variable that is
+          # missing and a variable holding something no path can be read out of
+          # are different things to go and look at.
+          if [ -z "$workflow_file" ]; then
+            echo "::error::GITHUB_WORKFLOW_REF is \"$GITHUB_WORKFLOW_REF\", which yields no <owner>/<repo>/<path> workflow path, so this step cannot tell whether PR #$PR_NUMBER changes its own workflow file."
+            exit 1
+          fi
+
           files="$RUNNER_TEMP/pr-files.tsv"
           gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --paginate \
-            --jq '.[] | [.status, .filename] | @tsv' > "$files"
-          state=$(awk -F'\t' -v f="$WORKFLOW_FILE" '$2 == f { print $1 }' "$files")
+            --jq '.[] | [.status, .filename, .previous_filename] | @tsv' > "$files"
+          state=$(awk -F'\t' -v f="$workflow_file" '$2 == f { print $1 }' "$files")
+          # A rename reports the new path in `filename` and the old one in
+          # `previous_filename`, so matching `filename` alone misses a PR that
+          # renames this file *away* from the tracked path: nothing matches,
+          # the guard reads "untouched", and the action then skips itself
+          # anyway because the file is no longer where it expects it — green,
+          # unreviewed, and without a word. Hence the third column.
+          moved_to=$(awk -F'\t' -v f="$workflow_file" '$3 == f { print $2 }' "$files")
           total=$(awk 'END { print NR }' "$files")
 
           # A failing `gh` aborts the step via `bash -e` before this point. An
@@ -69,7 +115,22 @@ jobs:
           # read as "workflow untouched" and wave the PR through: every PR has
           # at least one file, so nothing here is a lookup that did not work.
           if [ "$total" -eq 0 ]; then
-            echo "::error::Could not read the file list for PR #$PR_NUMBER — the API call succeeded but returned nothing. Refusing to assume this PR leaves $WORKFLOW_FILE alone."
+            echo "::error::Could not read the file list for PR #$PR_NUMBER — the API call succeeded but returned nothing. Refusing to assume this PR leaves $workflow_file alone."
+            exit 1
+          fi
+
+          if [ -z "$state" ] && [ -n "$moved_to" ]; then
+            state="renamed"
+          fi
+
+          # The API returns at most 3000 files per pull request, `--paginate`
+          # included. At the cap the list may be cut off, and whether this file
+          # is in the part that arrived is decided by sort order rather than by
+          # content — "not in the list" stops meaning "untouched". Same posture
+          # as the empty list above: name the doubt instead of ruling on a PR
+          # that was never seen whole.
+          if [ -z "$state" ] && [ "$total" -ge 3000 ]; then
+            echo "::error::PR #$PR_NUMBER reports $total changed files, the maximum the API returns for one PR — the list may be truncated, and $workflow_file could sit in the part that was cut. Refusing to assume this PR leaves it alone."
             exit 1
           fi
 
@@ -83,11 +144,11 @@ jobs:
           # default branch. It stays green — but say plainly how much went
           # unreviewed, which is everything, not just the workflow.
           if [ "$state" = "added" ]; then
-            echo "::notice::$WORKFLOW_FILE does not exist on the default branch yet, so the action reviewed nothing in this PR. It starts reviewing once this PR is merged."
+            echo "::notice::$workflow_file does not exist on the default branch yet, so the action reviewed nothing in this PR. It starts reviewing once this PR is merged."
             {
               echo "### No review ran — workflow not on the default branch yet"
               echo ""
-              echo "\`$WORKFLOW_FILE\` is new, so the action had nothing to validate"
+              echo "\`$workflow_file\` is new, so the action had nothing to validate"
               echo "against and skipped itself."
               echo ""
               if [ "$total" -gt 1 ]; then
@@ -102,18 +163,25 @@ jobs:
             exit 0
           fi
 
+          # Name the rename where there is one: "changes" would be true but
+          # sends the reader looking for a diff at a path that is gone.
+          what="changes $workflow_file"
+          if [ -n "$moved_to" ]; then
+            what="renames $workflow_file to $moved_to"
+          fi
+
           if [ "$total" -gt 1 ]; then
-            echo "::error::This PR changes $WORKFLOW_FILE alongside $((total - 1)) other file(s), so no file in it gets reviewed. Split it — see the job summary for the required order."
+            echo "::error::This PR $what alongside $((total - 1)) other file(s), so no file in it gets reviewed. Split it — see the job summary for the required order."
             {
               echo "### Split this pull request"
               echo ""
-              echo "\`$WORKFLOW_FILE\` is changed together with **$((total - 1))**"
+              echo "\`$workflow_file\` is changed together with **$((total - 1))**"
               echo "other file(s). The review action compares that file against the"
               echo "version on the default branch and skips itself when they differ,"
               echo "so **nothing in this PR is reviewed** — and the check would still"
               echo "have been green."
               echo ""
-              echo "1. Land the change to \`$WORKFLOW_FILE\` as its own PR, and merge it."
+              echo "1. Land the change to \`$workflow_file\` as its own PR, and merge it."
               echo "2. Branch the remaining changes off the **updated default branch**."
               echo ""
               echo "The order matters. Branching step 2 off the workflow PR instead"
@@ -123,11 +191,11 @@ jobs:
             exit 1
           fi
 
-          echo "::notice::This PR only changes $WORKFLOW_FILE, so the review action skips itself and no review ran. Read the diff by hand before merging."
+          echo "::notice::This PR only $what, so the review action skips itself and no review ran. Read the diff by hand before merging."
           {
             echo "### No review ran — workflow-only PR"
             echo ""
-            echo "This PR changes \`$WORKFLOW_FILE\`, so the action skipped itself."
+            echo "This PR changes \`$workflow_file\`, so the action skipped itself."
             echo "That is the intended shape: the change stands alone, so this diff"
             echo "is the only thing left unreviewed. Read it by hand before merging."
           } >> "$GITHUB_STEP_SUMMARY"
@@ -230,7 +298,9 @@ jobs:
             **Verdict:** <✅ Ship it | ⚠️ Has concerns | 🛑 Blocking issues>
 
             ### Critical (<count>)
-            <findings as a bullet list, each: `- **<file>:<line>** — <one-line> — _<rule reference>_`>
+            <findings as a bullet list, each in one of these two forms:
+            `- **<file>:<line>** — <one-line> — _<rule reference>_`
+            `- **<file>** — <one-line> — _<rule reference>_`>
             _or_
             _None_
 
@@ -248,6 +318,13 @@ jobs:
             <2–3 sentences on overall impression and any follow-ups>
             ```
 
+            Cite the line whenever you have read it in the file — that is the
+            first form, and it is the normal one. Use the second when you have
+            not: when the finding is about the file as a whole, and whenever the
+            number would be an estimate. Then quote the code fragment in the
+            one-line description instead. A number that points at nothing gets
+            checked, not found, and dropped — and it takes the finding with it.
+
             Even if you find **no issues at all**, you MUST still post the
             comment with `Verdict: ✅ Ship it` and all three sections marked
             `_None_`. A silent run is a bug — the comment is the only way
@@ -255,5 +332,5 @@ jobs:
 
             Do not invent findings. Be concise. One bullet per issue.
           claude_args: |
-            --allowed-tools "Read,Grep,Glob,Write,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh api repos/:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(node --test:*)"
+            --allowed-tools "Read,Grep,Glob,Write,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(node --test:*)"
             --max-turns 40
