@@ -63,7 +63,6 @@ For file naming, frontmatter requirements, progressive disclosure, and template 
 - `.claude-plugin/plugin.json` — Plugin metadata (name, version, author)
 - `docs/architecture.md` — What the plugin is made of and **where a new rule belongs** (guardrail / doctrine / persona / skill / policy, the mode as a composition rule, the three placement questions, and what deliberately does not exist). Read before adding a rule, a doctrine file or a hook
 - `docs/plugin-howto.md` — Primary development reference (frontmatter, patterns, conventions)
-- `docs/rules-howto.md` — Rules template development reference
 - `docs/workflow-integration-howto.md` — Binding pattern for calling repo-local `Workflow` scripts from a `SKILL.md` (spike #9; required reading before migrating a skill to the Workflow feature)
 - `docs/context-map.md` — What puts which content into whose context, and when (doctrine, `CLAUDE.md`, skills, forks, sub-agents). Every statement carries a provenance marker (DOC / MEASURED / CODE / ASSUMED); consult before assuming a rule reaches a given context
 - `skills/code-review/orchestration.md` — Multi-specialist review orchestration playbook

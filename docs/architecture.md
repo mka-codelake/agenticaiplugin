@@ -31,6 +31,33 @@ There is currently exactly one guardrail: `hooks/guard-git-commit.mjs` blocks a 
 `hooks/hooks.json` as SessionStart hooks. The persona is opt-in and off until it is set;
 the doctrine is not.
 
+## How always-on behavior is delivered (without copied rules)
+
+Because a plugin cannot ship rules that auto-load, an earlier approach *copied* rule files
+into every project via `/init`. That copying caused version drift across projects and a whole
+update/sync/migration apparatus to manage it. **AgenticAI no longer does this.** Always-on
+behavior is provided by the plugin itself, three ways:
+
+1. **Doctrine via a SessionStart hook** (`hooks/inject-doctrine.mjs` + `doctrine/**/*.md`) —
+   the behavioral doctrine (ask-before-assuming, present-the-design-and-wait-for-a-go,
+   minimal scope, honesty, automatic code review, PR review monitoring) is emitted as
+   `additionalContext` every session. The texts are split into `doctrine/constitution/`
+   (base doctrine plus the always-active orchestrator mode, no opt-out) and
+   `doctrine/themes/` (the switchable blocks). When the hook fires, whether the injection
+   survives a compaction, and how `additionalContext` compares with a first-class rule:
+   `docs/context-map.md` §2 carries those statements with their evidence status.
+2. **Enforcement via a PreToolUse hook** (`hooks/guard-git-commit.mjs`) — hard behavior (never
+   run raw `git commit`) is *enforced*, not merely requested. This is stronger than a rule.
+3. **Skills** for task-triggered guidance (`writing-tests`, `dependency-management`, …).
+
+Per-item opt-out lives in `agenticaiplugin.config.json`
+(`{"doctrine":{"codeReview":"off","prReviewMonitoring":"off"},"gitCommitGuard":"off"}`); only
+the themes are switchable, see *The mode* below.
+
+`.claude/rules/` in a user's project is therefore **the user's own space** — the plugin reads
+nothing there and installs nothing there. `/agenticaiplugin:update-plugin` only *removes* any
+legacy `agenticaiplugin-*.md` copies left by older versions.
+
 ## The mode
 
 A **mode** is the composition rule for a session's doctrine — not a state anyone selects:

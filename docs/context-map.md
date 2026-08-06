@@ -292,9 +292,13 @@ Not assumptions but findings — each one a work item.
 4. ~~**The command tables are already drifting** — `qa` is in `README.md`, missing in
    `CLAUDE.md`.~~ — **fixed** in the same PR that added this map. No test guards the
    tables against the next drift.
-5. **`docs/rules-howto.md` dates from January 2025** and describes a mechanism the
-   plugin deliberately no longer uses. Its header now says so explicitly; the content
-   itself is still unverified.
+5. ~~**`docs/rules-howto.md` dates from January 2025** and describes a mechanism the
+   plugin deliberately no longer uses.~~ — **fixed.** The single part still in force —
+   how the plugin delivers always-on behavior — moved verbatim into
+   `docs/architecture.md`, which also took the file's place as the third doctrine
+   summary in `repo-hygiene.test.mjs`. The remaining 431 lines documented
+   `.claude/rules/` mechanics the plugin never used and were deleted rather than
+   re-verified.
 
 ---
 

@@ -320,7 +320,7 @@ agenticaiplugin/
 ├── prerequisites.json           # Feature prerequisite registry
 ├── docs/
 │   ├── plugin-howto.md          # Plugin development reference
-│   └── rules-howto.md           # Rules & doctrine reference
+│   └── architecture.md          # Building blocks, where a rule belongs, doctrine summary
 └── CLAUDE.md                    # Development instructions
 ```
 
