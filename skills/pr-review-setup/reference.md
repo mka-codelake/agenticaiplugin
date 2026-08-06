@@ -313,12 +313,29 @@ The order in that message is the part worth keeping: branching the second PR off
 the workflow PR does not work. Byte-equality is checked against the **default
 branch**, not the PR base, so a stacked PR is skipped just the same.
 
-Two details in the step exist because the failure they prevent is silent. The
-path comes from `GITHUB_WORKFLOW_REF`, not a literal, so renaming the workflow
-cannot leave the guard comparing against a path that no longer exists — a guard
-matching nothing reports "untouched". And an empty file list aborts the job:
-every PR has at least one file, so an empty answer is a lookup that failed, not
-a workflow left alone.
+Five details in the step exist because the failure they prevent is silent, and
+they share one shape: the guard refuses to read "untouched" out of an answer
+that never said so.
+
+- The path comes from `GITHUB_WORKFLOW_REF`, not a literal, so renaming the
+  workflow cannot leave the guard comparing against a path that no longer
+  exists — a guard matching nothing reports "untouched".
+- An empty file list aborts the job: every PR has at least one file, so an
+  empty answer is a lookup that failed, not a workflow left alone.
+- An empty path derived from that variable aborts the job as well. Actions
+  always sets it, but if it ever did not, every comparison below would turn
+  into "matches everything" rather than "matches nothing" — and the step would
+  block PRs with a message naming no file at all.
+- The file list is matched on `previous_filename` as well as `filename`. A PR
+  that renames the workflow *away* from the tracked path shows the old path
+  only in the former; matching `filename` alone finds nothing, calls the
+  workflow untouched, and the action then skips itself anyway because the file
+  is gone from where it expects it — green, unreviewed, silent.
+- A file count at the API's ceiling of 3000 aborts the job. At the cap the list
+  may be truncated, and whether the workflow file is in the part that arrived
+  is decided by sort order rather than by content, so "not in the list" stops
+  meaning "untouched". This is a suspicion, not a diagnosis — which is why it
+  names the cap in the error instead of claiming the file was changed.
 
 ### 6.3 `claude_args` splits on whitespace
 
