@@ -16,9 +16,11 @@
 //
 // Marker file: ${CLAUDE_CONFIG_DIR:-~/.claude}/agenticaiplugin.prereqs.state
 //
-// Fail-safe by design: unreadable registry/config/marker, unknown check types,
-// or probe crashes inject NOTHING and exit 0 — this hook must never break a
-// session. Bootstrap limitation (documented in docs/plugin-howto.md): if the
+// Fail-safe by design: unreadable registry/marker, unknown check types, or
+// probe crashes inject NOTHING and exit 0 — this hook must never break a
+// session. An unreadable *config* is the one exception, and it is a warning to
+// the user rather than context for the model: see the second job below.
+// Bootstrap limitation (documented in docs/plugin-howto.md): if the
 // missing prerequisite is Node itself, this script cannot run; that case is
 // covered by the project-initializer's init/update-time check and the README.
 //
