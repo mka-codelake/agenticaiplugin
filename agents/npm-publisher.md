@@ -652,11 +652,11 @@ grep -rnoE "AKIA[0-9A-Z]{16}" "$PKG_DIR" | mask
 # bearer tokens) also live in config files (.env, .ini, .conf, renamed variants).
 # Quotes are optional so unquoted KEY=value config lines are caught too.
 # -I skips binaries, --exclude-dir=node_modules drops dependency noise.
-# The {16,512} bound is not cosmetic — see below.
+# The {16,255} bound is not cosmetic — see below.
 # [[:space:]] rather than \s: \s is a GNU extension. BSD grep reads it as a
 # literal s, and the pattern then misses every `key = "value"` with a space
 # around the operator (measured: 5 hits drop to 3).
-grep -rinoIE "(api[_-]?key|password|secret|token|bearer|credential)[[:space:]]*[:=][[:space:]]*['\"]?[^'\"]{16,512}['\"]?" "$PKG_DIR" \
+grep -rinoIE "(api[_-]?key|password|secret|token|bearer|credential)[[:space:]]*[:=][[:space:]]*['\"]?[^'\"]{16,255}['\"]?" "$PKG_DIR" \
   --exclude-dir=node_modules | mask
 ```
 
@@ -665,9 +665,11 @@ outside its own alphabet, so the match is the token and nothing more (measured: 
 against a 1.4 MB minified bundle, down from 1,400,642 B). **The generic catch-all is the
 exception, and it is the reason for the upper bound.** Its tail is `[^'"]`, which in an
 unquoted minified config line runs to the end of the file: with `-o` and no bound it still
-returned **1,500,136 B** for one match. Bounded at 512 it returns **215 B**. The bound cannot
-hide a credential — a value longer than 512 characters still matches, it is just printed
-truncated.
+returned **1,500,136 B** for one match. Bounded at 255 it returns **265 B**. The bound cannot
+hide a credential — a value longer than 255 characters still matches, it is just printed
+truncated (verified against a 400-character value). 255, not 512: BSD/macOS grep hard-caps
+repetition counts there — a bound above it aborts the scan with `grep: maximum repetition
+exceeds 255` (exit 2) instead of searching.
 
 **`mask()` is why this section's output is safe to show, paste, or leave in a transcript.**
 Every match here would otherwise print in full — file and line number are untouched, so the

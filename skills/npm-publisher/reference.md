@@ -286,7 +286,7 @@ The most important audit. Use this regex catalog:
 | Stripe Secret | `sk_live_[A-Za-z0-9]{24,}` | Production Stripe key |
 | Google API | `AIza[0-9A-Za-z_-]{35}` | Google Cloud API key |
 | Discord Bot | `[MN][A-Za-z0-9]{23}\.[A-Za-z0-9_-]{6}\.[A-Za-z0-9_-]{27}` | Discord bot token |
-| Generic high-entropy assignment | `(api[_-]?key\|password\|secret\|token\|bearer\|credential\|access[_-]?token)[[:space:]]*[:=][[:space:]]*['\"]?[^'\"]{16,512}['\"]?` — run with `-i` | Lower-confidence catch-all. Quotes optional → also catches unquoted `KEY=value` config lines. **The only pattern in this table with an added upper bound** — see below |
+| Generic high-entropy assignment | `(api[_-]?key\|password\|secret\|token\|bearer\|credential\|access[_-]?token)[[:space:]]*[:=][[:space:]]*['\"]?[^'\"]{16,255}['\"]?` — run with `-i` | Lower-confidence catch-all. Quotes optional → also catches unquoted `KEY=value` config lines. **The only pattern in this table with an added upper bound** — see below |
 | Private key headers | `-----BEGIN (RSA \|EC \|OPENSSH \|PGP \|)PRIVATE KEY-----` | SSH/PGP private keys embedded as strings |
 
 **This table is the catalog; the command list in the agent file is an excerpt of it.** That list
@@ -319,10 +319,12 @@ outright, because a bounded first segment leaves no room for the `.` that must f
 **The generic catch-all is the one that needs the bound.** Its tail is `[^'"]`, and in an
 unquoted minified config line — `password=…` with no closing quote anywhere — that class runs
 to the end of the file. `-o` does not help at all here: it still returned **1,500,136 B** for a
-single match, against 1,500,136 B unbounded. At `{16,512}` the same scan returns **647 B**.
-Nothing is hidden by it: a value longer than 512 characters still matches and is still
-reported, only printed truncated — and a 512-character prefix is more than enough to judge a
-credential.
+single match, against 1,500,136 B unbounded. At `{16,255}` the same scan returns **265 B**.
+Nothing is hidden by it: a value longer than 255 characters still matches and is still
+reported, only printed truncated (verified against a 400-character value) — and a
+255-character prefix is more than enough to judge a credential. 255, not 512: BSD/macOS grep's
+regex engine caps repetition counts at 255; a higher bound aborts the scan there with `grep:
+maximum repetition exceeds 255` (exit 2) instead of running it.
 
 **File scope:** The named prefix patterns (JWT, npm, GitHub, OpenAI, Anthropic, AWS, …) run against **all** files — their prefixes are unambiguous everywhere. The **generic catch-all** must also run against all files (skip binaries with `-I`, exclude `node_modules`), not just `*.js`/`*.json`: prefixless credentials (DB passwords, bearer tokens) commonly live in config files (`.env`, `.ini`, `.conf`, or renamed variants that evade the dotfile-hygiene glob). Restricting it to code endings leaves those uncovered.
 
