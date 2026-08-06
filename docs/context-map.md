@@ -126,6 +126,33 @@ directory name suffices.
 | Skill body | **only on invocation** — *"a skill's body loads only when it's used"* | **DOC** |
 | `CLAUDE.md` | session start, hierarchical | **DOC** |
 
+### A SessionStart hook can reach the user without spending context — measured
+
+`hookSpecificOutput.additionalContext` goes to the model; **`systemMessage` goes to the
+user's terminal and nowhere else**. That was **DOC** only until now, and never observed
+for `SessionStart` in particular.
+
+**MEASURED** 2026-08-06, Claude Code 2.1.223, plugin 0.33.0: with a truncated
+`agenticaiplugin.config.json` in place, a fresh session printed
+
+```
+SessionStart:startup says: agenticaiplugin: …/agenticaiplugin.config.json is not valid JSON (…)
+```
+
+Claude Code prefixes `SessionStart:startup says:` itself, so the event and its source are
+named without the hook doing it. **Rerun:** break the config file, start a session, look at
+the first lines. To tell "the channel does not carry" apart from "the hook is broken", run
+the hook directly first — `echo '{"hook_event_name":"SessionStart"}' | CLAUDE_CONFIG_DIR=<throwaway> node <hook>`
+must print a JSON object containing `systemMessage`.
+
+⚠️ **The trap that nearly voided this measurement:** `/plugin marketplace update` reports
+*"already at the latest version"* and **does not re-copy**. The installation lives as a
+versioned copy under `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`, so
+without a **new version number** no new directory appears and the test silently exercises
+the old hook. Comparing the installed file against `master` does *not* catch this — the
+file can be byte-identical simply because nothing changed it in the meantime. Check the
+**timestamp**, or bump.
+
 **`fork` is a fifth matcher the plugin never accounted for.** The hooks deliberately do
 not gate on `source` (**CODE** `hooks/inject-doctrine.mjs:124-141`), so they fire there as
 well — presumably intended for doctrine and mode, but unverified.
@@ -393,7 +420,7 @@ Not assumptions but findings — each one a work item.
    exists.**~~ — **fixed.** The test now resolves `${CLAUDE_PLUGIN_ROOT}` against the
    checkout and asserts the file is there. Proven by detection: a deliberate typo turns
    it red.
-2. ~~**No test enforces that the five SessionStart hooks stay registered.**~~ — **fixed.**
+2. ~~**No test enforces that the four SessionStart hooks stay registered.**~~ — **fixed.**
    The roster is compared as a set, so an *added* hook fails too — deliberately, to keep
    the roster a conscious decision.
 3. **A new doctrine file is silently ignored.** `MODE_PARTS`, `CONSTITUTION` and `THEMES`
