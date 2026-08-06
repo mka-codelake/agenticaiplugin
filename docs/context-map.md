@@ -130,6 +130,35 @@ directory name suffices.
 not gate on `source` (**CODE** `hooks/inject-doctrine.mjs:120-137`), so they fire there as
 well — presumably intended for doctrine and mode, but unverified.
 
+### Surviving a compaction — measured, no longer assumed
+
+That the hook fires on `compact` says nothing about the effect: whether the re-injected
+rule is still obeyed in the freshly compacted window. **MEASURED** (2026-08-02, Claude Code
+2.1.220, `claude-sonnet-5`, 25 evaluated runs, scored from artifacts; setup and raw numbers
+in the measurement comment on **#114**) — it is:
+
+| Arm | Rule injected | Compaction | n | Obeyed |
+|---|---|---|---|---|
+| A | yes | no | 10 | 10/10 |
+| B | yes | **yes** | 10 | 8/10 |
+| C | **no** | yes | 5 | **0/5** |
+
+Fisher exact A vs. B: **p = 0.237** — no detectable difference. Arm C is the negative
+control and never came back false-positive across all 25 runs. The compaction itself is
+doubly evidenced: `system/compact_boundary` in the event stream **and** `source: "compact"`
+in the hook's stdin, so the treatment is proven, not inferred from a slash command being
+typed.
+
+The community report
+[anthropics/claude-code#9796](https://github.com/anthropics/claude-code/issues/9796) does
+**not** reproduce at the reported strength: the pattern exists — both violators in arm B
+could quote the rule verbatim afterwards — but it appeared in 2/10 runs, not 4/5.
+
+**Limits, which belong to the finding:** one model, one rule, one task type; a manual
+`/compact` instead of an auto-compaction at the window limit; the check turn immediately
+after the compaction. A residual effect on the order of 100 % → 80 % is neither established
+nor ruled out — roughly 40 runs per arm would be needed for that.
+
 ### Order and merging — here a code claim stands against the measurement
 
 `hooks/inject-doctrine.mjs:15-16` claims: *"Multiple SessionStart hooks'
@@ -233,7 +262,6 @@ measurement with a reproducible artifact.
 
 | Assumption | Stated in | Why it counts |
 |---|---|---|
-| SessionStart fires on `compact` **and** the context lands in the freshly compacted window | `hooks/inject-doctrine.mjs:12-15` | The test only proves that there is **no** gating on `source` — not the effect |
 | `PreCompact` cannot preserve context | `docs/plugin-howto.md:360-361` | DOC confirms the recommendation, not the rationale |
 | `additionalContext` is "softer" than a real rule | `docs/plugin-howto.md:362-363` | **DOC** calls it a "system reminder" — strength undetermined |
 | Claude Code blocks Write/Edit under `~/.claude/` | `hooks/autoskill/lib.mjs:35-38` | Load-bearing for the staging architecture |
@@ -291,6 +319,12 @@ attention than the positive statements, not less.
   switch, so only the two theme blocks depend on the config directory at all.
 - *Not scriptable*: the reach measurement needs real agents. The setup is in section 1
   and **must include the negative control** — without it, a self-report is worthless.
+- *Single-process only*: the compaction measurement in section 2 breaks silently across
+  processes. `claude -p --resume` fires `SessionStart` with `source: "resume"` and thereby
+  re-injects the doctrine, so any multi-process variant measures the opposite of the
+  question. Only a single process driven through `--input-format stream-json`, in which
+  compaction and check turns share one context, answers it. This wrecked the first attempt
+  and is as mandatory to a repetition as the negative control.
 - *Producing that control*: copy the plugin directory and **delete the doctrine files
   you want absent** from the copy, then run `claude --plugin-dir <copy>`. Since the
   unification there is one hook entry for everything, so dropping it from
