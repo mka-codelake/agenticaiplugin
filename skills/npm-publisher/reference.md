@@ -295,6 +295,14 @@ OAuth, AWS Secret, Stripe, Google, Discord, and the private-key header, which no
 catches. The agent builds those from the rows above, so the rows have to be runnable exactly as
 written.
 
+**Every command built from this table — including those six — must be piped through the same
+`mask()` helper the excerpt in `agents/npm-publisher.md` Phase 3e already pipes its own commands
+through.** `mask()` is defined once there and not repeated here, for the same reason Section 4.1
+gives for not repeating the version-sync command: a second copy drifts. A command assembled from
+a row above without that pipe prints the matched secret in full and reproduces the exact problem
+`mask()` exists to prevent (issue #127) — piping it in is the whole fix, nothing about the regex
+itself changes.
+
 **Which is why they are POSIX ERE and nothing else — no `(?i)`, no `\s`, `\d`, `\w` or `\b`.**
 `grep -E` is not PCRE. `(?i)` makes GNU grep print `warning: ? at start of expression` and match
 nothing at all: 0 hits against a file holding two AWS secrets, 2 hits once the prefix is dropped

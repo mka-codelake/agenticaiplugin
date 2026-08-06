@@ -622,7 +622,7 @@ why explicit boundary groups are the wrong replacement.
 
 **5. Real names (Warning)** — best-effort. The author/maintainer name from `package.json` and `NOTICE` is allowed. Other persistent personal names need user confirmation. Skip this scan if no detectable names found beyond expected ones.
 
-**6. Secret patterns (CRITICAL)** — see reference.md Section 3.6 for full regex catalog. Minimum coverage:
+**6. Secret patterns (CRITICAL)** — see reference.md Section 3.6 for full regex catalog. Minimum coverage below covers 9 of its 15 rows (8 commands — GitHub PAT classic and fine-grained share one). The remaining six — GitHub OAuth, AWS Secret, Stripe, Google, Discord, private-key header — have no command of their own and must be built from the catalog: pipe every one of them through the same `mask()` defined below too, or it prints the matched secret in full (issue #127):
 ```bash
 PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
 [ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
