@@ -198,13 +198,22 @@ fails at parse time on the runner. After writing, read the file back and verify:
 - No leftover template markers: no `{{ '`, no `' }}`, no `{%`, no `%}`. Literal
   `${{ ... }}` Actions expressions are expected and correct — they are the point
   of the escaping in §4.1.
-- Both `if: steps.token.outputs.present == 'true'` guards are present.
+- Every step that must not run without the token carries
+  `if: steps.token.outputs.present == 'true'` — today the workflow-only guard,
+  the checkout and the review itself. Count them rather than trusting the
+  number here: this line said "both" until a third step was added.
 - The data-not-instructions paragraph is present and sits **above** the context
   list. A reviewer that reads the project's files before that paragraph has
   already taken them as instructions.
 - The `prompt: |` block scalar is uniformly indented; no line inside it is
   outdented below the block's own indentation.
 - The `--allowed-tools` value is wrapped in double quotes and sits on one line.
+- That same value contains no `gh api repos/`. §1 keeps it out on purpose; a
+  rendered line carrying it means the list was widened on the way here — most
+  plausibly by aligning it with a hand-written workflow that still has it.
+- It contains none of `Bash(cat:`, `Bash(head:`, `Bash(tail:`, `Bash(wc:`, for
+  the same reason (§1). Every structural check above passes with those present,
+  so nothing else catches them.
 - The numbering under "Context to load FIRST" runs 1..n without gaps.
 
 If the project already has a YAML parser available to it, parsing the file is a
@@ -307,12 +316,29 @@ The order in that message is the part worth keeping: branching the second PR off
 the workflow PR does not work. Byte-equality is checked against the **default
 branch**, not the PR base, so a stacked PR is skipped just the same.
 
-Two details in the step exist because the failure they prevent is silent. The
-path comes from `GITHUB_WORKFLOW_REF`, not a literal, so renaming the workflow
-cannot leave the guard comparing against a path that no longer exists — a guard
-matching nothing reports "untouched". And an empty file list aborts the job:
-every PR has at least one file, so an empty answer is a lookup that failed, not
-a workflow left alone.
+Five details in the step exist because the failure they prevent is silent, and
+they share one shape: the guard refuses to read "untouched" out of an answer
+that never said so.
+
+- The path comes from `GITHUB_WORKFLOW_REF`, not a literal, so renaming the
+  workflow cannot leave the guard comparing against a path that no longer
+  exists — a guard matching nothing reports "untouched".
+- An empty file list aborts the job: every PR has at least one file, so an
+  empty answer is a lookup that failed, not a workflow left alone.
+- An empty path derived from that variable aborts the job as well. Actions
+  always sets it, but if it ever did not, every comparison below would turn
+  into "matches everything" rather than "matches nothing" — and the step would
+  block PRs with a message naming no file at all.
+- The file list is matched on `previous_filename` as well as `filename`. A PR
+  that renames the workflow *away* from the tracked path shows the old path
+  only in the former; matching `filename` alone finds nothing, calls the
+  workflow untouched, and the action then skips itself anyway because the file
+  is gone from where it expects it — green, unreviewed, silent.
+- A file count at the API's ceiling of 3000 aborts the job. At the cap the list
+  may be truncated, and whether the workflow file is in the part that arrived
+  is decided by sort order rather than by content, so "not in the list" stops
+  meaning "untouched". This is a suspicion, not a diagnosis — which is why it
+  names the cap in the error instead of claiming the file was changed.
 
 ### 6.3 `claude_args` splits on whitespace
 

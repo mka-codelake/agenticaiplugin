@@ -69,10 +69,26 @@ jobs:
           workflow_file="${GITHUB_WORKFLOW_REF#*/*/}"
           workflow_file="${workflow_file%%@*}"
 
+          # Actions always sets that variable; if it ever does not, the path is
+          # empty and every comparison below turns into "matches everything"
+          # rather than "matches nothing". Stop before making a claim out of
+          # that.
+          if [ -z "$workflow_file" ]; then
+            echo "::error::GITHUB_WORKFLOW_REF yielded no workflow path, so this step cannot tell whether PR #$PR_NUMBER changes its own workflow file."
+            exit 1
+          fi
+
           files="$RUNNER_TEMP/pr-files.tsv"
           gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --paginate \
-            --jq '.[] | [.status, .filename] | @tsv' > "$files"
+            --jq '.[] | [.status, .filename, .previous_filename] | @tsv' > "$files"
           state=$(awk -F'\t' -v f="$workflow_file" '$2 == f { print $1 }' "$files")
+          # A rename reports the new path in `filename` and the old one in
+          # `previous_filename`, so matching `filename` alone misses a PR that
+          # renames this file *away* from the tracked path: nothing matches,
+          # the guard reads "untouched", and the action then skips itself
+          # anyway because the file is no longer where it expects it — green,
+          # unreviewed, and without a word. Hence the third column.
+          moved_to=$(awk -F'\t' -v f="$workflow_file" '$3 == f { print $2 }' "$files")
           total=$(awk 'END { print NR }' "$files")
 
           # A failing `gh` aborts the step via `bash -e` before this point. An
@@ -81,6 +97,21 @@ jobs:
           # at least one file, so nothing here is a lookup that did not work.
           if [ "$total" -eq 0 ]; then
             echo "::error::Could not read the file list for PR #$PR_NUMBER — the API call succeeded but returned nothing. Refusing to assume this PR leaves $workflow_file alone."
+            exit 1
+          fi
+
+          if [ -z "$state" ] && [ -n "$moved_to" ]; then
+            state="renamed"
+          fi
+
+          # The API returns at most 3000 files per pull request, `--paginate`
+          # included. At the cap the list may be cut off, and whether this file
+          # is in the part that arrived is decided by sort order rather than by
+          # content — "not in the list" stops meaning "untouched". Same posture
+          # as the empty list above: name the doubt instead of ruling on a PR
+          # that was never seen whole.
+          if [ -z "$state" ] && [ "$total" -ge 3000 ]; then
+            echo "::error::PR #$PR_NUMBER reports $total changed files, the maximum the API returns for one PR — the list may be truncated, and $workflow_file could sit in the part that was cut. Refusing to assume this PR leaves it alone."
             exit 1
           fi
 
@@ -113,8 +144,15 @@ jobs:
             exit 0
           fi
 
+          # Name the rename where there is one: "changes" would be true but
+          # sends the reader looking for a diff at a path that is gone.
+          what="changes $workflow_file"
+          if [ -n "$moved_to" ]; then
+            what="renames $workflow_file to $moved_to"
+          fi
+
           if [ "$total" -gt 1 ]; then
-            echo "::error::This PR changes $workflow_file alongside $((total - 1)) other file(s), so no file in it gets reviewed. Split it — see the job summary for the required order."
+            echo "::error::This PR $what alongside $((total - 1)) other file(s), so no file in it gets reviewed. Split it — see the job summary for the required order."
             {
               echo "### Split this pull request"
               echo ""
@@ -134,7 +172,7 @@ jobs:
             exit 1
           fi
 
-          echo "::notice::This PR only changes $workflow_file, so the review action skips itself and no review ran. Read the diff by hand before merging."
+          echo "::notice::This PR only $what, so the review action skips itself and no review ran. Read the diff by hand before merging."
           {
             echo "### No review ran — workflow-only PR"
             echo ""
@@ -253,7 +291,9 @@ jobs:
             **Verdict:** <✅ Ship it | ⚠️ Has concerns | 🛑 Blocking issues>
 
             ### Critical (<count>)
-            <findings as a bullet list, each: `- **<file>:<line>** — <one-line> — _<rule reference>_`>
+            <findings as a bullet list, each in one of these two forms:
+            `- **<file>:<line>** — <one-line> — _<rule reference>_`
+            `- **<file>** — <one-line> — _<rule reference>_`>
             _or_
             _None_
 
@@ -270,6 +310,13 @@ jobs:
             ### Summary
             <2–3 sentences on overall impression and any follow-ups>
             ```
+
+            Cite the line whenever you have read it in the file — that is the
+            first form, and it is the normal one. Use the second when you have
+            not: when the finding is about the file as a whole, and whenever the
+            number would be an estimate. Then quote the code fragment in the
+            one-line description instead. A number that points at nothing gets
+            checked, not found, and dropped — and it takes the finding with it.
 
             Even if you find **no issues at all**, you MUST still post the
             comment with `Verdict: ✅ Ship it` and all three sections marked
