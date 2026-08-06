@@ -53,12 +53,19 @@ subdirectories. NOT a long flat list of narrow one-session entries.
 ## Authoring standards (HARDLINE)
 
 - SKILL.md frontmatter: `name:` (lowercase-hyphenated, matches the directory
-  name), `description:` (ONE sentence, MAXIMUM 60 characters, ends with a
-  period — the skill index truncates at 60 chars; count the characters and
-  cut if over), `user-invocable: false` (learned skills are passive
+  name), `description:` (ONE sentence, ends with a period, roughly one line —
+  it sits in every session's context, so keep it short; there is no length
+  cutoff, a description is delivered in full however long it is),
+  `user-invocable: false` (learned skills are passive
   background knowledge for the model, not user commands — the installer
   enforces this if you forget). Optional: `pinned: true` to protect from
   lifecycle cleanup.
+- **Quote the `description` in double quotes as soon as it contains ` #`
+  (space + hash) or `: ` (colon + space)**, escaping any inner `"` as `\"`.
+  Unquoted, YAML treats ` #` as the start of a comment and drops the rest of
+  the description SILENTLY, and `: ` makes the whole frontmatter unparseable.
+  Issue and PR numbers are the usual way this happens; `repo#112` without the
+  space in front is harmless.
 - No marketing words (powerful, comprehensive, seamless, robust).
 - Never write user identity, hostnames, or environment-derived names into a
   skill (privacy — skills may be shared).
