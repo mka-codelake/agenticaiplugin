@@ -343,7 +343,9 @@ attention than the positive statements, not less.
   established path, not a workaround.
 
 **The `ASSUMED` rows** from section 5 are the actual backlog. Lifting an assumption from
-`ASSUMED` to `MEASURED` requires an artifact in the repo, not a memory of a measurement.
+`ASSUMED` to `MEASURED` requires a setup someone else can rerun, written down where the
+claim stands — not a memory of a measurement. Where that write-up lives is secondary;
+that it is reachable from the claim is not.
 
 ---
 
