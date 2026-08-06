@@ -65,10 +65,13 @@ jobs:
           GH_TOKEN: {{ '${{ github.token }}' }}
           PR_NUMBER: {{ '${{ github.event.pull_request.number }}' }}
         run: |
-          # Actions always sets GITHUB_WORKFLOW_REF; if it ever does not, no
-          # path can be derived and every comparison below turns into "matches
-          # nothing" — which this step reports as "untouched", the opposite of
-          # what it is here to do. Stop before making a claim out of that.
+          # Actions always sets GITHUB_WORKFLOW_REF; if it ever does not, the
+          # two comparisons below break in opposite directions. An empty path
+          # matches no `filename` at all, but it does match the empty
+          # `previous_filename` that every file carries which was not renamed.
+          # Measured: the step then announced a rename of whichever file came
+          # last, and blocked every PR holding more than one. Stop before
+          # making a claim out of that.
           if [ -z "${GITHUB_WORKFLOW_REF:-}" ]; then
             echo "::error::GITHUB_WORKFLOW_REF is not set, so this step cannot tell whether PR #$PR_NUMBER changes its own workflow file."
             exit 1
