@@ -8,7 +8,7 @@ permissions:
   contents: read
   pull-requests: write # post review comments on the PR
   issues: write # post general PR conversation comments
-  id-token: write
+  id-token: write # required by the action to fetch the GitHub OIDC token
 
 # One review run per PR at a time; a new push cancels the outdated run.
 concurrency:
