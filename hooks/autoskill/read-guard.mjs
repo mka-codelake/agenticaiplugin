@@ -92,7 +92,27 @@ function main() {
   }
 
   if (tool === 'Write' || tool === 'Edit') {
-    if (!fpath) return;
+    // Without the env the worker exports, STAGING_DIR falls back to a fixed path that
+    // lib.mjs itself marks predictable and world-readable (CWE-377). The cage would
+    // then guard a directory nobody prepared — every write inside the real staging dir
+    // would be refused, and a write into the fallback waved through. The fallback stays
+    // as lib's answer to "where"; the guard's answer to "may I at all" is no.
+    // Reads are left alone: they cost nothing and blocking them buys nothing.
+    if (!process.env.AUTOSKILL_STAGING_DIR) {
+      deny(
+        'autoskill read-guard: AUTOSKILL_STAGING_DIR is not set, so the staging cage ' +
+          'cannot be trusted — denying the write',
+      );
+    }
+    // No path, no decision — and a guard with no decision must not be a yes. This
+    // arm is reached only if a Write/Edit schema stops carrying `file_path`, i.e.
+    // exactly when the cage no longer knows what it is caging.
+    if (!fpath) {
+      deny(
+        `autoskill read-guard: ${tool} without a file_path — cannot tell whether the ` +
+          'write stays inside the staging directory, so denying',
+      );
+    }
     const cp = canon(fpath);
     if (cp !== stagingRoot && !cp.startsWith(stagingAnchor)) {
       deny(
