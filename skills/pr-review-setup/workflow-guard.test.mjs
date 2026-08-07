@@ -292,6 +292,66 @@ test('template and repo workflow carry the same guard step', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Prompt parity — one direction only, and the direction is the point
+//
+// The guard step above is compared line for line; the rest of the prompt was compared
+// nowhere. It drifted: `e4e8cc5` recorded in the template why `id-token: write` is
+// needed, and this repository's copy went without that sentence until the check below
+// was written. Harmless as a comment — but the paragraph from #135 travels the same
+// route, and that one decides what the reviewer reports.
+//
+// Subset, not equality, and that is what makes it buildable. A prompt change cannot
+// ship in one PR: the guard step above refuses a PR that touches the live workflow
+// together with anything else, so the workflow lands alone first and the template
+// follows. Between those two merges the live file holds MORE than the template, which a
+// subset check in this direction passes. Equality would be red in exactly the window
+// the guard prescribes — which is why #157 filed the obvious test as unbuildable.
+//
+// What this does NOT check: text only the live workflow has. Its project-specific
+// blocks are rendered Jinja and differ legitimately — 6 of 37 paragraphs today. A check
+// in that direction would report them forever.
+
+/**
+ * Paragraph view of an artifact: Jinja comments dropped (the renderer drops them too),
+ * `{{ '…' }}` unwrapped, whitespace flattened so YAML indentation and line wrapping
+ * stop mattering. Short blocks fall out — keys and flags carry no statement, and their
+ * text repeats often enough to match by accident.
+ */
+const paragraphs = (text) =>
+  unescapeJinjaLiterals(text.replace(/[ \t]*\{#[\s\S]*?#\}\n?/g, ''))
+    .split(/\n\s*\n/)
+    .map((p) => p.replace(/\s+/g, ' ').trim())
+    .filter((p) => p.length > 40);
+
+/** `${{ … }}` is a GitHub expression, not Jinja, and must not count as variable. */
+const REAL_JINJA = /(?<!\$)\{\{|\{%/;
+
+test('every fixed template paragraph is present in the repo workflow', () => {
+  const [tpl, live] = ARTIFACTS.map((art) => readFileSync(art.path, 'utf8'));
+  const fixed = paragraphs(tpl).filter((p) => !REAL_JINJA.test(p));
+  const liveText = paragraphs(live).join('\n');
+
+  // Without this, an extraction that returns nothing would report as full agreement —
+  // the same way two empty streams diff as identical. 31 are comparable today.
+  assert.ok(
+    fixed.length >= 25,
+    `only ${fixed.length} fixed paragraphs came out of the template — either the ` +
+      'extraction broke or real Jinja spread across the file. Either way this test ' +
+      'stopped checking anything.',
+  );
+
+  for (const p of fixed) {
+    assert.ok(
+      liveText.includes(p),
+      `this paragraph is in the template but not in ${WF}:\n  ${p.slice(0, 200)}\n` +
+        'Carry it over in a workflow-only PR — that order is what keeps this check green. ' +
+        'If it belongs in the template alone, that is the finding: say so rather than ' +
+        'relaxing this test.',
+    );
+  }
+});
+
+// ---------------------------------------------------------------------------
 // The nine cases that end green, and the four that end red — run against both artifacts
 //
 // Marked ← #136 are the three that ran silently green before that PR: a rename away
