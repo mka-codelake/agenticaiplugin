@@ -45,6 +45,14 @@ statement** — it says what has to be re-checked at the next CLI update.
 `ASSUMED` is the most important category. Several load-bearing design decisions of the
 plugin rest on unsubstantiated comments to this day.
 
+**Citations carry a quote, not just a line number** — `docs/plugin-howto.md:378-379
+"cannot preserve context"`. Line numbers alone were checked only for existence and drifted
+repeatedly without anything noticing: four were aimed at unrelated content at once, and two
+manual passes over the same file found two and three of them respectively. `context-map.test.mjs`
+now verifies the quote is present at the cited lines and, when it is not, reports the line it
+moved to. Add the quote when adding a citation, or the test fails on it — pick a wording
+distinctive enough not to occur elsewhere in the file, since uniqueness is not checked.
+
 ---
 
 ## 1. Who sees what
@@ -108,7 +116,7 @@ sub-agents. A sub-agent unaware of the commit path therefore runs into a block, 
 a gate.
 
 The `skills:` channel is **MEASURED**-backed (2026-08-02, control comparison):
-`agents/pr-review-installer.md:10` declares `skills: git-smart-commit`, and the agent
+`agents/pr-review-installer.md:10 "skills: git-smart-commit"` declares `skills: git-smart-commit`, and the agent
 reported the complete skill body in its context; `license-checker` without the
 declaration reported nothing of the sort. Whether the directory name or a `name:` field
 resolves here is not documented on the **DOC** side — **MEASURED** answers it:
@@ -154,7 +162,7 @@ file can be byte-identical simply because nothing changed it in the meantime. Ch
 **timestamp**, or bump.
 
 **`fork` is a fifth matcher the plugin never accounted for.** The hooks deliberately do
-not gate on `source` (**CODE** `hooks/inject-doctrine.mjs:124-141`), so they fire there as
+not gate on `source` (**CODE** `hooks/inject-doctrine.mjs:124-141 "never gate on source"`), so they fire there as
 well — presumably intended for doctrine and mode, but unverified.
 
 ### Surviving a compaction — measured, no longer assumed
@@ -188,7 +196,7 @@ nor ruled out — roughly 40 runs per arm would be needed for that.
 
 ### Order and merging — here a code claim stands against the measurement
 
-`hooks/inject-doctrine.mjs:15-16` claims: *"Multiple SessionStart hooks'
+`hooks/inject-doctrine.mjs:15-16 "are concatenated by Claude Code"` claims: *"Multiple SessionStart hooks'
 additionalContext are concatenated by Claude Code."*
 
 | Aspect | Finding | Marker |
@@ -202,7 +210,7 @@ additionalContext are concatenated by Claude Code."*
 the persona at position 3. In the actual session context the **persona appears first**.
 Observed on this session's own context; consistent with the documented parallelism.
 
-**Consequence, implemented in the constitution (`doctrine/constitution/orchestrator.md:2-4`):** a
+**Consequence, implemented in the constitution (`doctrine/constitution/orchestrator.md:2-4 "you decide, verify and coordinate"`):** a
 text that must outrank another one may never rely on position. It has to say so itself and
 name *what* it outranks. (The doctrine carried a matching override clause until 0.31.4; it
 existed for `meta-orchestrator` and went with it — see #117.)
@@ -227,7 +235,7 @@ measurement setup answers all three.
   flat **visible**, nested **absent**. The control run reversed the order *and* asked
   about a skill that was never created; the ghost came back absent and the ordering did
   not change the outcome, which rules out both position bias and confabulation.
-- *User arm* — the one the claim in `hooks/autoskill/lib.mjs:22-24` is actually about,
+- *User arm* — the one the claim in `hooks/autoskill/lib.mjs:22-24 "install flat into the USER-level skill library"` is actually about,
   since learned skills install into `CONFIG_DIR/skills`: `~/.claude/skills/zzuserflat/`
   against `~/.claude/skills/zznest/zzusernest/` → **nested absent, flat visible**. Both
   probes removed afterwards, library verified back at its prior count.
@@ -240,7 +248,7 @@ measurement setup answers all three.
   rest on hitting the right length: there is no cutoff at any length.
 - *Hot-reload*: the user-level probe showed up in a **running** session, with no
   restart. The marketplace half of that question is settled elsewhere and not repeated
-  here — `docs/plugin-howto.md:435-453` records why the two rules never contradicted
+  here — `docs/plugin-howto.md:457-475 "the session runs that copy"` records why the two rules never contradicted
   each other: the session runs an install copy, not the working tree.
 
 🛑 **Trap that costs every repetition:** `CLAUDE_CONFIG_DIR=<throwaway> claude -p` does
@@ -253,15 +261,15 @@ not shown — only that it does not exist now. Display surfaces other than the i
 not checked.
 
 **Consequence, already implemented.** The 60-character limit is gone from all three places
-that imposed it — `skills/learn/SKILL.md:60-63` and, more importantly, the two autoskill
+that imposed it — `skills/learn/SKILL.md:60-63 "delivered in full"` and, more importantly, the two autoskill
 prompts that actually write learned descriptions unattended
-(`hooks/autoskill/prompts/review.md:55-58`, `hooks/autoskill/prompts/curator.md:11-16`).
+(`hooks/autoskill/prompts/review.md:55-58 "a description is delivered in full however long it is"`, `hooks/autoskill/prompts/curator.md:11-16 "there is no truncation"`).
 What replaced it is the rule that really bites, and it has nothing to do with length: an
 unquoted YAML scalar ends at ` #` (space + hash), so a learned description carrying an
 issue number loses everything after it **without a word** — while `: ` costs the whole
 frontmatter (measured against PyYAML; `repo#112` without the space is harmless). Stated as
-an instruction to quote at `skills/learn/SKILL.md:64-70` and
-`hooks/autoskill/prompts/review.md:63-68`, and guarded for shipped skills by
+an instruction to quote at `skills/learn/SKILL.md:64-70 "everything after it is dropped"` and
+`hooks/autoskill/prompts/review.md:63-68 "drops the rest of the description SILENTLY"`, and guarded for shipped skills by
 `repo-hygiene.test.mjs`. No description was damaged when this was found — the defect was
 latent, and the guard is what keeps it that way.
 
@@ -280,7 +288,7 @@ machine.
 | `~/.claude/rules/` | **no** | **CODE** |
 | Auto-memory `~/.claude/projects/*/memory/` | **no** | **CODE** |
 | Learned skills `~/.claude/skills/learned-*/` | **no** | **CODE** |
-| `persona.state` | **no** | **CODE** `skills/persona/persona.mjs:39-42` |
+| `persona.state` | **no** | **CODE** `skills/persona/persona.mjs:39-42 "const STATE_FILE = join"` |
 | `agenticaiplugin.config.json` (all opt-outs) | **no** | **CODE** |
 
 **The consequence has never been stated in one place:** after a fresh installation the
@@ -305,28 +313,28 @@ The second group is the more dangerous one.
 
 | Rule | Test |
 |---|---|
-| Hooks in exec form, `node`, `${CLAUDE_PLUGIN_ROOT}/….mjs`, **and the file exists** | `hooks/hooks-policy.test.mjs:20-48` |
-| No shell scripts under `hooks/` (recursive) | `hooks/hooks-policy.test.mjs:72-79` |
-| All four SessionStart hooks stay registered | `hooks/hooks-policy.test.mjs:54-70` |
-| Whitelist on the **read path** of the persona state file (tampered value must not escape the path) | `skills/persona/persona.test.mjs:122` |
-| One unreadable doctrine file drops its own block and leaves the rest standing | `hooks/inject-doctrine.test.mjs:242` |
-| `realpath` comparison in the direct-invocation guard (marketplace symlink) | `hooks/guard-git-commit.test.mjs:110`, `hooks/inject-doctrine.test.mjs:269` |
+| Hooks in exec form, `node`, `${CLAUDE_PLUGIN_ROOT}/….mjs`, **and the file exists** | `hooks/hooks-policy.test.mjs:20-48 "hook script does not exist"` |
+| No shell scripts under `hooks/` (recursive) | `hooks/hooks-policy.test.mjs:72-79 "no shell scripts live under hooks/"` |
+| All four SessionStart hooks stay registered | `hooks/hooks-policy.test.mjs:54-70 "exactly the four expected startup scripts"` |
+| Whitelist on the **read path** of the persona state file (tampered value must not escape the path) | `skills/persona/persona.test.mjs:122 "no path escape"` |
+| One unreadable doctrine file drops its own block and leaves the rest standing | `hooks/inject-doctrine.test.mjs:242 "drops its own block and leaves the rest standing"` |
+| `realpath` comparison in the direct-invocation guard (marketplace symlink) | `hooks/guard-git-commit.test.mjs:110 "runs when invoked via a symlinked path"`, `hooks/inject-doctrine.test.mjs:269 "injects when invoked via a symlinked path"` |
 | `skillDir` in the workflow: no default, must be absolute | Workflow suites |
 | Mode text names the commit path, no blanket git ban | `hooks/inject-doctrine.test.mjs` (since 0.31.1, effectiveness demonstrated) |
 | No tool-call syntax fragments in shipped markdown | `repo-hygiene.test.mjs` |
 | No shipped `description` is a plain YAML scalar broken by ` #` or `: ` | `repo-hygiene.test.mjs` |
 | Doctrine rule names match their three prose summaries | `repo-hygiene.test.mjs` |
-| This map's `file:line` citations resolve (existence only) | `docs/context-map.test.mjs` |
+| This map's `file:line "fragment"` citations quote content found at the lines they name (not: fragment unique, not: claim fair) | `docs/context-map.test.mjs:88 "carries a fragment found at those lines"` |
 
 ### Merely written down — no safety net
 
 | Rule | Source | Risk |
 |---|---|---|
-| **No absolute paths in plugin files** | `CLAUDE.md:20-26` | The central portability rule is unprotected |
-| `## Usage` + `## Argument Handling` for command skills | `docs/plugin-howto.md:813-851` | — |
-| `agenticaiplugin:` prefix in invocation contexts | `CLAUDE.md:142-151` | Agent not resolvable |
-| Never combine fork + `*.workflow.js` (#51) | `docs/plugin-howto.md:172-174` | Script becomes silent dead code |
-| Command tables in `README.md` ↔ `CLAUDE.md` in sync | `CLAUDE.md:121` | No test — convention only; it drifted once already (defect 4) |
+| **No absolute paths in plugin files** | `CLAUDE.md:20-26 "portable across all user environments"` | The central portability rule is unprotected |
+| `## Usage` + `## Argument Handling` for command skills | `docs/plugin-howto.md:853-891 "Command-Style Skills"` | — |
+| `agenticaiplugin:` prefix in invocation contexts | `CLAUDE.md:142-151 "Always Use Fully Qualified Names"` | Agent not resolvable |
+| Never combine fork + `*.workflow.js` (#51) | `docs/plugin-howto.md:172-174 "the script becomes dead code"` | Script becomes silent dead code |
+| Command tables in `README.md` ↔ `CLAUDE.md` in sync | `CLAUDE.md:121 "Both command tables list the same commands"` | No test — convention only; it drifted once already (defect 4) |
 
 ### Path variables — undocumented, yet load-bearing
 
@@ -340,7 +348,7 @@ Two of three variables that load-bearing mechanisms hang on have **no documented
 guarantee**. They work, but nobody has promised they will stay.
 
 *Where* they are substituted is **MEASURED** — the blind-test table in
-`docs/plugin-howto.md:181-187`: in a `SKILL.md` body and (for `${CLAUDE_PLUGIN_ROOT}`) in an
+`docs/plugin-howto.md:181-187 "Companion file loaded via"`: in a `SKILL.md` body and (for `${CLAUDE_PLUGIN_ROOT}`) in an
 `agents/*.md` body yes, in a companion file or a sub-agent prompt no, as a shell environment
 variable empty. The scope matters, because three places used to state the shell result as a
 blanket claim about the tool context at large and drew a design decision from it; they now
@@ -364,7 +372,7 @@ loophole in the measurement, it is the counter-example.
 path-traversal hardening from v0.23.1 / PR #38 — a second, independent reason that this
 measurement does not touch. **What was wrong here is the comment, not the code**; the
 comment now names both reasons and says which one carries the design
-(`hooks/autoskill/lib.mjs:36-49`).
+(`hooks/autoskill/lib.mjs:36-49 "deliberately OUTSIDE"`).
 
 The general shape is worth more than the single finding: the plugin had **assumed an
 enforcement by the host** and built on it. That belongs in this section next to the rules
@@ -382,7 +390,7 @@ unmeasured on purpose.
 
 | Assumption | Stated in | Why it counts |
 |---|---|---|
-| The marketplace copy is an unfiltered tree copy | `docs/workflow-integration-howto.md:37` | Reason why `.workflow.js` comes along |
+| The marketplace copy is an unfiltered tree copy | `docs/workflow-integration-howto.md:37 "full, unfiltered tree copy"` | Reason why `.workflow.js` comes along |
 
 ### Resolved on 2026-08-06 — where they went
 
@@ -404,8 +412,8 @@ carrying them as one made this list look like unfinished work forever.
 
 | Assumption | Stated in | Why it is not worth measuring |
 |---|---|---|
-| `additionalContext` is "softer" than a real rule | `docs/plugin-howto.md:362-363` | "Softer" is an adjective, not a testable claim. Formulate a decision that turns on it and it becomes measurable — until then there is nothing to measure. The one adjacent question that *was* decidable (does a re-injected rule survive a compaction) is measured in §2 |
-| `PreCompact` cannot preserve context | `docs/plugin-howto.md:360-361` | No decision hangs on it: **DOC** recommends SessionStart regardless, and that is the mechanism in use. Measuring would confirm a rationale for a choice already made on other grounds |
+| `additionalContext` is "softer" than a real rule | `docs/plugin-howto.md:380-381 "post-system-prompt context message"` | "Softer" is an adjective, not a testable claim. Formulate a decision that turns on it and it becomes measurable — until then there is nothing to measure. The one adjacent question that *was* decidable (does a re-injected rule survive a compaction) is measured in §2 |
+| `PreCompact` cannot preserve context | `docs/plugin-howto.md:378-379 "cannot preserve context"` | No decision hangs on it: **DOC** recommends SessionStart regardless, and that is the mechanism in use. Measuring would confirm a rationale for a choice already made on other grounds |
 
 They are kept rather than deleted for one reason: an assumption nobody can see any more
 gets made again from scratch next time.
@@ -424,7 +432,7 @@ Not assumptions but findings — each one a work item.
    The roster is compared as a set, so an *added* hook fails too — deliberately, to keep
    the roster a conscious decision.
 3. **A new doctrine file is silently ignored.** `MODE_PARTS`, `CONSTITUTION` and `THEMES`
-   in `hooks/inject-doctrine.mjs:72-83` name every file that gets injected. Dropping a
+   in `hooks/inject-doctrine.mjs:72-83 "const MODE_PARTS = {"` name every file that gets injected. Dropping a
    file into `doctrine/` therefore does nothing, and nothing says so. **Still open** — and
    note that defect 1 was the same class: a mechanism that stays silent instead of
    failing.
