@@ -5,6 +5,12 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.33.5
+
+- **`docs/architecture.md` promised a guarantee that a real outage had already broken (#123).** The building-block table listed guardrails as `Violable: no`. That holds only while `node` is findable. On 2026-08-03 nvm removed the version the running process's PATH still pointed at; every hook failed. Confirmed against the Claude Code hook documentation: only exit code 2 blocks a tool call, and a command that cannot start at all exits non-blocking — **so the tool call goes through**. The distinction between violable and inviolable disappears exactly when the safeguard would matter: doctrine and persona merely go missing, while the guardrail stops guarding.
+- **The same passage called the failure silent, and it is not.** The incident announced itself four times (`SessionStart:resume hook error`), and the documentation confirms the notice. The recovery measurement was corrected too: *"two incidents in 16 days, both recovered within minutes"* described transient failures, while this one persisted until the environment was restarted.
+- **Deliberately unchanged: the conclusion.** There is still no detection mechanism for a missing `node`, and the fallback wrapper considered for the environment stays rejected — the outage stops every real piece of work at once, so it is not quiet, and a restart clears it in a minute. Only the reasoning was brought in line with what was observed.
+
 ## 0.33.4
 
 - **The shipped PR reviewer attacked true justifications as manipulation, and the correct developer reaction was what triggered it (#135).** A code comment explaining *why* a permission is needed drew no objection — until it added that the point had been raised in an earlier review round. Then the reviewer filed a **Critical** for "fabricated history", while stating in the same breath that the permission itself was correct. The cause is structural: the prompt fetches `gh pr view --json title,body,files` **without** `comments`, so the reviewer cannot see review history at all. It checks with `git log`, finds nothing, and reads *unverifiable* as *untrue*. Whoever answers a refuted finding by documenting the reason at the line — the textbook response in a review loop — gets punished for it.
