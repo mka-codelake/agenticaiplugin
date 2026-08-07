@@ -416,7 +416,9 @@ tokens.
   - `run-review.mjs` — the detached worker: builds a digest from the transcript,
     runs the headless reviewer, and installs staged skills. Also the curator.
   - `read-guard.mjs` (PreToolUse, reviewer session only) — path cage + read-
-    before-write, fail-closed.
+    before-write, fail-closed on all four arms: unparseable input, a write with
+    no `file_path`, a write while `AUTOSKILL_STAGING_DIR` is unset (the cage
+    would otherwise guard lib's fixed fallback), and a write outside the cage.
 - **State lives OUTSIDE the plugin dir** (a marketplace copy, overwritten on
   update): `${CLAUDE_CONFIG_DIR:-~/.claude}/agenticaiplugin.autoskill/`.
 - **Reviewer sandbox:** the worker generates its reviewer settings file at

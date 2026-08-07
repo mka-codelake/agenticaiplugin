@@ -20,13 +20,23 @@ function fixture() {
     configDir,
     stateDir,
     staging,
-    run(input) {
+    // `envPatch` overrides the environment the guard child runs with. A key set to
+    // undefined is removed — that is how the "worker never exported it" case below
+    // is produced, which no test could reach while this harness always set it.
+    run(input, envPatch = {}) {
+      // Point STAGING_DIR at the fixture: production staging lives outside the
+      // config dir, so the guard no longer derives it from CLAUDE_CONFIG_DIR.
+      const env = {
+        ...process.env,
+        CLAUDE_CONFIG_DIR: configDir,
+        AUTOSKILL_STAGING_DIR: staging,
+        ...envPatch,
+      };
+      for (const [k, v] of Object.entries(envPatch)) if (v === undefined) delete env[k];
       return spawnSync(process.execPath, [SCRIPT], {
         encoding: 'utf8',
         input: typeof input === 'string' ? input : JSON.stringify(input),
-        // Point STAGING_DIR at the fixture: production staging lives outside the
-        // config dir, so the guard no longer derives it from CLAUDE_CONFIG_DIR.
-        env: { ...process.env, CLAUDE_CONFIG_DIR: configDir, AUTOSKILL_STAGING_DIR: staging },
+        env,
       });
     },
   };
@@ -97,4 +107,45 @@ test('fail-closed: unparseable input is denied, other tools pass', () => {
   assert.match(decision(broken).permissionDecisionReason, /could not parse/);
 
   assert.equal(fx.run({ session_id: 's1', tool_name: 'Glob', tool_input: {} }).stdout, '');
+});
+
+// ---------------------------------------------------------------------------
+// The two arms that used to end in a silent yes (#122)
+//
+// Both were fail-open: a guard that cannot tell whether a write is inside its cage
+// let the write happen. That is the worst possible answer for a cage — it fails in
+// exactly the situations the cage exists for, and it fails quietly.
+
+test('Write without a file_path is denied, not waved through', () => {
+  const fx = fixture();
+  for (const tool of ['Write', 'Edit']) {
+    const d = decision(fx.run({ session_id: 's1', tool_name: tool, tool_input: {} }));
+    assert.equal(d?.permissionDecision, 'deny', `${tool} without file_path must be denied`);
+    assert.match(d.permissionDecisionReason, /without a file_path/);
+  }
+});
+
+test('a write is denied when the worker never exported AUTOSKILL_STAGING_DIR', () => {
+  const fx = fixture();
+  const input = {
+    session_id: 's1',
+    tool_name: 'Write',
+    tool_input: { file_path: join(fx.staging, 'skill.md') },
+  };
+
+  // Same write, env present: allowed. Without this line the test below would also
+  // pass if the path itself were being rejected for an unrelated reason.
+  assert.equal(fx.run(input).stdout, '', 'control: the same write is allowed with the env set');
+
+  const d = decision(fx.run(input, { AUTOSKILL_STAGING_DIR: undefined }));
+  assert.equal(d?.permissionDecision, 'deny');
+  assert.match(d.permissionDecisionReason, /AUTOSKILL_STAGING_DIR is not set/);
+
+  // Reads stay allowed — blocking them buys nothing and would break the invariant
+  // that a Read must precede an Edit.
+  assert.equal(
+    fx.run({ session_id: 's1', tool_name: 'Read', tool_input: { file_path: 'x.md' } },
+      { AUTOSKILL_STAGING_DIR: undefined }).stdout,
+    '',
+  );
 });

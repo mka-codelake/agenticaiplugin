@@ -5,6 +5,13 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.33.7
+
+- **The autoskill reviewer's write cage answered "yes" in the two cases where it did not know (#122).** `read-guard.mjs` let a `Write`/`Edit` through when the tool input carried no `file_path` — no path, no decision, so no denial — and it kept guarding when `AUTOSKILL_STAGING_DIR` was absent, where `STAGING_DIR` falls back to a fixed path that `lib.mjs` itself marks predictable and world-readable (CWE-377): the cage would then guard a directory nobody prepared, refusing every write to the real staging dir while waving one into the fallback. Both now deny, and both say which of the two it was. Reads stay allowed in the second case — blocking them buys nothing and would break the read-before-write invariant.
+- **The fix sits in the guard, not in `lib.mjs`.** The fallback is also the tests' isolation point (`lib.test.mjs:85` pins it), so removing it would have traded one defect for a broken harness. The library keeps answering *where*; the guard answers *may I at all*.
+- **Both tests were confirmed red before the fix, not just green after it** — old source with the new tests exits 1, the fixed source exits 0. The env-missing case carries a control assertion that the same write passes *with* the env, so it cannot pass for an unrelated reason. The test harness could not express the case at all before: it always set the variable.
+- **Two of the four points in #122 were deliberately left open, and the issue says why.** The `canon()` 8.3-short-name gap only arises on Windows, and this machine cannot produce the reproduction the issue itself demands first — a hardening against an unverified case is not worth shipping. The never-cleared `stale` flag stays open as cosmetic: nothing reads `state`.
+
 ## 0.33.6
 
 - **The prompt the reviewer actually runs was compared against the shipped template nowhere (#157).** `workflow-guard.test.mjs` ran the guard step of both artifacts — and only that step. The prompt text around it went unchecked, and it had already drifted: `e4e8cc5` recorded in the template why `id-token: write` is needed, and this repository's own workflow never got the sentence. Harmless as a comment, but the third documented instance of a class whose second instance was the reviewer paragraph from #135 — and that one decides what gets reported.
