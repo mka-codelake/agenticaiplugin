@@ -324,7 +324,7 @@ The second group is the more dangerous one.
 | No tool-call syntax fragments in shipped markdown | `repo-hygiene.test.mjs` |
 | No shipped `description` is a plain YAML scalar broken by ` #` or `: ` | `repo-hygiene.test.mjs` |
 | Doctrine rule names match their three prose summaries | `repo-hygiene.test.mjs` |
-| This map's `file:line "fragment"` citations quote content found at the lines they name (not: fragment unique, not: claim fair) | `docs/context-map.test.mjs:81 "carries a fragment found at those lines"` |
+| This map's `file:line "fragment"` citations quote content found at the lines they name (not: fragment unique, not: claim fair) | `docs/context-map.test.mjs:88 "carries a fragment found at those lines"` |
 
 ### Merely written down — no safety net
 

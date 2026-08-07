@@ -46,28 +46,35 @@ function normalize(s) {
 }
 
 // Where does `fragment` actually sit? Reported on failure so the fix is a
-// number, not a search. Scans windows of the same height as the citation (at
-// least three lines, so a fragment that wraps is still located). The window
-// start is not the answer — a window may begin lines above the match — so it
-// is then trimmed from the front to the first line the match still needs.
-// Reporting the window start instead was off by two lines when this was
-// checked against a simulated drift, which is the same defect in miniature
-// that this whole guard exists to catch: a number stated more precisely than
-// it was established.
-function locate(lines, fragment, height) {
-  const span = Math.max(height, 3);
-  for (let i = 0; i < lines.length; i++) {
-    if (!normalize(lines.slice(i, i + span).join(' ')).includes(fragment)) continue;
-    let start = i;
-    while (
-      start < i + span - 1 &&
-      normalize(lines.slice(start + 1, i + span).join(' ')).includes(fragment)
-    ) {
-      start++;
+// number, not a search. Joins the file into one normalized string while
+// recording which source line every character came from, then maps the first
+// occurrence back to its line. No window, no bound on how many lines a
+// fragment may wrap across, and the first occurrence is first by construction.
+//
+// Two earlier attempts scanned fixed windows instead, and both were wrong in a
+// way reading did not reveal: the first reported the window's start (off by two
+// against a simulated drift), the second trimmed the window from the front and
+// so reported the LAST occurrence inside it rather than the first — 1978 of
+// 38192 exhaustively enumerated inputs. Neither error was dangerous, but a
+// guard against citations stating more than they establish must not do it
+// itself.
+function locate(lines, fragment) {
+  let joined = '';
+  const owner = []; // owner[i] = index of the source line that joined[i] came from
+  lines.forEach((line, index) => {
+    const text = normalize(line);
+    if (text === '') return; // blank lines contribute nothing and own nothing
+    if (joined !== '') {
+      joined += ' ';
+      owner.push(index);
     }
-    return start + 1;
-  }
-  return null;
+    for (let k = 0; k < text.length; k++) {
+      joined += text[k];
+      owner.push(index);
+    }
+  });
+  const at = joined.indexOf(fragment);
+  return at === -1 ? null : owner[at] + 1;
 }
 
 // LIMIT OF THIS GUARD — deliberately named here and in the test title:
@@ -123,7 +130,7 @@ test('every file:line citation in the context map carries a fragment found at th
     const cited = normalize(source.slice(from - 1, to).join(' '));
     if (cited.includes(wanted)) continue;
 
-    const found = locate(source, wanted, to - from + 1);
+    const found = locate(source, wanted);
     broken.push(
       found === null
         ? `${citation}: fragment not found anywhere in ${file} — the quote or the file changed`
@@ -132,4 +139,29 @@ test('every file:line citation in the context map carries a fragment found at th
   }
 
   assert.deepEqual(broken, [], 'context-map citations must quote content found at the cited lines');
+});
+
+// The line number `locate` reports is the whole value of a failure message here:
+// it turns a repointing into a number instead of a search. Two implementations of
+// it were wrong before this test existed, and the map's own citations did not
+// exercise the cases that broke — they were found by hand-run simulations that
+// would otherwise have been lost with the session. This pins them down.
+test('locate reports the first line a fragment starts on', () => {
+  const at = (lines, fragment) => locate(lines, fragment);
+
+  assert.equal(at(['alpha', 'beta', 'gamma'], 'beta'), 2, 'match inside a single line');
+  assert.equal(at(['alpha beta', 'gamma delta'], 'beta gamma'), 1, 'match wrapping two lines');
+  assert.equal(at(['alpha', 'beta'], 'nowhere'), null, 'absent fragment');
+
+  // Regression, exhaustively enumerated: a window-trimming implementation
+  // reported the LAST occurrence within its window instead of the first.
+  assert.equal(at(['dup', 'dup'], 'dup'), 1, 'repeated fragment resolves to the first');
+  assert.equal(at(['x', 'dup', 'y', 'dup'], 'dup'), 2, 'repeated fragment, first is not line 1');
+
+  // Blank lines own no characters but still count when numbering.
+  assert.equal(at(['alpha', '', '   ', 'omega'], 'omega'), 4, 'blank lines do not shift the count');
+
+  // No bound on how far a fragment may wrap — the earlier window-based versions
+  // capped this at three lines and would have missed it.
+  assert.equal(at(['a', 'b', 'c', 'd', 'e', 'f'], 'b c d e'), 2, 'match spanning four lines');
 });
