@@ -15,7 +15,7 @@ would otherwise have to be agreed again in every session. **Not a process framew
 
 | Block | What | How it takes effect | Violable |
 |---|---|---|---|
-| **Guardrail** | Code that aborts a tool call | PreToolUse hook | no |
+| **Guardrail** | Code that aborts a tool call | PreToolUse hook | no, while `node` runs |
 | **Doctrine** | Behavioral rules that always apply | SessionStart injection | yes |
 | **Persona** | Communication style | SessionStart injection | yes |
 | **Skill** | Procedural knowledge, on demand | loaded when needed | n/a |
@@ -30,6 +30,10 @@ There is currently exactly one guardrail: `hooks/guard-git-commit.mjs` blocks a 
 `hooks/inject-doctrine.mjs` and `skills/persona/persona.mjs inject`, both registered in
 `hooks/hooks.json` as SessionStart hooks. The persona is opt-in and off until it is set;
 the doctrine is not.
+
+A guardrail's "no" holds only as long as its interpreter does. A hook that cannot start at
+all exits non-blocking, and the tool call proceeds — doctrine and persona then merely go
+missing, while the guardrail stops guarding. See *What deliberately does not exist* below.
 
 ## How always-on behavior is delivered (without copied rules)
 
@@ -121,12 +125,16 @@ the doctrine too.
 
 ## What deliberately does not exist
 
-- **No detection of a missing `node`.** If the interpreter fails, every hook fails —
-  silently. `hooks/check-prereqs.mjs` cannot cover this case, because it is itself a Node
+- **No detection of a missing `node`.** If the interpreter fails, every hook fails at once,
+  each with a visible non-blocking error — and the tool call proceeds regardless.
+  `hooks/check-prereqs.mjs` cannot cover this case, because it is itself a Node
   script. Any mechanism against it costs more than it returns: a second interpreter
   produces a permanent error on every platform and covers only one, and a permanent false
   alarm trains people to skip exactly the messages that signal a real outage. Measured: two
-  incidents in 16 days, both recovered within minutes.
+  transient incidents in 16 days, both recovered within minutes; one lasting outage
+  (2026-08-03, nvm removed the version the running PATH still pointed at) needed a restart.
+  The lasting class is not quiet either — it stops every real piece of work at once, and a
+  restart clears it in a minute.
 
 This absence is a decision, not an omission.
 
