@@ -334,6 +334,13 @@ Node itself — a portable non-Node warning hook is structurally impossible
 PowerShell 5.1). That case is covered by the init/update-time check plus README;
 do not attempt polyglot inline hooks.
 
+The registry entry is not a substitute for saying so in place: a skill or agent
+body that calls an external tool (`gh`, `curl`, `tar`, …) should still name that
+requirement in prose right where the tool is invoked. The SessionStart notice
+fires once, before the skill runs, and does not repeat itself mid-skill — a
+reader who opens the file mid-task and meets an unexplained command has no way
+back to it.
+
 A registry entry may carry a `requiredWhen` gate
 (`{ "config": "<dotted path in agenticaiplugin.config.json>", "equals": <value> }`)
 so a prerequisite for an **opt-in** feature is only probed when that feature is

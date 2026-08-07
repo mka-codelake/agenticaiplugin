@@ -10,6 +10,7 @@ description: >
   `npm pack --dry-run` before optional publish.
   Use when user runs /agenticaiplugin:npm-publish.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
+skills: git-smart-commit
 model: sonnet
 effort: xhigh
 color: cyan
@@ -221,6 +222,11 @@ If `PKG_VERSION == PUBLISHED_LATEST`:
 **Step A — Analyze commits since last release:**
 
 ```bash
+# Re-derive LAST_TAG: it was set in 2.0's bash block, which does not survive
+# into this one (see the PKG_DIR note in Phase 3e). Same reasoning as PKG_NAME
+# in 3f — a fresh read is cheap and the alternative is a silently empty variable.
+LAST_TAG=$(git -C "{repo_path}" describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo "")
+
 # Use last tag if available, fall back to last release commit
 if [ -n "$LAST_TAG" ]; then
   RANGE="${LAST_TAG}..HEAD"
@@ -289,9 +295,11 @@ Aggregate the highest-impact signal across the rows above:
 - ELSE ANY commit has `feat:` or `feat(...):` → `minor`
 - ELSE → `patch`
 
-Filter out: merge commits and previous `chore(release):` commits — both recognisable by
-subject. Co-author trailers need no filtering any more: they live in the body, which no longer
-reaches you.
+Filter out: merge commits and previous release commits — both recognisable by subject content,
+not by literal string match. `chore(release):` is the expected wording (Section 2.6), but
+git-smart-commit decides the actual subject each time, not this agent, so recognise a release
+commit by what it says, not only by that exact prefix. Co-author trailers need no filtering any
+more: they live in the body, which no longer reaches you.
 
 **Step C — Compute next version per reference.md Section 9.3:**
 
@@ -390,8 +398,14 @@ Omit empty subsections.
 
 ```bash
 git -C "{repo_path}" add package.json {synced source files} CHANGELOG.md
-git -C "{repo_path}" commit -m "chore(release): v{next_version}"
 ```
+
+**Commit** the staged files by invoking the skill `agenticaiplugin:git-smart-commit`. The skill
+takes no message parameter — it analyzes the staged diff itself and writes its own subject, so
+do not pass one. Do not run `git commit` directly. Given a version bump plus a matching
+CHANGELOG section, its own convention detection reliably lands on `chore(release): v{next_version}`
+or an equivalent recognisable release subject; treat that as the expected wording, not a
+guaranteed one — Step B below filters on it in later runs.
 
 **Output to user:**
 ```
@@ -399,7 +413,7 @@ git -C "{repo_path}" commit -m "chore(release): v{next_version}"
   - package.json: version updated
   - {VERSION constant synced in {N} source files | VERSION constants not checked — no source dir (src, app/src, lib), Step F printed SKIPPED}
   - CHANGELOG.md: new section added
-  - Commit: chore(release): v{next_version}
+  - Commit: {actual subject git-smart-commit wrote, expected `chore(release): v{next_version}`}
 
 Continuing to audits...
 ```
@@ -614,36 +628,47 @@ why explicit boundary groups are the wrong replacement.
 
 **5. Real names (Warning)** — best-effort. The author/maintainer name from `package.json` and `NOTICE` is allowed. Other persistent personal names need user confirmation. Skip this scan if no detectable names found beyond expected ones.
 
-**6. Secret patterns (CRITICAL)** — see reference.md Section 3.6 for full regex catalog. Minimum coverage:
+**6. Secret patterns (CRITICAL)** — see reference.md Section 3.6 for full regex catalog. Minimum coverage below covers 9 of its 15 rows (8 commands — GitHub PAT classic and fine-grained share one). The remaining six — GitHub OAuth, AWS Secret, Stripe, Google, Discord, private-key header — have no command of their own and must be built from the catalog: pipe every one of them through the same `mask()` defined below too, or it prints the matched secret in full (issue #127):
 ```bash
 PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
 [ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
+set -o pipefail   # piping every grep below through mask() must not hide a grep error as clean
+
+# Mask a matched secret: first/last 4 characters survive, the rest becomes '…'.
+# File and line number stay untouched — they are already needed to fix the finding.
+# Rebuilds the `file:line:` prefix from the first two colon-separated fields, so a
+# path containing a colon would be printed truncated. That cannot happen here — the
+# scan only ever runs against $PKG_DIR, an unpacked tarball under a temp directory.
+# The match itself may contain colons; those survive, because everything after the
+# `file:line:` prefix is masked as one string, not re-split.
+mask() { awk -F: '{c=$0; sub(/^[^:]*:[0-9]+:/, "", c); n=length(c); m=(n<=8) ? "…" : substr(c,1,4) "…" substr(c,n-3,4); print $1 ":" $2 ":" m}'; }
+
 # JWT
-grep -rnoE "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+" "$PKG_DIR"
+grep -rnoE "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+" "$PKG_DIR" | mask
 # npm token
-grep -rnoE "npm_[A-Za-z0-9]{36,}" "$PKG_DIR"
+grep -rnoE "npm_[A-Za-z0-9]{36,}" "$PKG_DIR" | mask
 # GitHub PAT
-grep -rnoE "ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{82,}" "$PKG_DIR"
+grep -rnoE "ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{82,}" "$PKG_DIR" | mask
 # OpenAI API
-grep -rnoE "sk-[A-Za-z0-9]{32,}|sk-proj-[A-Za-z0-9_-]{40,}" "$PKG_DIR"
+grep -rnoE "sk-[A-Za-z0-9]{32,}|sk-proj-[A-Za-z0-9_-]{40,}" "$PKG_DIR" | mask
 # Anthropic API
-grep -rnoE "sk-ant-[A-Za-z0-9_-]{32,}" "$PKG_DIR"
+grep -rnoE "sk-ant-[A-Za-z0-9_-]{32,}" "$PKG_DIR" | mask
 # Slack
-grep -rnoE "xox[bpaorsl]-[A-Za-z0-9-]{10,}" "$PKG_DIR"
+grep -rnoE "xox[bpaorsl]-[A-Za-z0-9-]{10,}" "$PKG_DIR" | mask
 # AWS access key
-grep -rnoE "AKIA[0-9A-Z]{16}" "$PKG_DIR"
+grep -rnoE "AKIA[0-9A-Z]{16}" "$PKG_DIR" | mask
 # Generic high-entropy assignments
 # Scans ALL files (not just *.js/*.json): generic/prefixless credentials (DB passwords,
 # bearer tokens) also live in config files (.env, .ini, .conf, renamed variants).
 # Quotes are optional so unquoted KEY=value config lines are caught too.
 # -I skips binaries, --exclude-dir=node_modules drops dependency noise.
-# The {16,512} bound is not cosmetic — see below.
+# The {16,255} bound is not cosmetic — see below.
 # [[:space:]] rather than \s: \s is a GNU extension. BSD grep reads it as a
 # literal s, and the pattern then misses every `key = "value"` with a space
 # around the operator (measured: 5 hits drop to 3).
-grep -rinoIE "(api[_-]?key|password|secret|token|bearer|credential)[[:space:]]*[:=][[:space:]]*['\"]?[^'\"]{16,512}['\"]?" "$PKG_DIR" \
-  --exclude-dir=node_modules
+grep -rinoIE "(api[_-]?key|password|secret|token|bearer|credential)[[:space:]]*[:=][[:space:]]*['\"]?[^'\"]{16,255}['\"]?" "$PKG_DIR" \
+  --exclude-dir=node_modules | mask
 ```
 
 **The seven prefixed patterns needed nothing but `-o`** — each one ends at the first character
@@ -651,9 +676,18 @@ outside its own alphabet, so the match is the token and nothing more (measured: 
 against a 1.4 MB minified bundle, down from 1,400,642 B). **The generic catch-all is the
 exception, and it is the reason for the upper bound.** Its tail is `[^'"]`, which in an
 unquoted minified config line runs to the end of the file: with `-o` and no bound it still
-returned **1,500,136 B** for one match. Bounded at 512 it returns **215 B**. The bound cannot
-hide a credential — a value longer than 512 characters still matches, it is just printed
-truncated.
+returned **1,500,136 B** for one match. Bounded at 255 it returns **265 B**. The bound cannot
+hide a credential — a value longer than 255 characters still matches, it is just printed
+truncated (verified against a 400-character value). 255, not 512: BSD/macOS grep hard-caps
+repetition counts there — a bound above it aborts the scan with `grep: maximum repetition
+exceeds 255` (exit 2) instead of searching.
+
+**`mask()` is why this section's output is safe to show, paste, or leave in a transcript.**
+Every match here would otherwise print in full — file and line number are untouched, so the
+finding is still actionable, but the value itself reads as `AKIA…MNOP` rather than the live
+credential. Measured against seven fabricated secrets covering all eight patterns above
+(scratchpad, no real credential involved): every match came back correctly bookended, none in
+full.
 
 Apply false-positive downgrades: matches in `*.test.js`, `*.spec.js`, `fixtures/`, `*.example`, `*.sample` are warnings (still report), not critical.
 
@@ -686,6 +720,7 @@ Any match here is critical — these patterns are documented credential-leak vec
 PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
 [ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
+set -o pipefail
 find "$PKG_DIR" -name "*.map" -type f -print0 | while IFS= read -r -d '' f; do
   node -e '
 const fs = require("fs");
@@ -704,6 +739,7 @@ done
 PKG_DIR="<paste the PKG_DIR path printed by the pack step above>"
 [ -d "$PKG_DIR" ] || { echo "✗ AUDIT ERROR: no unpacked tarball at $PKG_DIR — paste the PKG_DIR path printed by the npm pack step above. Not scanning." >&2; exit 1; }
 
+set -o pipefail
 find "$PKG_DIR" -name "*.map" -type f -print0 | while IFS= read -r -d '' f; do
   node -e '
 const fs = require("fs");
@@ -723,6 +759,8 @@ done
 Report as: *Source-map references files outside the published tarball. Consumers cannot use it for debugging.*
 
 Rationale: this is not a leak but dead weight. The consumer installs the package, `../src/` does not exist in `node_modules/<pkg>/`, and go-to-source breaks. It is the mirror image of 8a — a source-map that is useless because it carries too little rather than too much.
+
+**Both scans set `pipefail` before their `find | while` pipe.** Without it, a `find` that hits a `Permission denied` in an unreadable subdirectory exits 1, but the pipeline reports the exit code of `while`, which is 0 — the files `find` could not reach are simply absent from the output, with nothing to say the scan did not see everything.
 
 Note: a source-map without `sourcesContent` whose `sources` all stay inside the package is clean. Absolute paths in `sources` deliberately overlap with check 1 — there they match as a raw path string (Critical, build-environment leak), here as a semantic statement that the map points out of the package. One line may legitimately produce both findings; do not deduplicate them.
 
@@ -897,7 +935,7 @@ NPM Publish — Audit Status
     {check} Bumped {old_version} → {new_version} ({bump_type}, {N} commits)
     {✓ source VERSION constants synced ({M} files) | ℹ not checked — no source dir (src, app/src, lib)}
     {check} CHANGELOG.md entry added
-    {check} Commit: chore(release): v{new_version}
+    {check} Commit: {actual subject git-smart-commit wrote, expected chore(release): v{new_version}}
 
   Account
     {check} Logged in as {user | "not logged in — run `npm login`"}
@@ -1011,10 +1049,12 @@ After redactions, re-grep the redacted patterns in the working tree to verify ze
 Re-run the critical audits after fixes:
 
 ```bash
-# Run any project-defined quality gates first
-cd "{repo_path}" && npm run typecheck 2>/dev/null || true
-cd "{repo_path}" && npm run lint 2>/dev/null || true
-cd "{repo_path}" && npm run build 2>/dev/null || true
+# Run any project-defined quality gates first. Stderr is not suppressed here:
+# a missing script and a missing `npm` binary both need to stay visible instead
+# of collapsing into the same silent "|| true" as a real gate failure.
+cd "{repo_path}" && npm run typecheck || true
+cd "{repo_path}" && npm run lint || true
+cd "{repo_path}" && npm run build || true
 
 # Re-run the dry-run — must be warning-free
 cd "{repo_path}" && npm publish --dry-run 2>&1 | tee /tmp/npm-publish-verify.log
@@ -1099,3 +1139,4 @@ Offer: "Create a GitHub Release for tag `v{version}` with auto-generated notes?"
 8. **Use AskUserQuestion** rather than assuming — especially for redactions, version bumps, and CHANGELOG review.
 9. **Plan before execute** — Phase 6 plan preview is mandatory before any Phase 7 write operation. (Phase 2 has its own AskUserQuestion gates and does not need to wait for Phase 6.)
 10. **Single-package only** — detect monorepos in Phase 0 and abort with clear message; out of scope for this skill.
+11. **Never commit directly.** Use the skill `agenticaiplugin:git-smart-commit`.
