@@ -180,6 +180,17 @@ When the user requests a version bump:
 
 Development-side process rules (this repo only — nothing here ships as plugin behavior):
 
+- **Two issue labels decide whether an issue may be worked at all.** Read them before
+  picking anything up — including when the owner says "choose your next task yourself".
+  - **`with-owner`** — never worked autonomously. No branch, no draft, no implementation
+    without the owner in the conversation, and "just looking at it and proposing something"
+    is not an exception. Assessing it and asking about it is fine; acting on it is not.
+  - **`deferred`** — not touched at all until the owner reactivates it.
+  - The two are independent and do occur together (#117 carries both).
+  - **A word in the title is not a marking.** Set the label when the issue is filed. #92 read
+    "ZURÜCKGESTELLT:" in its title and carried no label for months; nothing checked, because
+    nothing could. Noticing that an issue *should* carry one of these labels is worth saying
+    out loud rather than handling silently.
 - **Feature branch + GitHub PR, always.** No direct commits to `master`, no local merges —
   every change lands via a GitHub PR (the PR review action + monitoring doctrine depend on this).
 - **Commits via `/agenticaiplugin:gitme`** (enforced by the guard hook); agents/sub-agents
