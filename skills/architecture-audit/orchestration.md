@@ -283,6 +283,14 @@ Use the definitions from:
 The detected pattern defines the EXPECTED rules against which you evaluate
 your dimension.
 
+## Precedence — documented rules outrank the reconstructed pattern
+Where the project documents its architecture (guidelines, ADRs, README, architecture
+docs), that documented rule wins over the pattern reconstructed from the code —
+including over Phase 1. A contradiction between the two is a finding in its own right:
+report it as such instead of resolving it in favour of the code. Code that violates a
+documented rule consistently is a consistent violation, not a pattern, and a breach of
+the documented architecture NEVER belongs under "What Works Well".
+
 {IF project_guidelines_exist}
 ## Project Guidelines (Context)
 Read: .claude/guidelines/*.md

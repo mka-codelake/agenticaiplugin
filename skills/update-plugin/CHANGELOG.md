@@ -5,6 +5,13 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.33.9
+
+- **The architecture audit rated a documented rule's violation as a pattern, and filed the breaches under *What Works Well* (#91).** Measured across 25 real analyzer runs against a fixture whose documentation demands hexagonal architecture and whose code violates it throughout: where Phase 1 had read the violation as *the* pattern, analyzer 03 rated its consistency **B in 4 of 4 runs** and inverted the enforcement contradiction — not the code was wrong, the tooling was. Analyzers now carry a precedence rule: a documented rule outranks the pattern reconstructed from code, including Phase 1; a contradiction between the two is a finding in its own right; and a breach of the documented architecture never belongs under *What Works Well*. The same six lines flipped the rating to **E/E/E/D in 4 of 4**.
+- **The issue proposed the change in the place where it does nothing.** Phase 1 found the documentation-versus-code contradiction in **7 of 7** runs unaided — even with the docs kept out of the file list and the enforcement tooling unmentioned; one run inferred the rule from a comment in a dependency-cruiser config. Adding the same text there produced no measurable effect, because the baseline was already 100 %. Following the issue would have hardened the working half and left the broken one.
+- **Two of its three complaints were dropped rather than built.** The missing notion of *change* is real but has no measured cost, and an eighth dimension would drag `WEIGHTS`, the rating table and the report structure behind it while shifting the overall grade. The enforcement-reach complaint was found unaided in **25 of 25** runs — all except one part: which expected rules are covered by *no* test at all. That part is now one bullet in analyzer 03, section 3.5, because partial enforcement reads like full enforcement until the gap is named.
+- **The new assertion was confirmed to bite.** Removing the precedence block turns the suite red (`EXIT=1`, exactly the two new tests failing, no others); restoring it returns 276/276 at `EXIT=0`. One test covers the Phase-1-unavailable path, so the rule reaches the prompt in both branches.
+
 ## 0.33.8
 
 - **The tracker skill picked issues without ever looking at their labels.** It cuts blocks out of what is open, and "open" was the whole filter — so an issue the owner had set aside was indistinguishable from one waiting to be worked. It now reads the labels first: `with-owner` may be assessed but never implemented alone, `deferred` is out of scope until reactivated, and the two are independent.

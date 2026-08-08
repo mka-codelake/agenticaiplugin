@@ -45,6 +45,9 @@ Based on the detected pattern, check:
   - ArchUnit tests, dependency-cruiser configs, eslint-plugin-boundaries rules
   - Build system module boundaries (Java modules, Gradle project dependencies)
 - If enforcement exists, do the rules match the expected pattern?
+- Which of the expected rules are covered by **no** enforcement rule or test? Name those
+  rules explicitly — an unenforced rule is where the next drift starts, and partial
+  enforcement reads like full enforcement unless the gap is named
 
 ### 3.6 Dependency Shortcuts
 
