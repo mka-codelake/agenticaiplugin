@@ -5,6 +5,12 @@ All notable changes to the AgenticAI Plugin.
 Format: Machine-readable. Each version is a `## X.Y.Z` section.
 The agent parses this to show the delta between installed and current version.
 
+## 0.33.8
+
+- **The tracker skill picked issues without ever looking at their labels.** It cuts blocks out of what is open, and "open" was the whole filter — so an issue the owner had set aside was indistinguishable from one waiting to be worked. It now reads the labels first: `with-owner` may be assessed but never implemented alone, `deferred` is out of scope until reactivated, and the two are independent.
+- **A word in the title is not a marking, and this repository proved it.** Issue #92 read `ZURÜCKGESTELLT:` in its title, carried no label for months, and kept showing up as normally selectable. Nothing checked — the rule that the label exists for lived in no text at all: a repo-wide grep for it returned exactly one hit, in a gitignored planning file. The skill now says this in the place where the mistake is made, and asks that a missing label be named out loud rather than handled silently.
+- **Projects that name their labels differently are told to learn them first** rather than treat everything open as fair game; a project with no such labels should say so instead of assuming.
+
 ## 0.33.7
 
 - **The autoskill reviewer's write cage answered "yes" in the two cases where it did not know (#122).** `read-guard.mjs` let a `Write`/`Edit` through when the tool input carried no `file_path` — no path, no decision, so no denial — and it kept guarding when `AUTOSKILL_STAGING_DIR` was absent, where `STAGING_DIR` falls back to a fixed path that `lib.mjs` itself marks predictable and world-readable (CWE-377): the cage would then guard a directory nobody prepared, refusing every write to the real staging dir while waving one into the fallback. Both now deny, and both say which of the two it was. Reads stay allowed in the second case — blocking them buys nothing and would break the read-before-write invariant.

@@ -32,6 +32,26 @@ does not: **the issues know things about each other, and none of them says so.**
 
 Anything else names the scope.
 
+## Read the labels before the issues
+
+Some issues are not yours to take, and that is a property of the issue, not of the backlog.
+Two conventional labels carry it:
+
+- **`with-owner`** — may be assessed, never implemented alone. It goes into no block and
+  gets no branch. Bring it to the owner instead.
+- **`deferred`** — out of scope entirely until the owner reactivates it.
+
+Independent of each other, and they do occur together.
+
+**A word in the title is not a marking.** Measured in the plugin's own repository: an issue
+titled "ZURÜCKGESTELLT: …" carried no label for months and kept showing up as normally
+selectable, because nothing checked — the rule existed in nobody's text. If a project uses
+other label names, learn them before cutting the first block; if it uses none, say so rather
+than assuming everything open is fair game.
+
+Noticing mid-run that an issue *should* carry one of these is worth saying out loud, not
+handling silently.
+
 ## Map the couplings first — before any block is cut
 
 **Do this once, over every open issue, before evaluating anything.** It is the step that
