@@ -39,16 +39,19 @@ const BLOCKS = [
   cut(/^const ANALYZERS = \[[\s\S]*?^\];$/m, 'ANALYZERS'),
   cut(/^function isAbsolutePath\([\s\S]*?^\}$/m, 'isAbsolutePath()'),
   cut(/^function requireAbsoluteSkillDir\([\s\S]*?^\}$/m, 'requireAbsoluteSkillDir()'),
+  cut(/^function header\([\s\S]*?^\}$/m, 'header()'),
+  cut(/^function commonContext\([\s\S]*?^\}$/m, 'commonContext()'),
+  cut(/^function buildAnalyzerPrompt\([\s\S]*?^\}$/m, 'buildAnalyzerPrompt()'),
 ];
 
 const sandbox = {};
 vm.createContext(sandbox);
 vm.runInContext(
-  `${BLOCKS.join('\n\n')}\nglobalThis.__extracted = { WEIGHTS, weightedAverage, ANALYZERS, requireAbsoluteSkillDir };`,
+  `${BLOCKS.join('\n\n')}\nglobalThis.__extracted = { WEIGHTS, weightedAverage, ANALYZERS, requireAbsoluteSkillDir, buildAnalyzerPrompt };`,
   sandbox,
   { filename: 'audit.workflow.js (extracted blocks)' }
 );
-const { WEIGHTS, weightedAverage, requireAbsoluteSkillDir } = sandbox.__extracted;
+const { WEIGHTS, weightedAverage, requireAbsoluteSkillDir, buildAnalyzerPrompt } = sandbox.__extracted;
 // Array.from re-homes the registry into this realm — a vm-realm array has a
 // foreign Array.prototype, which deepStrictEqual reports as unequal.
 const ANALYZERS = Array.from(sandbox.__extracted.ANALYZERS);
@@ -142,4 +145,47 @@ test('every analyzer points at a rules file and only uses known model tiers', ()
     assert.ok(['haiku', 'sonnet', 'opus'].includes(a.model), `analyzer ${a.id} model: ${a.model}`);
     assert.ok(WEIGHTS[a.key] !== undefined, `analyzer ${a.id} key ${a.key} has no rating weight`);
   }
+});
+
+// ---- documented rules outrank the reconstructed pattern (#91) -----------
+// Measured defect: when Phase 1 reports a systematic breach of the documented
+// architecture as the detected PATTERN, a Phase 2 analyzer rates the consistency of
+// that breach B and files the violations under "What Works Well". The precedence
+// block is what flipped that to E/D in the counter-measurement, so it has to survive
+// refactors of the prompt builder.
+
+const PROMPT_CTX = {
+  skillDir: '/abs/skills/architecture-audit',
+  projectStructureSummary: 'src/domain, src/adapters',
+  techStackProfile: 'Node',
+  fileList: ['src/domain/order.js'],
+};
+
+const analyzerPrompt = (phase1) =>
+  buildAnalyzerPrompt({ name: 'Dependency Direction', file: '03-dependency-direction.md' }, PROMPT_CTX, phase1);
+
+test('the Phase 2 prompt puts documented rules above the pattern reconstructed from code', () => {
+  const prompt = analyzerPrompt({
+    patternName: 'Hexagonal',
+    confidence: 'Clear',
+    expectedRules: 'the domain imports no adapter',
+    report: 'The domain imports adapters throughout — consistently, so that is the pattern.',
+  });
+  assert.match(prompt, /documented rule wins over the pattern reconstructed from the code/,
+    'the prompt must state that documented architecture outranks the reconstructed pattern');
+  assert.match(prompt, /contradiction between the two is a finding in its own right/,
+    'a doc-vs-code contradiction must be demanded as a finding of its own');
+  assert.match(prompt, /NEVER belongs under "What Works Well"/,
+    'a breach of the documented architecture must be barred from "What Works Well"');
+});
+
+test('the precedence rule also reaches analyzers that got no Phase 1 report', () => {
+  const prompt = analyzerPrompt({
+    patternName: 'Unclear',
+    confidence: 'Unclear',
+    expectedRules: '',
+    report: 'Analysis not available.',
+  });
+  assert.match(prompt, /documented rule wins over the pattern reconstructed from the code/);
+  assert.match(prompt, /NEVER belongs under "What Works Well"/);
 });
